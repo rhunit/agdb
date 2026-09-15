@@ -12,6 +12,8 @@ interface KpiRowProps {
   avgScoreReviewCount?: number;
   avgScoreDelta: number;
   reviewCount: number;
+  reviewCountIsLive?: boolean;
+  reviewCountCapped?: boolean;
   reviewCountDelta: number;
   responseRatio: number;
   openCount: number;
@@ -29,6 +31,8 @@ export function KpiRow({
   avgScoreReviewCount = 0,
   avgScoreDelta,
   reviewCount,
+  reviewCountIsLive = false,
+  reviewCountCapped = false,
   reviewCountDelta,
   responseRatio,
   openCount,
@@ -54,12 +58,25 @@ export function KpiRow({
         )}
       </div>
       <div className={styles.tile}>
-        <div className={styles.label}>NIEUWE REVIEWS</div>
-        <div className={styles.value}>{reviewCount}</div>
-        <div className={deltaClass(reviewCountDelta)}>
-          {reviewCountDelta >= 0 ? "+" : "−"}
-          {Math.abs(reviewCountDelta)} vs vorige week
+        <div className={styles.label}>
+          NIEUWE REVIEWS
+          {reviewCountIsLive && <span className={styles.liveBadge}>LIVE</span>}
         </div>
+        <div className={styles.value}>
+          {reviewCountCapped ? `${reviewCount}+` : reviewCount}
+        </div>
+        {reviewCountIsLive ? (
+          <div className={styles.deltaMuted}>
+            {reviewCountCapped
+              ? "Limiet bereikt — mogelijk meer"
+              : "Laatste 7 dagen (live)"}
+          </div>
+        ) : (
+          <div className={deltaClass(reviewCountDelta)}>
+            {reviewCountDelta >= 0 ? "+" : "−"}
+            {Math.abs(reviewCountDelta)} vs vorige week
+          </div>
+        )}
       </div>
       <div className={styles.tile}>
         <div className={styles.label}>REACTIERATIO</div>

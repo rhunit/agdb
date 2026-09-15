@@ -9,9 +9,10 @@ const CACHE_FILE = join(DATA_DIR, "places-cache.json");
 
 // Interim data source: the Places API (New) needs only an API key (no
 // OAuth, no manual Google approval) and can already surface a location's
-// real average rating + total review count while we wait on Business
-// Profile API access. It cannot tell us response status or exact weekly
-// review counts, so we only use it for the average-score KPI.
+// real average rating, total review count, and (an approximation of)
+// recent review volume while we wait on Business Profile API access. It
+// never exposes reply/response status — that's exclusive to the v4
+// Reviews API — so response-ratio stays mock until then.
 //
 // Text search matches across the whole of Google Maps, not just listings
 // the account manages — a vague query can silently match a different,
@@ -90,12 +91,20 @@ export interface PlaceReview {
   rating: number;
   text: string;
   relativeTime: string;
+  publishTime: string | null;
 }
 
 export interface PlaceSummary {
   rating: number | null;
   userRatingCount: number;
   reviews: PlaceReview[];
+  /** How many of the (max 5) returned reviews were published in the last
+   * 7 days. Not a true weekly count — see newReviewsCapped. */
+  newReviewsLast7d: number;
+  /** True when every review we got back is within the last 7 days AND we
+   * hit the API's 5-review cap — there may be more we can't see, so
+   * newReviewsLast7d is a floor, not an exact count. */
+  newReviewsCapped: boolean;
 }
 
 interface PlaceDetailsResponse {
@@ -106,11 +115,18 @@ interface PlaceDetailsResponse {
     rating?: number;
     text?: { text?: string };
     relativePublishTimeDescription?: string;
+    publishTime?: string;
   }[];
 }
 
+const REVIEW_CAP = 5;
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+
 async function getPlaceDetails(placeId: string): Promise<PlaceSummary> {
-  const res = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
+  const url = new URL(`https://places.googleapis.com/v1/places/${placeId}`);
+  url.searchParams.set("reviewsSort", "newest");
+
+  const res = await fetch(url, {
     headers: {
       "X-Goog-Api-Key": requireApiKey(),
       "X-Goog-FieldMask": "rating,userRatingCount,reviews",
@@ -122,15 +138,26 @@ async function getPlaceDetails(placeId: string): Promise<PlaceSummary> {
   }
   const data = (await res.json()) as PlaceDetailsResponse;
 
+  const reviews: PlaceReview[] = (data.reviews ?? []).map((r) => ({
+    authorName: r.authorAttribution?.displayName ?? "Anoniem",
+    rating: r.rating ?? 0,
+    text: r.text?.text ?? "",
+    relativeTime: r.relativePublishTimeDescription ?? "",
+    publishTime: r.publishTime ?? null,
+  }));
+
+  const now = Date.now();
+  const newReviewsLast7d = reviews.filter(
+    (r) => r.publishTime && now - new Date(r.publishTime).getTime() <= SEVEN_DAYS_MS,
+  ).length;
+  const newReviewsCapped = reviews.length >= REVIEW_CAP && newReviewsLast7d === reviews.length;
+
   return {
     rating: data.rating ?? null,
     userRatingCount: data.userRatingCount ?? 0,
-    reviews: (data.reviews ?? []).map((r) => ({
-      authorName: r.authorAttribution?.displayName ?? "Anoniem",
-      rating: r.rating ?? 0,
-      text: r.text?.text ?? "",
-      relativeTime: r.relativePublishTimeDescription ?? "",
-    })),
+    reviews,
+    newReviewsLast7d,
+    newReviewsCapped,
   };
 }
 

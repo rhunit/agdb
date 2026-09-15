@@ -62,6 +62,22 @@ export function useDashboardData(
     const responseRatio =
       reviews.length > 0 ? (respondedCount / reviews.length) * 100 : 0;
 
+    // Hybrid count: use the live (last-7-days, Places-derived) number for
+    // any location we have live data for, mock for the rest — so "Alle
+    // locaties" stays meaningful while only some locations are connected.
+    const liveLocationIds = new Set(
+      livePlaces ? locations.filter((id) => livePlaces[id] != null) : [],
+    );
+    const reviewCountIsLive = liveLocationIds.size > 0;
+    const reviewCountCapped = locations.some(
+      (id) => liveLocationIds.has(id) && livePlaces?.[id]?.newReviewsCapped,
+    );
+
+    const reviewCount = locations.reduce((sum, id) => {
+      if (liveLocationIds.has(id)) return sum + (livePlaces![id]!.newReviewsLast7d);
+      return sum + REVIEWS.filter((r) => r.location === id).length;
+    }, 0);
+
     const previousReviewCount = locations.reduce(
       (sum, id) => sum + PREVIOUS_WEEK_REVIEW_COUNT[id],
       0,
@@ -98,8 +114,10 @@ export function useDashboardData(
       avgScoreIsLive,
       avgScoreReviewCount,
       avgScoreDelta: avgScore - previousAvgScore,
-      reviewCount: reviews.length,
-      reviewCountDelta: reviews.length - previousReviewCount,
+      reviewCount,
+      reviewCountIsLive,
+      reviewCountCapped,
+      reviewCountDelta: reviewCount - previousReviewCount,
       responseRatio,
       openCount,
       criticalCount: criticalReviews.length,

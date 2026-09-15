@@ -16,7 +16,10 @@ export interface LivePlaceSummary {
     rating: number;
     text: string;
     relativeTime: string;
+    publishTime: string | null;
   }[];
+  newReviewsLast7d: number;
+  newReviewsCapped: boolean;
 }
 
 /** True only when a backend URL is configured — lets the app run standalone
