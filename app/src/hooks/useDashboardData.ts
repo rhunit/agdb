@@ -19,7 +19,7 @@ function includedLocations(filter: LocationFilter): LocationId[] {
 export function useDashboardData(
   filter: LocationFilter,
   searchViewsOverride?: SearchViewsWeek[] | null,
-  livePlaces?: Record<LocationId, LivePlaceSummary> | null,
+  livePlaces?: Partial<Record<LocationId, LivePlaceSummary>> | null,
 ) {
   const searchViewsSource =
     searchViewsOverride && searchViewsOverride.length > 0

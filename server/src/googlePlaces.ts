@@ -12,11 +12,18 @@ const CACHE_FILE = join(DATA_DIR, "places-cache.json");
 // real average rating + total review count while we wait on Business
 // Profile API access. It cannot tell us response status or exact weekly
 // review counts, so we only use it for the average-score KPI.
-const SEARCH_QUERIES: Record<InternalLocationId, string> = {
-  centrum: "AG Coffeeshop Centrum, Amsterdam",
-  oost: "AG Coffeeshop Oost, Amsterdam",
-  depijp: "AG Coffeeshop De Pijp, Amsterdam",
+//
+// Text search matches across the whole of Google Maps, not just listings
+// the account manages — a vague query can silently match a different,
+// unrelated business. Only query locations where we have the exact name
+// + full address confirmed by the user; a name-only guess is not safe
+// enough to trust the resulting rating/review numbers.
+const SEARCH_QUERIES: Partial<Record<InternalLocationId, string>> = {
+  centrum: "Coffeeshop BIJ Amsterdam, Bonairestraat 78, 1058 XL Amsterdam",
 };
+
+/** Only fetch locations we have a verified query for — see note above. */
+const ACTIVE_LOCATIONS = Object.keys(SEARCH_QUERIES) as InternalLocationId[];
 
 interface PlaceCache {
   [locationId: string]: { placeId: string; resolvedAt: string };
@@ -45,6 +52,11 @@ function requireApiKey(): string {
 async function resolvePlaceId(
   locationId: InternalLocationId,
 ): Promise<string> {
+  const query = SEARCH_QUERIES[locationId];
+  if (!query) {
+    throw new Error(`No verified Places query configured for "${locationId}"`);
+  }
+
   const cache = loadCache();
   const cached = cache[locationId];
   if (cached) return cached.placeId;
@@ -56,7 +68,7 @@ async function resolvePlaceId(
       "X-Goog-Api-Key": requireApiKey(),
       "X-Goog-FieldMask": "places.id,places.displayName",
     },
-    body: JSON.stringify({ textQuery: SEARCH_QUERIES[locationId] }),
+    body: JSON.stringify({ textQuery: query }),
   });
 
   if (!res.ok) {
@@ -65,7 +77,7 @@ async function resolvePlaceId(
   const data = (await res.json()) as { places?: { id: string }[] };
   const placeId = data.places?.[0]?.id;
   if (!placeId) {
-    throw new Error(`No place found for "${SEARCH_QUERIES[locationId]}"`);
+    throw new Error(`No place found for "${query}"`);
   }
 
   cache[locationId] = { placeId, resolvedAt: new Date().toISOString() };
@@ -123,14 +135,13 @@ async function getPlaceDetails(placeId: string): Promise<PlaceSummary> {
 }
 
 export async function getAllPlacesSummaries(): Promise<
-  Record<InternalLocationId, PlaceSummary>
+  Partial<Record<InternalLocationId, PlaceSummary>>
 > {
-  const ids: InternalLocationId[] = ["centrum", "oost", "depijp"];
   const entries = await Promise.all(
-    ids.map(async (id) => {
+    ACTIVE_LOCATIONS.map(async (id) => {
       const placeId = await resolvePlaceId(id);
       return [id, await getPlaceDetails(placeId)] as const;
     }),
   );
-  return Object.fromEntries(entries) as Record<InternalLocationId, PlaceSummary>;
+  return Object.fromEntries(entries);
 }

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { fetchLivePlacesSummary, hasLiveBackend, type LivePlaceSummary } from "../lib/api";
 import type { LocationId } from "../types";
 
-type PlacesSummaryMap = Record<LocationId, LivePlaceSummary>;
+type PlacesSummaryMap = Partial<Record<LocationId, LivePlaceSummary>>;
 
 interface LivePlacesState {
   data: PlacesSummaryMap | null;

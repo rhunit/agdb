@@ -15,7 +15,7 @@ const LOCATION_DASH: Record<LocationId, string | undefined> = {
 };
 
 const LOCATION_LABEL: Record<LocationId, string> = {
-  centrum: "Centrum",
+  centrum: "BIJ Amsterdam",
   oost: "Oost",
   depijp: "De Pijp",
 };

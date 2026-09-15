@@ -58,15 +58,14 @@ export async function fetchLiveSearchViews(): Promise<SearchViewsWeek[] | null> 
   }
 }
 
-export async function fetchLivePlacesSummary(): Promise<Record<
-  LocationId,
-  LivePlaceSummary
+export async function fetchLivePlacesSummary(): Promise<Partial<
+  Record<LocationId, LivePlaceSummary>
 > | null> {
   if (!API_BASE) return null;
   try {
     const res = await fetch(`${API_BASE}/api/places-summary`);
     if (!res.ok) return null;
-    return (await res.json()) as Record<LocationId, LivePlaceSummary>;
+    return (await res.json()) as Partial<Record<LocationId, LivePlaceSummary>>;
   } catch {
     return null;
   }

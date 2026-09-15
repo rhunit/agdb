@@ -7,7 +7,9 @@ import type {
 } from "../types";
 
 export const LOCATIONS: Location[] = [
-  { id: "centrum", name: "AG Coffeeshop Centrum" },
+  // Verified real location for testing the live Places API integration —
+  // see server/src/googlePlaces.ts.
+  { id: "centrum", name: "Coffeeshop BIJ Amsterdam" },
   { id: "oost", name: "AG Coffeeshop Oost" },
   { id: "depijp", name: "AG Coffeeshop De Pijp" },
 ];
