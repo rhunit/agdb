@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useDashboardData, type LocationFilter } from "../hooks/useDashboardData";
+import { useLiveSearchViews } from "../hooks/useLiveSearchViews";
 import { KpiRow } from "./KpiRow";
 import { ReviewFeed } from "./ReviewFeed";
 import { Sidebar } from "./Sidebar";
@@ -11,7 +12,8 @@ import styles from "./Dashboard.module.css";
 
 export function Dashboard() {
   const [filter, setFilter] = useState<LocationFilter>("all");
-  const data = useDashboardData(filter);
+  const liveSearchViews = useLiveSearchViews();
+  const data = useDashboardData(filter, liveSearchViews.data);
 
   return (
     <div className={styles.shell}>
@@ -43,6 +45,7 @@ export function Dashboard() {
               locations={data.locations}
               total={data.searchViewsTotal}
               deltaPct={data.searchViewsDeltaPct}
+              isLive={liveSearchViews.isLive}
             />
           </div>
 

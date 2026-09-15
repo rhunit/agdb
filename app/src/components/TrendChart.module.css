@@ -17,6 +17,18 @@
 .title {
   font: var(--fs-label-lg);
   color: var(--ag-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.liveBadge {
+  font: var(--fs-label-sm);
+  letter-spacing: var(--ls-label-sm);
+  background: var(--ag-primary);
+  color: var(--ag-neutral);
+  padding: 2px 8px;
+  border-radius: var(--r-full);
 }
 
 .subtitle {

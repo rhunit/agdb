@@ -31,6 +31,7 @@ interface TrendChartProps {
   locations: LocationId[];
   total: number;
   deltaPct: number;
+  isLive?: boolean;
 }
 
 const VB_WIDTH = 620;
@@ -53,6 +54,7 @@ export function TrendChart({
   locations,
   total,
   deltaPct,
+  isLive = false,
 }: TrendChartProps) {
   const allValues = series.flatMap((point) =>
     locations.map((id) => point.byLocation[id]),
@@ -67,7 +69,10 @@ export function TrendChart({
     <div className={styles.card}>
       <div className={styles.header}>
         <div>
-          <div className={styles.title}>Zoekweergaven per locatie</div>
+          <div className={styles.title}>
+            Zoekweergaven per locatie
+            {isLive && <span className={styles.liveBadge}>LIVE</span>}
+          </div>
           <div className={styles.subtitle}>
             laatste 8 weken · {series[0]?.week}–{series[series.length - 1]?.week}
           </div>

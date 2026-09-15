@@ -7,7 +7,7 @@ import {
   SEARCH_VIEWS,
   WEEKLY_LOG,
 } from "../data/mockData";
-import type { LocationId } from "../types";
+import type { LocationId, SearchViewsWeek } from "../types";
 
 export type LocationFilter = LocationId | "all";
 
@@ -15,7 +15,15 @@ function includedLocations(filter: LocationFilter): LocationId[] {
   return filter === "all" ? LOCATIONS.map((l) => l.id) : [filter];
 }
 
-export function useDashboardData(filter: LocationFilter) {
+export function useDashboardData(
+  filter: LocationFilter,
+  searchViewsOverride?: SearchViewsWeek[] | null,
+) {
+  const searchViewsSource =
+    searchViewsOverride && searchViewsOverride.length > 0
+      ? searchViewsOverride
+      : SEARCH_VIEWS;
+
   return useMemo(() => {
     const locations = includedLocations(filter);
     const locationSet = new Set(locations);
@@ -45,7 +53,7 @@ export function useDashboardData(filter: LocationFilter) {
 
     const criticalReviews = reviews.filter((r) => r.rating <= 2);
 
-    const searchViewsSeries = SEARCH_VIEWS.map((week) => ({
+    const searchViewsSeries = searchViewsSource.map((week) => ({
       week: week.week,
       total: locations.reduce((sum, id) => sum + week[id], 0),
       byLocation: Object.fromEntries(
@@ -87,5 +95,5 @@ export function useDashboardData(filter: LocationFilter) {
       logEntryCount: logEntries.length,
       logWeekCount: distinctWeeks.size,
     };
-  }, [filter]);
+  }, [filter, searchViewsSource]);
 }
