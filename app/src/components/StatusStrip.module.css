@@ -1,0 +1,46 @@
+.strip {
+  background: var(--ag-green-bg);
+  border: 1px solid var(--ag-green-border);
+  border-left: 6px solid var(--ag-green);
+  border-radius: 8px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--ag-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Archivo, sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  color: #ffffff;
+  flex: 0 0 30px;
+}
+
+.headline {
+  font-family: Archivo, sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--ag-green-dark);
+}
+
+.sub {
+  font-size: 13px;
+  color: var(--ag-green-text);
+}
+
+.status {
+  margin-left: auto;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  color: #4e7248;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}

@@ -1,0 +1,135 @@
+.card {
+  background: var(--ag-bg-subtle);
+  border: 1px solid var(--ag-border);
+  border-radius: 8px;
+  padding: 18px 20px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--ag-divider);
+  flex-wrap: wrap;
+}
+
+.title {
+  font-family: Archivo, sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.appendOnly {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  background: var(--ag-unknown-bg);
+  border: 1px solid var(--ag-unknown-border);
+  color: var(--ag-unknown-text);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.count {
+  margin-left: auto;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  color: var(--ag-text-muted);
+}
+
+.empty {
+  padding: 20px 0;
+  font-size: 13px;
+  color: var(--ag-text-muted);
+}
+
+.timeline {
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.row {
+  display: flex;
+  gap: 18px;
+}
+
+.weekLabel {
+  flex: 0 0 92px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ag-brown);
+  padding-top: 2px;
+}
+
+.timelineTrack {
+  flex: 1;
+  min-width: 0;
+  border-left: 2px solid var(--ag-border);
+  padding: 0 0 22px 20px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.row:last-child .timelineTrack {
+  padding-bottom: 4px;
+}
+
+.dot {
+  position: absolute;
+  left: -6px;
+  top: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--ag-bg-subtle);
+}
+
+.entry {
+  background: var(--ag-bg-card);
+  border: 1px solid var(--ag-border);
+  border-radius: 6px;
+  padding: 12px 14px;
+}
+
+.entryHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.entryLocation {
+  font-size: 12px;
+  color: var(--ag-brown);
+  font-weight: 600;
+}
+
+.entryMeta {
+  margin-left: auto;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  color: var(--ag-text-muted);
+}
+
+.entryNote {
+  font-size: 13px;
+  color: var(--ag-text-body);
+  line-height: 1.55;
+  margin-top: 6px;
+}
+
+.footnote {
+  border-top: 1px solid var(--ag-divider);
+  margin-top: 6px;
+  padding-top: 12px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  color: var(--ag-text-muted);
+  letter-spacing: 0.04em;
+}

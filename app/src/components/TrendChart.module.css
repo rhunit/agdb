@@ -1,0 +1,97 @@
+.card {
+  background: var(--ag-bg-card);
+  border: 1px solid var(--ag-border);
+  border-radius: 8px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.title {
+  font-family: Archivo, sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.subtitle {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  color: var(--ag-text-muted);
+}
+
+.deltaPill {
+  margin-left: auto;
+  background: var(--ag-green-bg);
+  border: 1px solid var(--ag-green-border);
+  color: var(--ag-green-dark);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.legend {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--ag-text-body);
+  flex-wrap: wrap;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legendSwatch {
+  width: 10px;
+  height: 3px;
+}
+
+.svg {
+  width: 100%;
+  height: 240px;
+  overflow: visible;
+}
+
+.breakdown {
+  border-top: 1px solid var(--ag-divider);
+  padding-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+
+.breakdownLabel {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  color: var(--ag-text-muted);
+}
+
+.breakdownValue {
+  font-family: Archivo, sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+}
+
+.breakdownDelta {
+  font-size: 11px;
+  color: var(--ag-green-deep);
+  font-weight: 600;
+}
+
+.totalNote {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  color: var(--ag-text-muted);
+}
