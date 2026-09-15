@@ -1,0 +1,85 @@
+.sidebar {
+  width: 224px;
+  flex: 0 0 224px;
+  background: var(--ag-primary);
+  padding: var(--sp-md) var(--sp-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-md);
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100vh;
+}
+
+@media (max-width: 860px) {
+  .sidebar {
+    position: static;
+    align-self: stretch;
+    height: auto;
+  }
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+}
+
+.mark {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: var(--r-full);
+  background: var(--ag-neutral);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: var(--fs-label-md);
+  font-weight: 700;
+  color: var(--ag-primary-strong);
+}
+
+.brandName {
+  font: var(--fs-label-md);
+  font-weight: 700;
+  color: var(--ag-secondary);
+}
+
+.brandSub {
+  font: var(--fs-body-sm);
+  font-size: 12px;
+  color: var(--ag-secondary);
+  opacity: 0.85;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.navItem {
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  color: var(--ag-secondary);
+  opacity: 0.85;
+  font: var(--fs-nav-link);
+  cursor: default;
+}
+
+.navItemActive {
+  background: rgba(255, 255, 255, 0.32);
+  opacity: 1;
+  font-weight: 700;
+}
+
+.footer {
+  margin-top: auto;
+  border-top: 1px solid rgba(77, 57, 53, 0.25);
+  padding-top: var(--sp-sm);
+  font: var(--fs-body-sm);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ag-secondary);
+}

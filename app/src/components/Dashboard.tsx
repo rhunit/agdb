@@ -2,9 +2,9 @@ import { useState } from "react";
 import { useDashboardData, type LocationFilter } from "../hooks/useDashboardData";
 import { KpiRow } from "./KpiRow";
 import { ReviewFeed } from "./ReviewFeed";
+import { Sidebar } from "./Sidebar";
 import { StatusStrip } from "./StatusStrip";
 import { Topbar } from "./Topbar";
-import { TopNav } from "./TopNav";
 import { TrendChart } from "./TrendChart";
 import { WeeklyLog } from "./WeeklyLog";
 import styles from "./Dashboard.module.css";
@@ -15,7 +15,7 @@ export function Dashboard() {
 
   return (
     <div className={styles.shell}>
-      <TopNav />
+      <Sidebar />
       <div className={styles.main}>
         <Topbar
           selected={filter}

@@ -37,22 +37,21 @@
   --r-xl: 24px;
   --r-full: 9999px;
 
-  /* Typography */
-  --font-open: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  /* Typography — Helvetica Neue throughout (Open Sans dropped per request) */
   --font-neue: "Helvetica Neue", Helvetica, Arial, sans-serif;
 
-  --fs-headline-display: 700 34px/41px var(--font-open);
+  --fs-headline-display: 700 34px/41px var(--font-neue);
   --fs-headline-lg: 600 29px/41px var(--font-neue);
   --fs-headline-md: 600 25px/29px var(--font-neue);
-  --fs-headline-sm: 600 21px/25px var(--font-open);
+  --fs-headline-sm: 600 21px/25px var(--font-neue);
   --fs-body-lg: 400 18px/32px var(--font-neue);
   --fs-body-md: 400 16px/28px var(--font-neue);
   --fs-body-sm: 400 14px/22px var(--font-neue);
-  --fs-label-lg: 700 18px/24px var(--font-open);
-  --fs-label-md: 400 16px/24px var(--font-open);
-  --fs-label-sm: 600 12px/16px var(--font-open);
+  --fs-label-lg: 700 18px/24px var(--font-neue);
+  --fs-label-md: 400 16px/24px var(--font-neue);
+  --fs-label-sm: 600 12px/16px var(--font-neue);
   --ls-label-sm: 0.02em;
-  --fs-nav-link: 400 16px/24px var(--font-open);
+  --fs-nav-link: 400 16px/24px var(--font-neue);
   --fs-button-text: 700 18px/24px var(--font-neue);
 
   color-scheme: light;

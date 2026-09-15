@@ -131,7 +131,7 @@ export function TrendChart({
             key={i}
             x={scaleX(i, series.length)}
             y="224"
-            fontFamily="Open Sans, Helvetica Neue, Helvetica, Arial, sans-serif"
+            fontFamily="Helvetica Neue, Helvetica, Arial, sans-serif"
             fontSize="11"
             fontWeight="600"
             fill="#6f5d58"
