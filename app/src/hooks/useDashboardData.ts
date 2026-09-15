@@ -70,11 +70,19 @@ export function useDashboardData(
     const mockReviews = REVIEWS.filter((r) => locationSet.has(r.location));
 
     // What the feed actually displays: real Places reviews for any
-    // location we have live data for, mock reviews for the rest.
+    // location we have live data for, mock reviews for the rest. Places
+    // has no way to guarantee "newest" — it returns 5 "most relevant"
+    // reviews, which are often old, high-engagement ones. Showing those
+    // under "Nieuwe reviews deze week" would be misleading, so live
+    // reviews older than 7 days are dropped here rather than displayed
+    // with a false recency claim; a location with none inside that
+    // window just contributes nothing, which is the honest outcome.
     const reviews = locations
       .flatMap((id) => {
         const live = livePlaces?.[id];
-        return live ? liveReviewsFor(id, live) : mockReviews.filter((r) => r.location === id);
+        return live
+          ? liveReviewsFor(id, live).filter((r) => r.daysAgo <= 7)
+          : mockReviews.filter((r) => r.location === id);
       })
       .sort((a, b) => a.daysAgo - b.daysAgo);
 
