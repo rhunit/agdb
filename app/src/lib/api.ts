@@ -8,6 +8,17 @@ export interface LiveLocation {
   name: string;
 }
 
+export interface LivePlaceSummary {
+  rating: number | null;
+  userRatingCount: number;
+  reviews: {
+    authorName: string;
+    rating: number;
+    text: string;
+    relativeTime: string;
+  }[];
+}
+
 /** True only when a backend URL is configured — lets the app run standalone
  * on mock data with zero setup, and switch on live data once a backend
  * exists. */
@@ -42,6 +53,20 @@ export async function fetchLiveSearchViews(): Promise<SearchViewsWeek[] | null> 
     return Object.entries(raw)
       .map(([week, byLocation]) => ({ week, ...byLocation }))
       .sort((a, b) => weekSortKey(a.week) - weekSortKey(b.week));
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchLivePlacesSummary(): Promise<Record<
+  LocationId,
+  LivePlaceSummary
+> | null> {
+  if (!API_BASE) return null;
+  try {
+    const res = await fetch(`${API_BASE}/api/places-summary`);
+    if (!res.ok) return null;
+    return (await res.json()) as Record<LocationId, LivePlaceSummary>;
   } catch {
     return null;
   }

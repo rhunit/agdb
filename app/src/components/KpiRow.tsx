@@ -8,6 +8,8 @@ import styles from "./KpiRow.module.css";
 
 interface KpiRowProps {
   avgScore: number;
+  avgScoreIsLive?: boolean;
+  avgScoreReviewCount?: number;
   avgScoreDelta: number;
   reviewCount: number;
   reviewCountDelta: number;
@@ -23,6 +25,8 @@ function deltaClass(value: number): string {
 
 export function KpiRow({
   avgScore,
+  avgScoreIsLive = false,
+  avgScoreReviewCount = 0,
   avgScoreDelta,
   reviewCount,
   reviewCountDelta,
@@ -34,11 +38,20 @@ export function KpiRow({
   return (
     <div className={styles.row}>
       <div className={styles.tile}>
-        <div className={styles.label}>GEMIDDELDE SCORE</div>
-        <div className={styles.value}>{formatDutchDecimal(avgScore)}</div>
-        <div className={deltaClass(avgScoreDelta)}>
-          {formatSignedDecimal(avgScoreDelta)} vs vorige week
+        <div className={styles.label}>
+          GEMIDDELDE SCORE
+          {avgScoreIsLive && <span className={styles.liveBadge}>LIVE</span>}
         </div>
+        <div className={styles.value}>{formatDutchDecimal(avgScore)}</div>
+        {avgScoreIsLive ? (
+          <div className={styles.deltaMuted}>
+            Gebaseerd op {formatDutchInt(avgScoreReviewCount)} Google-reviews
+          </div>
+        ) : (
+          <div className={deltaClass(avgScoreDelta)}>
+            {formatSignedDecimal(avgScoreDelta)} vs vorige week
+          </div>
+        )}
       </div>
       <div className={styles.tile}>
         <div className={styles.label}>NIEUWE REVIEWS</div>

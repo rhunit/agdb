@@ -8,6 +8,7 @@ import {
   isConnected,
 } from "./googleAuth.js";
 import { getWeeklySearchViews, listLocations } from "./googleBusinessProfile.js";
+import { getAllPlacesSummaries } from "./googlePlaces.js";
 
 const app = express();
 const PORT = Number(process.env.PORT ?? 8787);
@@ -56,6 +57,18 @@ app.get("/api/search-views", async (_req, res) => {
     const locations = await listLocations(auth);
     const weekly = await getWeeklySearchViews(auth, locations);
     res.json(weekly);
+  } catch (err) {
+    console.error(err);
+    res.status(503).json({ error: (err as Error).message });
+  }
+});
+
+// Interim data source while Business Profile API access is pending: needs
+// only GOOGLE_PLACES_API_KEY, no OAuth, no manual Google approval.
+app.get("/api/places-summary", async (_req, res) => {
+  try {
+    const summaries = await getAllPlacesSummaries();
+    res.json(summaries);
   } catch (err) {
     console.error(err);
     res.status(503).json({ error: (err as Error).message });

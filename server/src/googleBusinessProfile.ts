@@ -28,7 +28,22 @@ async function listAccounts(auth: OAuth2Client) {
   return res.data.accounts ?? [];
 }
 
+// The account-management quota is extremely tight by default (a handful of
+// requests per minute), so cache the location list in memory for a few
+// minutes rather than re-fetching it on every request that needs it.
+let locationsCache: { data: DiscoveredLocation[]; fetchedAt: number } | null = null;
+const LOCATIONS_CACHE_MS = 5 * 60 * 1000;
+
 export async function listLocations(auth: OAuth2Client): Promise<DiscoveredLocation[]> {
+  if (locationsCache && Date.now() - locationsCache.fetchedAt < LOCATIONS_CACHE_MS) {
+    return locationsCache.data;
+  }
+  const result = await fetchLocations(auth);
+  locationsCache = { data: result, fetchedAt: Date.now() };
+  return result;
+}
+
+async function fetchLocations(auth: OAuth2Client): Promise<DiscoveredLocation[]> {
   const accounts = await listAccounts(auth);
   const info = google.mybusinessbusinessinformation({ version: "v1", auth });
 

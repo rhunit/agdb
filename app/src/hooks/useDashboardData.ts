@@ -7,6 +7,7 @@ import {
   SEARCH_VIEWS,
   WEEKLY_LOG,
 } from "../data/mockData";
+import type { LivePlaceSummary } from "../lib/api";
 import type { LocationId, SearchViewsWeek } from "../types";
 
 export type LocationFilter = LocationId | "all";
@@ -18,6 +19,7 @@ function includedLocations(filter: LocationFilter): LocationId[] {
 export function useDashboardData(
   filter: LocationFilter,
   searchViewsOverride?: SearchViewsWeek[] | null,
+  livePlaces?: Record<LocationId, LivePlaceSummary> | null,
 ) {
   const searchViewsSource =
     searchViewsOverride && searchViewsOverride.length > 0
@@ -32,10 +34,24 @@ export function useDashboardData(
       (a, b) => a.daysAgo - b.daysAgo,
     );
 
-    const avgScore =
-      reviews.length > 0
+    const liveRatings = livePlaces
+      ? locations
+          .map((id) => livePlaces[id])
+          .filter((p): p is LivePlaceSummary => Boolean(p && p.rating !== null))
+      : [];
+    const avgScoreIsLive = livePlaces != null && liveRatings.length > 0;
+
+    const avgScore = avgScoreIsLive
+      ? liveRatings.reduce((sum, p) => sum + p.rating! * p.userRatingCount, 0) /
+        liveRatings.reduce((sum, p) => sum + p.userRatingCount, 0)
+      : reviews.length > 0
         ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
         : 0;
+
+    const avgScoreReviewCount = liveRatings.reduce(
+      (sum, p) => sum + p.userRatingCount,
+      0,
+    );
 
     const previousAvgScore =
       locations.reduce((sum, id) => sum + PREVIOUS_WEEK_AVG_SCORE[id], 0) /
@@ -79,6 +95,8 @@ export function useDashboardData(
       locations,
       reviews,
       avgScore,
+      avgScoreIsLive,
+      avgScoreReviewCount,
       avgScoreDelta: avgScore - previousAvgScore,
       reviewCount: reviews.length,
       reviewCountDelta: reviews.length - previousReviewCount,
@@ -95,5 +113,5 @@ export function useDashboardData(
       logEntryCount: logEntries.length,
       logWeekCount: distinctWeeks.size,
     };
-  }, [filter, searchViewsSource]);
+  }, [filter, searchViewsSource, livePlaces]);
 }

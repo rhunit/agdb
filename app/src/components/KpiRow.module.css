@@ -15,6 +15,18 @@
   font: var(--fs-label-sm);
   letter-spacing: var(--ls-label-sm);
   color: var(--ag-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.liveBadge {
+  font: var(--fs-label-sm);
+  letter-spacing: var(--ls-label-sm);
+  background: var(--ag-primary);
+  color: var(--ag-neutral);
+  padding: 1px 7px;
+  border-radius: var(--r-full);
 }
 
 .value {
