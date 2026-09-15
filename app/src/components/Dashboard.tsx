@@ -35,8 +35,6 @@ export function Dashboard() {
             avgScoreReviewCount={data.avgScoreReviewCount}
             avgScoreDelta={data.avgScoreDelta}
             reviewCount={data.reviewCount}
-            reviewCountIsLive={data.reviewCountIsLive}
-            reviewCountCapped={data.reviewCountCapped}
             reviewCountDelta={data.reviewCountDelta}
             responseRatio={data.responseRatio}
             openCount={data.openCount}
