@@ -43,7 +43,11 @@ export function Dashboard() {
           />
 
           <div className={styles.split}>
-            <ReviewFeed reviews={data.reviews} showLocation={filter === "all"} />
+            <ReviewFeed
+              reviews={data.reviews}
+              showLocation={filter === "all"}
+              isLive={data.locations.some((id) => livePlaces.data?.[id] != null)}
+            />
             <TrendChart
               series={data.searchViewsSeries}
               locations={data.locations}

@@ -9,13 +9,17 @@ const LOCATION_NAME = new Map(LOCATIONS.map((l) => [l.id, l.name]));
 interface ReviewFeedProps {
   reviews: Review[];
   showLocation: boolean;
+  isLive?: boolean;
 }
 
-export function ReviewFeed({ reviews, showLocation }: ReviewFeedProps) {
+export function ReviewFeed({ reviews, showLocation, isLive = false }: ReviewFeedProps) {
   return (
     <div className={styles.card}>
       <div className={styles.header}>
-        <div className={styles.title}>Nieuwe reviews deze week</div>
+        <div className={styles.title}>
+          Nieuwe reviews deze week
+          {isLive && <span className={styles.liveBadge}>LIVE</span>}
+        </div>
         <div className={styles.count}>{reviews.length} totaal</div>
         <a href="#" className={styles.viewAll} onClick={(e) => e.preventDefault()}>
           Alles bekijken

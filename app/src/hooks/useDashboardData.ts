@@ -8,12 +8,46 @@ import {
   WEEKLY_LOG,
 } from "../data/mockData";
 import type { LivePlaceSummary } from "../lib/api";
-import type { LocationId, SearchViewsWeek } from "../types";
+import type { LocationId, Review, SearchViewsWeek } from "../types";
 
 export type LocationFilter = LocationId | "all";
 
 function includedLocations(filter: LocationFilter): LocationId[] {
   return filter === "all" ? LOCATIONS.map((l) => l.id) : [filter];
+}
+
+function initialsFrom(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  const initials = parts
+    .slice(0, 2)
+    .map((p) => p[0])
+    .join("");
+  return initials.toUpperCase() || "?";
+}
+
+function daysAgoFrom(publishTime: string | null): number {
+  if (!publishTime) return 999;
+  const ms = Date.now() - new Date(publishTime).getTime();
+  return Math.max(0, Math.floor(ms / (24 * 60 * 60 * 1000)));
+}
+
+/** Converts a location's real Places reviews into the feed's Review shape.
+ * Source/confidence are honestly "onbekend" — Places has no concept of
+ * how a review came in, and "responded" is left false but these reviews
+ * are never used for reactieratio (that stays mock-only, see below). */
+function liveReviewsFor(locationId: LocationId, summary: LivePlaceSummary): Review[] {
+  return summary.reviews.map((r, i) => ({
+    id: `live-${locationId}-${i}`,
+    location: locationId,
+    reviewer: r.authorName,
+    initials: initialsFrom(r.authorName),
+    rating: Math.min(5, Math.max(1, Math.round(r.rating))) as Review["rating"],
+    snippet: r.text,
+    source: "onbekend",
+    confidence: "onbekend",
+    daysAgo: daysAgoFrom(r.publishTime),
+    responded: false,
+  }));
 }
 
 export function useDashboardData(
@@ -30,9 +64,19 @@ export function useDashboardData(
     const locations = includedLocations(filter);
     const locationSet = new Set(locations);
 
-    const reviews = REVIEWS.filter((r) => locationSet.has(r.location)).sort(
-      (a, b) => a.daysAgo - b.daysAgo,
-    );
+    // Used for reactieratio / critical-review detection — always the mock
+    // set, regardless of live status, since response status isn't
+    // available from Places at all (see reviewCount comment below).
+    const mockReviews = REVIEWS.filter((r) => locationSet.has(r.location));
+
+    // What the feed actually displays: real Places reviews for any
+    // location we have live data for, mock reviews for the rest.
+    const reviews = locations
+      .flatMap((id) => {
+        const live = livePlaces?.[id];
+        return live ? liveReviewsFor(id, live) : mockReviews.filter((r) => r.location === id);
+      })
+      .sort((a, b) => a.daysAgo - b.daysAgo);
 
     const liveRatings = livePlaces
       ? locations
@@ -44,8 +88,8 @@ export function useDashboardData(
     const avgScore = avgScoreIsLive
       ? liveRatings.reduce((sum, p) => sum + p.rating! * p.userRatingCount, 0) /
         liveRatings.reduce((sum, p) => sum + p.userRatingCount, 0)
-      : reviews.length > 0
-        ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+      : mockReviews.length > 0
+        ? mockReviews.reduce((sum, r) => sum + r.rating, 0) / mockReviews.length
         : 0;
 
     const avgScoreReviewCount = liveRatings.reduce(
@@ -57,17 +101,20 @@ export function useDashboardData(
       locations.reduce((sum, id) => sum + PREVIOUS_WEEK_AVG_SCORE[id], 0) /
       locations.length;
 
-    const respondedCount = reviews.filter((r) => r.responded).length;
-    const openCount = reviews.length - respondedCount;
+    // Reactieratio stays purely mock-derived — Places has no concept of
+    // reply status, so a live review's `responded: false` is a stand-in,
+    // not real data, and must not affect this percentage.
+    const respondedCount = mockReviews.filter((r) => r.responded).length;
+    const openCount = mockReviews.length - respondedCount;
     const responseRatio =
-      reviews.length > 0 ? (respondedCount / reviews.length) * 100 : 0;
+      mockReviews.length > 0 ? (respondedCount / mockReviews.length) * 100 : 0;
 
-    // Not wired to Places data: the API's default "most relevant" review
-    // selection can omit a genuinely brand-new review entirely (low
-    // engagement, first-time reviewer), so a last-7-days count derived from
-    // it can undercount all the way to a misleading 0. Stays mock until the
-    // v4 Reviews API gives a complete, ordered list.
-    const reviewCount = reviews.length;
+    // Also stays mock: the API's default "most relevant" review selection
+    // can omit a genuinely brand-new review entirely (low engagement,
+    // first-time reviewer), so a last-7-days count derived from it can
+    // undercount all the way to a misleading 0. Wait for the v4 Reviews
+    // API's complete, ordered list instead.
+    const reviewCount = mockReviews.length;
 
     const previousReviewCount = locations.reduce(
       (sum, id) => sum + PREVIOUS_WEEK_REVIEW_COUNT[id],
