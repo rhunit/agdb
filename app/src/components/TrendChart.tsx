@@ -3,9 +3,15 @@ import type { LocationId } from "../types";
 import styles from "./TrendChart.module.css";
 
 const LOCATION_COLOR: Record<LocationId, string> = {
-  centrum: "#3caa36",
+  centrum: "#38b449",
   oost: "#4d3935",
-  depijp: "#c8a02a",
+  depijp: "#6f5d58",
+};
+
+const LOCATION_DASH: Record<LocationId, string | undefined> = {
+  centrum: undefined,
+  oost: undefined,
+  depijp: "5 4",
 };
 
 const LOCATION_LABEL: Record<LocationId, string> = {
@@ -84,11 +90,11 @@ export function TrendChart({
       </div>
 
       <svg viewBox={`0 0 ${VB_WIDTH} 240`} className={styles.svg}>
-        <line x1="0" y1="10" x2="620" y2="10" stroke="#efede8" strokeWidth="1" />
-        <line x1="0" y1="65" x2="620" y2="65" stroke="#efede8" strokeWidth="1" />
-        <line x1="0" y1="120" x2="620" y2="120" stroke="#efede8" strokeWidth="1" />
-        <line x1="0" y1="175" x2="620" y2="175" stroke="#efede8" strokeWidth="1" />
-        <line x1="0" y1="205" x2="620" y2="205" stroke="#dcd7cc" strokeWidth="1" />
+        <line x1="0" y1="10" x2="620" y2="10" stroke="#e5e7eb" strokeWidth="1" />
+        <line x1="0" y1="65" x2="620" y2="65" stroke="#e5e7eb" strokeWidth="1" />
+        <line x1="0" y1="120" x2="620" y2="120" stroke="#e5e7eb" strokeWidth="1" />
+        <line x1="0" y1="175" x2="620" y2="175" stroke="#e5e7eb" strokeWidth="1" />
+        <line x1="0" y1="205" x2="620" y2="205" stroke="#d8dade" strokeWidth="1" />
 
         {locations.map((id) => {
           const points = series
@@ -113,6 +119,7 @@ export function TrendChart({
                 stroke={LOCATION_COLOR[id]}
                 strokeWidth="2.5"
                 strokeLinejoin="round"
+                strokeDasharray={LOCATION_DASH[id]}
               />
               <circle cx={lastX} cy={lastY} r="4" fill={LOCATION_COLOR[id]} />
             </g>
@@ -124,9 +131,10 @@ export function TrendChart({
             key={i}
             x={scaleX(i, series.length)}
             y="224"
-            fontFamily="IBM Plex Mono, monospace"
-            fontSize="10"
-            fill="#6e635c"
+            fontFamily="Open Sans, Helvetica Neue, Helvetica, Arial, sans-serif"
+            fontSize="11"
+            fontWeight="600"
+            fill="#6f5d58"
           >
             {series[i]?.week}
           </text>

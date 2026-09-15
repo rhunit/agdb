@@ -1,48 +1,45 @@
 .card {
-  background: var(--ag-bg-card);
+  background: var(--ag-surface);
   border: 1px solid var(--ag-border);
-  border-radius: 8px;
-  padding: 18px 20px;
+  border-radius: var(--r-md);
+  padding: var(--sp-md);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--sp-sm);
 }
 
 .header {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: var(--sp-sm);
 }
 
 .title {
-  font-family: Archivo, sans-serif;
-  font-weight: 700;
-  font-size: 16px;
+  font: var(--fs-label-lg);
+  color: var(--ag-secondary);
 }
 
 .subtitle {
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 11px;
-  color: var(--ag-text-muted);
+  font: var(--fs-body-sm);
+  color: var(--ag-muted);
 }
 
 .deltaPill {
   margin-left: auto;
-  background: var(--ag-green-bg);
-  border: 1px solid var(--ag-green-border);
-  color: var(--ag-green-dark);
-  font-size: 12px;
-  font-weight: 700;
-  padding: 5px 10px;
-  border-radius: 6px;
+  background: var(--ag-primary-bg);
+  border: 1px solid var(--ag-primary-border);
+  color: var(--ag-primary-strong);
+  font: var(--fs-label-sm);
+  padding: 5px var(--sp-sm);
+  border-radius: var(--r-full);
   white-space: nowrap;
 }
 
 .legend {
   display: flex;
-  gap: 16px;
-  font-size: 12px;
-  color: var(--ag-text-body);
+  gap: var(--sp-md);
+  font: var(--fs-body-sm);
+  color: var(--ag-secondary);
   flex-wrap: wrap;
 }
 
@@ -64,34 +61,32 @@
 }
 
 .breakdown {
-  border-top: 1px solid var(--ag-divider);
-  padding-top: 12px;
+  border-top: 1px solid var(--ag-border);
+  padding-top: var(--sp-sm);
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
-  gap: 10px;
+  gap: var(--sp-sm);
   align-items: end;
 }
 
 .breakdownLabel {
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 10px;
-  color: var(--ag-text-muted);
+  font: var(--fs-label-sm);
+  letter-spacing: var(--ls-label-sm);
+  color: var(--ag-muted);
 }
 
 .breakdownValue {
-  font-family: Archivo, sans-serif;
-  font-weight: 700;
-  font-size: 17px;
+  font: var(--fs-label-lg);
+  color: var(--ag-secondary);
 }
 
 .breakdownDelta {
-  font-size: 11px;
-  color: var(--ag-green-deep);
+  font: var(--fs-body-sm);
+  color: var(--ag-primary-strong);
   font-weight: 600;
 }
 
 .totalNote {
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 11px;
-  color: var(--ag-text-muted);
+  font: var(--fs-body-sm);
+  color: var(--ag-muted);
 }

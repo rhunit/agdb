@@ -44,7 +44,8 @@ export function WeeklyLog({ entries, weekCount }: WeeklyLogProps) {
                 <div
                   className={styles.dot}
                   style={{
-                    background: i === 0 ? "var(--ag-green)" : "#b6ada5",
+                    background:
+                      i === 0 ? "var(--ag-primary)" : "var(--ag-tertiary)",
                   }}
                 />
                 {group.entries.map((entry) => (

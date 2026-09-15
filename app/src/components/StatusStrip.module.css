@@ -1,46 +1,40 @@
 .strip {
-  background: var(--ag-green-bg);
-  border: 1px solid var(--ag-green-border);
-  border-left: 6px solid var(--ag-green);
-  border-radius: 8px;
-  padding: 16px 20px;
+  background: var(--ag-primary-bg);
+  border: 1px solid var(--ag-primary-border);
+  border-radius: var(--r-md);
+  padding: var(--sp-sm) var(--sp-md);
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--sp-md);
 }
 
 .icon {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: var(--ag-green);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-full);
+  background: var(--ag-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: Archivo, sans-serif;
-  font-weight: 800;
-  font-size: 15px;
-  color: #ffffff;
-  flex: 0 0 30px;
+  font: var(--fs-label-lg);
+  color: var(--ag-neutral);
+  flex: 0 0 32px;
 }
 
 .headline {
-  font-family: Archivo, sans-serif;
-  font-weight: 700;
-  font-size: 16px;
-  color: var(--ag-green-dark);
+  font: var(--fs-label-lg);
+  color: var(--ag-primary-strong);
 }
 
 .sub {
-  font-size: 13px;
-  color: var(--ag-green-text);
+  font: var(--fs-body-sm);
+  color: var(--ag-secondary);
 }
 
 .status {
   margin-left: auto;
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 11px;
-  color: #4e7248;
-  letter-spacing: 0.06em;
+  font: var(--fs-label-sm);
+  letter-spacing: var(--ls-label-sm);
+  color: var(--ag-primary-strong);
   white-space: nowrap;
 }

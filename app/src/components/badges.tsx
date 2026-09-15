@@ -7,34 +7,34 @@ const SOURCE_META: Record<
 > = {
   organisch: {
     label: "Organisch",
-    bg: "var(--ag-green-bg)",
-    border: "var(--ag-green-border)",
-    text: "var(--ag-green-dark)",
+    bg: "var(--ag-primary-bg)",
+    border: "var(--ag-primary-border)",
+    text: "var(--ag-primary-strong)",
   },
   qr: {
     label: "QR-scan",
-    bg: "var(--ag-gold-bg)",
-    border: "var(--ag-gold-border)",
-    text: "var(--ag-gold-text)",
+    bg: "var(--ag-neutral-100)",
+    border: "var(--ag-border)",
+    text: "var(--ag-secondary)",
   },
   smoke: {
     label: "Smoke Session",
-    bg: "var(--ag-brown-bg)",
-    border: "var(--ag-brown-border)",
-    text: "var(--ag-brown)",
+    bg: "var(--ag-neutral-200)",
+    border: "var(--ag-border)",
+    text: "var(--ag-secondary)",
   },
   onbekend: {
     label: "Onbekend",
-    bg: "var(--ag-unknown-bg)",
-    border: "var(--ag-unknown-border)",
-    text: "var(--ag-unknown-text)",
+    bg: "var(--ag-neutral)",
+    border: "var(--ag-border)",
+    text: "var(--ag-muted)",
   },
 };
 
 const CONFIDENCE_META: Record<Confidence, { label: string; dot: string }> = {
-  bevestigd: { label: "bevestigd", dot: "var(--ag-green)" },
-  vermoedelijk: { label: "vermoedelijk", dot: "var(--ag-gold)" },
-  onbekend: { label: "onbekend", dot: "#b6ada5" },
+  bevestigd: { label: "bevestigd", dot: "var(--ag-primary)" },
+  vermoedelijk: { label: "vermoedelijk", dot: "var(--ag-muted)" },
+  onbekend: { label: "onbekend", dot: "var(--ag-tertiary)" },
 };
 
 export function SourceBadge({ source }: { source: ReviewSource }) {

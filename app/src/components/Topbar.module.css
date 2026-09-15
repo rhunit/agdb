@@ -1,64 +1,61 @@
 .topbar {
-  background: var(--ag-bg-card);
+  background: var(--ag-surface);
   border-bottom: 1px solid var(--ag-border);
-  padding: 16px 28px 0;
+  padding: var(--sp-md) var(--sp-lg) 0;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--sp-sm);
 }
 
 .row {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--sp-md);
 }
 
 .title {
-  font-family: Archivo, sans-serif;
-  font-weight: 700;
-  font-size: 20px;
+  font: var(--fs-headline-md);
+  color: var(--ag-secondary);
 }
 
 .updated {
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 11px;
-  color: var(--ag-text-muted);
+  font: var(--fs-body-sm);
+  color: var(--ag-muted);
 }
 
 .rightControls {
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--sp-sm);
 }
 
 .rangePill {
-  border: 1px solid var(--ag-border-strong);
-  border-radius: 6px;
-  padding: 7px 12px;
-  font-size: 13px;
-  color: var(--ag-brown);
-  background: var(--ag-bg-subtle);
+  border: 1px solid var(--ag-border);
+  border-radius: var(--r-full);
+  padding: var(--sp-xs) var(--sp-sm);
+  font: var(--fs-label-md);
+  color: var(--ag-secondary);
+  background: var(--ag-surface);
 }
 
 .userAvatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--ag-green-bg);
-  border: 1px solid var(--ag-green-border);
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-full);
+  background: var(--ag-primary-bg);
+  border: 1px solid var(--ag-primary-border);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: Archivo, sans-serif;
-  font-size: 12px;
+  font: var(--fs-label-md);
   font-weight: 700;
-  color: var(--ag-green-deep);
+  color: var(--ag-primary-strong);
 }
 
 .tabs {
   display: flex;
-  gap: 4px;
+  gap: var(--sp-md);
   overflow-x: auto;
 }
 
@@ -66,22 +63,20 @@
   appearance: none;
   background: none;
   border: none;
-  border-bottom: 3px solid transparent;
-  padding: 10px 16px 12px;
-  font-size: 14px;
-  color: var(--ag-text-muted);
-  font-family: Karla, sans-serif;
+  border-bottom: 2px solid transparent;
+  padding: var(--sp-sm) 0 var(--sp-sm);
+  font: var(--fs-nav-link);
+  color: var(--ag-muted);
   cursor: pointer;
   white-space: nowrap;
 }
 
 .tab:hover {
-  color: var(--ag-text);
+  color: var(--ag-secondary);
 }
 
 .tabActive {
   font-weight: 700;
-  font-family: Archivo, sans-serif;
-  color: var(--ag-text);
-  border-bottom-color: var(--ag-green);
+  color: var(--ag-primary-strong);
+  border-bottom-color: var(--ag-primary);
 }

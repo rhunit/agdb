@@ -1,8 +1,8 @@
 .sourceBadge {
-  font-size: 11px;
-  font-weight: 700;
-  padding: 3px 9px;
-  border-radius: 999px;
+  font: var(--fs-label-sm);
+  letter-spacing: var(--ls-label-sm);
+  padding: 3px var(--sp-sm);
+  border-radius: var(--r-full);
   border: 1px solid;
   white-space: nowrap;
 }
@@ -11,15 +11,14 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 10px;
-  color: var(--ag-text-muted);
+  font: var(--fs-body-sm);
+  color: var(--ag-muted);
 }
 
 .confidenceDot {
   width: 6px;
   height: 6px;
-  border-radius: 50%;
+  border-radius: var(--r-full);
   flex: 0 0 6px;
 }
 
@@ -29,9 +28,9 @@
 }
 
 .starFilled {
-  color: var(--ag-gold-text-strong);
+  color: var(--ag-secondary);
 }
 
 .starEmpty {
-  color: #bdb4a9;
+  color: var(--ag-tertiary);
 }
