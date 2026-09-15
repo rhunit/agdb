@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Karla:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  body { margin: 0; background: #E9E6DF; -webkit-font-smoothing: antialiased; }
+  a { color: #24651F; text-decoration: none; }
+  a:hover { color: #3CAA36; }
+</style>
+</helmet>
+
+<div style="padding: 56px 64px 96px; background: #E9E6DF; font-family: Karla, Helvetica, sans-serif; color: #241B19; display: flex; flex-direction: column; gap: 64px;">
+
+  <section style="display: flex; flex-direction: column; gap: 56px;">
+
+    <div style="display: flex; align-items: flex-end; gap: 28px; flex-wrap: wrap; border-bottom: 1px solid #D6D1C5; padding-bottom: 24px;">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div style="width: 44px; height: 44px; border-radius: 50%; background: #24651F; border: 2px solid #C8A02A; display: flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-weight: 800; font-size: 16px; color: #E8C24A; letter-spacing: 0.5px;">AG</div>
+        <div>
+          <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 22px; letter-spacing: -0.2px;">Review Radar — intern dashboard</div>
+          <div style="font-size: 14px; color: #6E635C;">Amsterdam Genetics · Google Business Profile monitoring voor marketing &amp; operations</div>
+        </div>
+      </div>
+      <div style="margin-left: auto; display: flex; gap: 20px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E635C; text-transform: uppercase; letter-spacing: 0.08em;">
+        <span><a href="#1a">1a</a> normaal</span>
+        <span><a href="#1b">1b</a> urgent</span>
+        <span><a href="#1c">1c</a> weekly update</span>
+        <span><a href="#1d">1d</a> push</span>
+      </div>
+    </div>
+
+    <!-- ============ 1a — DASHBOARD, NORMALE STAAT ============ -->
+    <div id="1a" style="display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.1em; background: #241B19; color: #E8C24A; padding: 4px 9px; border-radius: 4px;">1A</span>
+        <span style="font-family: Archivo, sans-serif; font-weight: 600; font-size: 15px;">Hoofddashboard · normale staat</span>
+        <span style="font-size: 13px; color: #6E635C;">geen 1–2 sterren reviews · 1440 × 1024</span>
+      </div>
+
+      <div style="width: 1440px; background: #FFFFFF; border: 1px solid #D6D1C5; border-radius: 10px; overflow: hidden; box-shadow: 0 18px 40px -24px rgba(36,27,25,0.35); display: flex;">
+
+        <!-- sidebar -->
+        <div style="width: 224px; flex: 0 0 224px; background: #2E2320; padding: 22px 18px; display: flex; flex-direction: column; gap: 26px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 34px; height: 34px; border-radius: 50%; background: #3CAA36; border: 2px solid #C8A02A; display: flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-weight: 800; font-size: 13px; color: #1C3F17;">AG</div>
+            <div>
+              <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 13px; color: #F5F1E8; letter-spacing: 0.02em;">REVIEW RADAR</div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: #A2938A; letter-spacing: 0.12em;">SINCE 1985</div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 3px;">
+            <div style="padding: 10px 12px; border-radius: 6px; background: #3E2F2B; color: #F5F1E8; font-size: 14px; font-weight: 600; border-left: 3px solid #C8A02A;">Dashboard</div>
+            <div style="padding: 10px 12px; border-radius: 6px; color: #BFB2A8; font-size: 14px;">Alle reviews</div>
+            <div style="padding: 10px 12px; border-radius: 6px; color: #BFB2A8; font-size: 14px;">Weekly update</div>
+            <div style="padding: 10px 12px; border-radius: 6px; color: #BFB2A8; font-size: 14px;">Locaties</div>
+            <div style="padding: 10px 12px; border-radius: 6px; color: #BFB2A8; font-size: 14px;">Instellingen</div>
+          </div>
+          <div style="margin-top: auto; border-top: 1px solid #453531; padding-top: 16px; display: flex; gap: 10px; align-items: flex-start;">
+            <div style="width: 26px; height: 26px; flex: 0 0 26px; border-radius: 50%; background: #C8A02A; display: flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-size: 11px; font-weight: 800; color: #2E2320;">PH</div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; line-height: 1.6; color: #9C8D83;">Professor Harvest:<br />“Get smart, before you get high.”</div>
+          </div>
+        </div>
+
+        <!-- main -->
+        <div style="flex: 1; min-width: 0; background: #F7F5F0; display: flex; flex-direction: column;">
+
+          <!-- topbar -->
+          <div style="background: #FFFFFF; border-bottom: 1px solid #E4DFD4; padding: 16px 28px 0; display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: flex; align-items: center; gap: 16px;">
+              <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 20px;">Overzicht reviews</div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E635C;">bijgewerkt 08-09-2026 · 08:15</div>
+              <div style="margin-left: auto; display: flex; align-items: center; gap: 10px;">
+                <div style="border: 1px solid #DCD7CC; border-radius: 6px; padding: 7px 12px; font-size: 13px; color: #4D3935; background: #FBFAF7;">Laatste 7 dagen</div>
+                <div style="width: 32px; height: 32px; border-radius: 50%; background: #EFF5EA; border: 1px solid #CBE4C4; display: flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-size: 12px; font-weight: 700; color: #24651F;">LV</div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 4px;">
+              <div style="padding: 10px 16px 12px; font-size: 14px; font-weight: 700; font-family: Archivo, sans-serif; color: #241B19; border-bottom: 3px solid #3CAA36;">Alle locaties</div>
+              <div style="padding: 10px 16px 12px; font-size: 14px; color: #6E635C; border-bottom: 3px solid transparent;">AG Coffeeshop Centrum</div>
+              <div style="padding: 10px 16px 12px; font-size: 14px; color: #6E635C; border-bottom: 3px solid transparent;">AG Coffeeshop Oost</div>
+              <div style="padding: 10px 16px 12px; font-size: 14px; color: #6E635C; border-bottom: 3px solid transparent;">AG Coffeeshop De Pijp</div>
+            </div>
+          </div>
+
+          <div style="padding: 22px 28px 32px; display: flex; flex-direction: column; gap: 20px;">
+
+            <!-- calm status strip -->
+            <div style="background: #EFF5EA; border: 1px solid #CBE4C4; border-left: 6px solid #3CAA36; border-radius: 8px; padding: 16px 20px; display: flex; align-items: center; gap: 16px;">
+              <div style="width: 30px; height: 30px; border-radius: 50%; background: #3CAA36; display: flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-weight: 800; font-size: 15px; color: #FFFFFF;">✓</div>
+              <div>
+                <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 16px; color: #1C4A18;">Geen 1–2 sterren reviews in de laatste 7 dagen</div>
+                <div style="font-size: 13px; color: #3C6136;">Alle 23 nieuwe reviews zijn 3 sterren of hoger. Volgende automatische controle om 12:00.</div>
+              </div>
+              <div style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #4E7248; letter-spacing: 0.06em;">STATUS · RUSTIG</div>
+            </div>
+
+            <!-- kpi row -->
+            <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px;">
+              <div style="background: #FFFFFF; border: 1px solid #E4DFD4; border-radius: 8px; padding: 16px 18px;">
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #6E635C;">GEMIDDELDE SCORE</div>
+                <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 30px; margin-top: 6px;">4,6</div>
+                <div style="font-size: 12px; color: #24651F; font-weight: 600;">+0,1 vs vorige week</div>
+              </div>
+              <div style="background: #FFFFFF; border: 1px solid #E4DFD4; border-radius: 8px; padding: 16px 18px;">
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #6E635C;">NIEUWE REVIEWS</div>
+                <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 30px; margin-top: 6px;">23</div>
+                <div style="font-size: 12px; color: #24651F; font-weight: 600;">+4 vs vorige week</div>
+              </div>
+              <div style="background: #FFFFFF; border: 1px solid #E4DFD4; border-radius: 8px; padding: 16px 18px;">
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #6E635C;">REACTIERATIO</div>
+                <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 30px; margin-top: 6px;">92%</div>
+                <div style="font-size: 12px; color: #6E635C; font-weight: 600;">2 open reacties</div>
+              </div>
+              <div style="background: #FFFFFF; border: 1px solid #E4DFD4; border-radius: 8px; padding: 16px 18px;">
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #6E635C;">ZOEKWEERGAVEN</div>
+                <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 30px; margin-top: 6px;">14.208</div>
+                <div style="font-size: 12px; color: #24651F; font-weight: 600;">+8,3% vs vorige week</div>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 18px;">
+
+              <!-- feed -->
+              <div style="background: #FFFFFF; border: 1px solid #E4DFD4; border-radius: 8px; padding: 18px 20px 8px;">
+                <div style="display: flex; align-items: baseline; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid #EAE6DD;">
+                  <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 16px;">Nieuwe reviews deze week</div>
+                  <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E635C;">23 totaal</div>
+                  <a href="#1a" style="margin-left: auto; font-size: 13px; font-weight: 600;">Alles bekijken</a>
+                </div>
+
+                <div style="display: flex; gap: 14px; padding: 15px 0; border-bottom: 1px solid #EAE6DD;">
+                  <div style="width: 38px; height: 38px; flex: 0 0 38px; border-radius: 50%; background: #F1EEE6; border: 1px solid #E2DED5; display: flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-size: 12px; font-weight: 700; color: #4D3935;">SB</div>
+                  <div style="min-width: 0; flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="font-family: Archivo, sans-serif; font-weight: 600; font-size: 14px;">Sanne Bakker</span>
+                      <span style="color: #7A5E0E; font-size: 13px; letter-spacing: 1px;">★★★★★</span>
+                      <span style="font-size: 12px; color: #6E635C;">· AG Coffeeshop Centrum</span>
+                    </div>
+                    <div style="font-size: 13px; color: #574B47; line-height: 1.5; margin-top: 3px; text-wrap: pretty;">“Vriendelijk personeel en het advies over de landrace strains was echt top.”</div>
+                  </div>
+                  <div style="flex: 0 0 168px; display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
+                    <span style="background: #EAF4E6; border: 1px solid #CBE4C4; color: #1C4A18; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px;">Organisch</span>
+                    <span style="display: flex; align-items: center; gap: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #3CAA36;"></span>bevestigd</span>
+                    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;">1 dag geleden</span>
+                  </div>
+                </div>
+
+                <div style="display: flex; gap: 14px; padding: 15px 0; border-bottom: 1px solid #EAE6DD;">
+                  <div style="width: 38px; height: 38px; flex: 0 0 38px; border-radius: 50%; background: #F1EEE6; border: 1px solid #E2DED5; display: flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-size: 12px; font-weight: 700; color: #4D3935;">YE</div>
+                  <div style="min-width: 0; flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="font-family: Archivo, sans-serif; font-weight: 600; font-size: 14px;">Youssef El Amrani</span>
+                      <span style="color: #7A5E0E; font-size: 13px; letter-spacing: 1px;">★★★★<span style="color: #BDB4A9;">★</span></span>
+                      <span style="font-size: 12px; color: #6E635C;">· AG Coffeeshop Oost</span>
+                    </div>
+                    <div style="font-size: 13px; color: #574B47; line-height: 1.5; margin-top: 3px; text-wrap: pretty;">“Snel geholpen, maar het was wel erg druk rond 17:00.”</div>
+                  </div>
+                  <div style="flex: 0 0 168px; display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
+                    <span style="background: #F8F0D8; border: 1px solid #E9DCB0; color: #6B5209; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px;">QR-scan</span>
+                    <span style="display: flex; align-items: center; gap: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #C8A02A;"></span>vermoedelijk</span>
+                    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;">2 dagen geleden</span>
+                  </div>
+                </div>
+
+                <div style="display: flex; gap: 14px; padding: 15px 0; border-bottom: 1px solid #EAE6DD;">
+                  <div style="width: 38px; height: 38px; flex: 0 0 38px; border-radius: 50%; background: #F1EEE6; border: 1px solid #E2DED5; display: flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-size: 12px; font-weight: 700; color: #4D3935;">MV</div>
+                  <div style="min-width: 0; flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="font-family: Archivo, sans-serif; font-weight: 600; font-size: 14px;">Merel de Vries</span>
+                      <span style="color: #7A5E0E; font-size: 13px; letter-spacing: 1px;">★★★★★</span>
+                      <span style="font-size: 12px; color: #6E635C;">· AG Coffeeshop De Pijp</span>
+                    </div>
+                    <div style="font-size: 13px; color: #574B47; line-height: 1.5; margin-top: 3px; text-wrap: pretty;">“Via de Smoke Session binnengelopen — uitleg over terpenen was verhelderend.”</div>
+                  </div>
+                  <div style="flex: 0 0 168px; display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
+                    <span style="background: #F2EBE7; border: 1px solid #E0D3CC; color: #4D3935; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px;">Smoke Session</span>
+                    <span style="display: flex; align-items: center; gap: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #3CAA36;"></span>bevestigd</span>
+                    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;">3 dagen geleden</span>
+                  </div>
+                </div>
+
+                <div style="display: flex; gap: 14px; padding: 15px 0; border-bottom: 1px solid #EAE6DD;">
+                  <div style="width: 38px; height: 38px; flex: 0 0 38px; border-radius: 50%; background: #F1EEE6; border: 1px solid #E2DED5; display: flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-size: 12px; font-weight: 700; color: #4D3935;">TK</div>
+                  <div style="min-width: 0; flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="font-family: Archivo, sans-serif; font-weight: 600; font-size: 14px;">Thijs Kuiper</span>
+                      <span style="color: #7A5E0E; font-size: 13px; letter-spacing: 1px;">★★★<span style="color: #BDB4A9;">★★</span></span>
+                      <span style="font-size: 12px; color: #6E635C;">· AG Coffeeshop Centrum</span>
+                    </div>
+                    <div style="font-size: 13px; color: #574B47; line-height: 1.5; margin-top: 3px; text-wrap: pretty;">“Goede kwaliteit, prijzen iets hoger dan verwacht.”</div>
+                  </div>
+                  <div style="flex: 0 0 168px; display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
+                    <span style="background: #EFEDE8; border: 1px solid #E2DED5; color: #6E655F; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px;">Onbekend</span>
+                    <span style="display: flex; align-items: center; gap: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #B6ADA5;"></span>onbekend</span>
+                    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;">5 dagen geleden</span>
+                  </div>
+                </div>
+
+                <div style="display: flex; gap: 14px; padding: 15px 0;">
+                  <div style="width: 38px; height: 38px; flex: 0 0 38px; border-radius: 50%; background: #F1EEE6; border: 1px solid #E2DED5; display: flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-size: 12px; font-weight: 700; color: #4D3935;">FO</div>
+                  <div style="min-width: 0; flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="font-family: Archivo, sans-serif; font-weight: 600; font-size: 14px;">Fatima Ouahid</span>
+                      <span style="color: #7A5E0E; font-size: 13px; letter-spacing: 1px;">★★★★★</span>
+                      <span style="font-size: 12px; color: #6E635C;">· AG Coffeeshop Oost</span>
+                    </div>
+                    <div style="font-size: 13px; color: #574B47; line-height: 1.5; margin-top: 3px; text-wrap: pretty;">“Beste uitleg over CBD die ik in Amsterdam heb gehad.”</div>
+                  </div>
+                  <div style="flex: 0 0 168px; display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
+                    <span style="background: #EAF4E6; border: 1px solid #CBE4C4; color: #1C4A18; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px;">Organisch</span>
+                    <span style="display: flex; align-items: center; gap: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #3CAA36;"></span>bevestigd</span>
+                    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;">6 dagen geleden</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- chart -->
+              <div style="background: #FFFFFF; border: 1px solid #E4DFD4; border-radius: 8px; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px;">
+                <div style="display: flex; align-items: flex-start; gap: 12px;">
+                  <div>
+                    <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 16px;">Zoekweergaven per locatie</div>
+                    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E635C;">laatste 8 weken · W29–W36</div>
+                  </div>
+                  <div style="margin-left: auto; background: #EFF5EA; border: 1px solid #CBE4C4; color: #1C4A18; font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 6px;">+8,3% vs vorige week</div>
+                </div>
+                <div style="display: flex; gap: 16px; font-size: 12px; color: #574B47;">
+                  <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 3px; background: #3CAA36;"></span>Centrum</span>
+                  <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 3px; background: #4D3935;"></span>Oost</span>
+                  <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 3px; background: #C8A02A;"></span>De Pijp</span>
+                </div>
+                <svg viewBox="0 0 620 240" style="width: 100%; height: 240px; overflow: visible;">
+                  <line x1="0" y1="10" x2="620" y2="10" stroke="#EFEDE8" stroke-width="1"></line>
+                  <line x1="0" y1="65" x2="620" y2="65" stroke="#EFEDE8" stroke-width="1"></line>
+                  <line x1="0" y1="120" x2="620" y2="120" stroke="#EFEDE8" stroke-width="1"></line>
+                  <line x1="0" y1="175" x2="620" y2="175" stroke="#EFEDE8" stroke-width="1"></line>
+                  <line x1="0" y1="205" x2="620" y2="205" stroke="#DCD7CC" stroke-width="1"></line>
+                  <polyline points="20,120 106,112 192,126 278,100 364,92 450,86 536,72 600,58" fill="none" stroke="#3CAA36" stroke-width="2.5" stroke-linejoin="round"></polyline>
+                  <polyline points="20,158 106,150 192,155 278,140 364,146 450,132 536,128 600,118" fill="none" stroke="#4D3935" stroke-width="2.5" stroke-linejoin="round"></polyline>
+                  <polyline points="20,182 106,176 192,168 278,172 364,158 450,150 536,152 600,140" fill="none" stroke="#C8A02A" stroke-width="2.5" stroke-linejoin="round"></polyline>
+                  <circle cx="600" cy="58" r="4" fill="#3CAA36"></circle>
+                  <circle cx="600" cy="118" r="4" fill="#4D3935"></circle>
+                  <circle cx="600" cy="140" r="4" fill="#C8A02A"></circle>
+                  <text x="20" y="224" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6E635C">W29</text>
+                  <text x="192" y="224" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6E635C">W31</text>
+                  <text x="364" y="224" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6E635C">W33</text>
+                  <text x="536" y="224" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6E635C">W35</text>
+                </svg>
+                <div style="border-top: 1px solid #EAE6DD; padding-top: 12px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
+                  <div>
+                    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;">CENTRUM</div>
+                    <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 17px;">6.940</div>
+                    <div style="font-size: 11px; color: #24651F; font-weight: 600;">+11,2%</div>
+                  </div>
+                  <div>
+                    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;">OOST</div>
+                    <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 17px;">4.115</div>
+                    <div style="font-size: 11px; color: #24651F; font-weight: 600;">+6,4%</div>
+                  </div>
+                  <div>
+                    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;">DE PIJP</div>
+                    <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 17px;">3.153</div>
+                    <div style="font-size: 11px; color: #24651F; font-weight: 600;">+4,1%</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- weekly log / audit trail -->
+            <div style="background: #FBFAF7; border: 1px solid #E4DFD4; border-radius: 8px; padding: 18px 20px;">
+              <div style="display: flex; align-items: center; gap: 10px; padding-bottom: 14px; border-bottom: 1px solid #EAE6DD;">
+                <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 16px;">Weeklog · handmatige updates</div>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; background: #EFEDE8; border: 1px solid #E2DED5; color: #6E655F; padding: 3px 8px; border-radius: 4px;">APPEND-ONLY</span>
+                <div style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E635C;">14 entries · 6 weken</div>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 0; padding-top: 16px;">
+
+                <div style="display: flex; gap: 18px;">
+                  <div style="flex: 0 0 92px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; color: #4D3935; padding-top: 2px;">2026-W36</div>
+                  <div style="flex: 1; min-width: 0; border-left: 2px solid #E4DFD4; padding: 0 0 22px 20px; position: relative; display: flex; flex-direction: column; gap: 10px;">
+                    <div style="position: absolute; left: -6px; top: 4px; width: 10px; height: 10px; background: #3CAA36; border: 2px solid #FBFAF7;"></div>
+                    <div style="background: #FFFFFF; border: 1px solid #E4DFD4; border-radius: 6px; padding: 12px 14px;">
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="background: #F2EBE7; border: 1px solid #E0D3CC; color: #4D3935; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px;">Smoke Session</span>
+                        <span style="font-size: 12px; color: #4D3935; font-weight: 600;">AG Coffeeshop Centrum</span>
+                        <span style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;">Lotte Verhoeven · 07-09-2026 16:42</span>
+                      </div>
+                      <div style="font-size: 13px; color: #574B47; line-height: 1.55; margin-top: 6px;">Session met 8 gasten rond de nieuwe White Choco. Drie gasten gaven aan een review te laten; twee QR-kaartjes meegegeven.</div>
+                    </div>
+                    <div style="background: #FFFFFF; border: 1px solid #E4DFD4; border-radius: 6px; padding: 12px 14px;">
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="background: #F8F0D8; border: 1px solid #E9DCB0; color: #6B5209; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px;">QR-scan</span>
+                        <span style="font-size: 12px; color: #4D3935; font-weight: 600;">AG Coffeeshop Oost</span>
+                        <span style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;">Daan Smit · 06-09-2026 11:08</span>
+                      </div>
+                      <div style="font-size: 13px; color: #574B47; line-height: 1.55; margin-top: 6px;">QR-standaard bij de kassa vervangen; 41 scans geregistreerd deze week (was 27).</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="display: flex; gap: 18px;">
+                  <div style="flex: 0 0 92px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; color: #4D3935; padding-top: 2px;">2026-W35</div>
+                  <div style="flex: 1; min-width: 0; border-left: 2px solid #E4DFD4; padding: 0 0 22px 20px; position: relative; display: flex; flex-direction: column; gap: 10px;">
+                    <div style="position: absolute; left: -6px; top: 4px; width: 10px; height: 10px; background: #C8A02A; border: 2px solid #FBFAF7;"></div>
+                    <div style="background: #FFFFFF; border: 1px solid #E4DFD4; border-radius: 6px; padding: 12px 14px;">
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="background: #F2EBE7; border: 1px solid #E0D3CC; color: #4D3935; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px;">Smoke Session</span>
+                        <span style="font-size: 12px; color: #4D3935; font-weight: 600;">AG Coffeeshop De Pijp</span>
+                        <span style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;">Sem Jansen · 31-08-2026 18:20</span>
+                      </div>
+                      <div style="font-size: 13px; color: #574B47; line-height: 1.55; margin-top: 6px;">Kleine sessie (4 gasten). Feedback: openingstijden op Google stonden verkeerd — doorgegeven aan ops.</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="display: flex; gap: 18px;">
+                  <div style="flex: 0 0 92px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; color: #4D3935; padding-top: 2px;">2026-W34</div>
+                  <div style="flex: 1; min-width: 0; border-left: 2px solid #E4DFD4; padding: 0 0 4px 20px; position: relative; display: flex; flex-direction: column; gap: 10px;">
+                    <div style="position: absolute; left: -6px; top: 4px; width: 10px; height: 10px; background: #B6ADA5; border: 2px solid #FBFAF7;"></div>
+                    <div style="background: #FFFFFF; border: 1px solid #E4DFD4; border-radius: 6px; padding: 12px 14px;">
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="background: #F8F0D8; border: 1px solid #E9DCB0; color: #6B5209; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px;">QR-scan</span>
+                        <span style="font-size: 12px; color: #4D3935; font-weight: 600;">AG Coffeeshop Centrum</span>
+                        <span style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;">Lotte Verhoeven · 24-08-2026 09:55</span>
+                      </div>
+                      <div style="font-size: 13px; color: #574B47; line-height: 1.55; margin-top: 6px;">Flyers met QR bijgedrukt in AG-groen/goud. Personeel geïnstrueerd om er alleen naar te verwijzen, niet actief om reviews te vragen.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="border-top: 1px solid #EAE6DD; margin-top: 6px; padding-top: 12px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C; letter-spacing: 0.04em;">Regels worden nooit gewijzigd of verwijderd · correcties worden als nieuwe regel toegevoegd</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 1b — DASHBOARD, URGENTE STAAT ============ -->
+    <div id="1b" style="display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.1em; background: #C8A02A; color: #241B19; padding: 4px 9px; border-radius: 4px;">1B</span>
+        <span style="font-family: Archivo, sans-serif; font-weight: 600; font-size: 15px;">Hoofddashboard · urgente staat</span>
+        <span style="font-size: 13px; color: #6E635C;">2 nieuwe 1–2 sterren reviews · zelfde layout, alleen de alertzone verandert</span>
+      </div>
+
+      <div style="width: 1440px; background: #FFFFFF; border: 1px solid #D6D1C5; border-radius: 10px; overflow: hidden; box-shadow: 0 18px 40px -24px rgba(36,27,25,0.35); display: flex;">
+
+        <div style="width: 224px; flex: 0 0 224px; background: #2E2320; padding: 22px 18px; display: flex; flex-direction: column; gap: 26px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 34px; height: 34px; border-radius: 50%; background: #3CAA36; border: 2px solid #C8A02A; display: flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-weight: 800; font-size: 13px; color: #1C3F17;">AG</div>
+            <div>
+              <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 13px; color: #F5F1E8; letter-spacing: 0.02em;">REVIEW RADAR</div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: #A2938A; letter-spacing: 0.12em;">SINCE 1985</div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 3px;">
+            <div style="padding: 10px 12px; border-radius: 6px; background: #3E2F2B; color: #F5F1E8; font-size: 14px; font-weight: 600; border-left: 3px solid #C8A02A; display: flex; align-items: center; gap: 8px;">Dashboard<span style="margin-left: auto; background: #C8A02A; color: #2E2320; font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 999px;">2</span></div>
+            <div style="padding: 10px 12px; border-radius: 6px; color: #BFB2A8; font-size: 14px;">Alle reviews</div>
+            <div style="padding: 10px 12px; border-radius: 6px; color: #BFB2A8; font-size: 14px;">Weekly update</div>
+            <div style="padding: 10px 12px; border-radius: 6px; color: #BFB2A8; font-size: 14px;">Locaties</div>
+            <div style="padding: 10px 12px; border-radius: 6px; color: #BFB2A8; font-size: 14px;">Instellingen</div>
+          </div>
+          <div style="margin-top: auto; border-top: 1px solid #453531; padding-top: 16px; display: flex; gap: 10px; align-items: flex-start;">
+            <div style="width: 26px; height: 26px; flex: 0 0 26px; border-radius: 50%; background: #C8A02A; display: flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-size: 11px; font-weight: 800; color: #2E2320;">PH</div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; line-height: 1.6; color: #9C8D83;">Professor Harvest:<br />“Eerst lezen, dan reageren.”</div>
+          </div>
+        </div>
+
+        <div style="flex: 1; min-width: 0; background: #F7F5F0; display: flex; flex-direction: column;">
+
+          <div style="background: #FFFFFF; border-bottom: 1px solid #E4DFD4; padding: 16px 28px 0; display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: flex; align-items: center; gap: 16px;">
+              <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 20px;">Overzicht reviews</div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E635C;">bijgewerkt 08-09-2026 · 08:15</div>
+              <div style="margin-left: auto; display: flex; align-items: center; gap: 10px;">
+                <div style="border: 1px solid #DCD7CC; border-radius: 6px; padding: 7px 12px; font-size: 13px; color: #4D3935; background: #FBFAF7;">Laatste 7 dagen</div>
+                <div style="width: 32px; height: 32px; border-radius: 50%; background: #EFF5EA; border: 1px solid #CBE4C4; display: flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-size: 12px; font-weight: 700; color: #24651F;">LV</div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 4px;">
+              <div style="padding: 10px 16px 12px; font-size: 14px; font-weight: 700; font-family: Archivo, sans-serif; color: #241B19; border-bottom: 3px solid #3CAA36; display: flex; align-items: center; gap: 7px;">Alle locaties<span style="width: 7px; height: 7px; border-radius: 50%; background: #C8A02A;"></span></div>
+              <div style="padding: 10px 16px 12px; font-size: 14px; color: #6E635C; border-bottom: 3px solid transparent; display: flex; align-items: center; gap: 7px;">AG Coffeeshop Centrum<span style="width: 7px; height: 7px; border-radius: 50%; background: #C8A02A;"></span></div>
+              <div style="padding: 10px 16px 12px; font-size: 14px; color: #6E635C; border-bottom: 3px solid transparent; display: flex; align-items: center; gap: 7px;">AG Coffeeshop Oost<span style="width: 7px; height: 7px; border-radius: 50%; background: #C8A02A;"></span></div>
+              <div style="padding: 10px 16px 12px; font-size: 14px; color: #6E635C; border-bottom: 3px solid transparent;">AG Coffeeshop De Pijp</div>
+            </div>
+          </div>
+
+          <div style="padding: 22px 28px 32px; display: flex; flex-direction: column; gap: 20px;">
+
+            <!-- URGENT ALERT ZONE -->
+            <div style="background: #2E2320; border-radius: 8px; border-left: 6px solid #C8A02A; padding: 20px 22px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 10px 24px -14px rgba(36,27,25,0.55);">
+              <div style="display: flex; align-items: center; gap: 14px;">
+                <div style="width: 40px; height: 40px; flex: 0 0 40px; border-radius: 50%; border: 2px solid #C8A02A; background: #3E2F2B; display: flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-weight: 800; font-size: 20px; color: #E8C24A;">!</div>
+                <div>
+                  <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 19px; color: #F0D68A; letter-spacing: -0.1px;">2 reviews met 1–2 sterren · laatste 7 dagen</div>
+                  <div style="font-size: 13px; color: #C9BDB4; margin-top: 2px;">Reageren binnen 24 uur is de afspraak. Oudste openstaande melding: 2 dagen.</div>
+                </div>
+                <div style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #C8A02A; border: 1px solid #6A5620; padding: 5px 9px; border-radius: 4px;">ACTIE VEREIST</div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px;">
+                <div style="background: #3A2C28; border: 1px solid #574540; border-radius: 6px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;">
+                  <div style="display: flex; align-items: center; gap: 9px;">
+                    <span style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 15px; color: #F5F1E8;">Rick van Dongen</span>
+                    <span style="background: #C8A02A; color: #2E2320; font-family: Archivo, sans-serif; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 4px;">1 ★</span>
+                    <span style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #A2938A;">2 dagen geleden</span>
+                  </div>
+                  <div style="font-size: 13px; color: #DED5CC; line-height: 1.55; text-wrap: pretty;">“Onbeschoft behandeld bij de deur en daarna genegeerd. Kom hier niet meer terug.”</div>
+                  <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #C9BDB4;">AG COFFEESHOP OOST</span>
+                    <span style="background: #46352F; border: 1px solid #5E4A43; color: #D9CCC4; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px;">Onbekend</span>
+                    <span style="display: flex; align-items: center; gap: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #A2938A;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #6E635C;"></span>onbekend</span>
+                  </div>
+                  <div style="display: flex; gap: 8px; padding-top: 2px;">
+                    <div style="background: #C8A02A; color: #241B19; font-family: Archivo, sans-serif; font-weight: 700; font-size: 13px; padding: 8px 14px; border-radius: 6px;">Reactie opstellen</div>
+                    <div style="border: 1px solid #6A5A54; color: #E4DAD3; font-size: 13px; font-weight: 600; padding: 8px 14px; border-radius: 6px;">Toewijzen aan shift lead</div>
+                  </div>
+                </div>
+
+                <div style="background: #3A2C28; border: 1px solid #574540; border-radius: 6px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;">
+                  <div style="display: flex; align-items: center; gap: 9px;">
+                    <span style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 15px; color: #F5F1E8;">Iris Molenaar</span>
+                    <span style="background: #C8A02A; color: #2E2320; font-family: Archivo, sans-serif; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 4px;">2 ★</span>
+                    <span style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #A2938A;">4 dagen geleden</span>
+                  </div>
+                  <div style="font-size: 13px; color: #DED5CC; line-height: 1.55; text-wrap: pretty;">“Lange wachttijd en mijn vraag over CBD werd niet beantwoord. Jammer, verwacht meer van AG.”</div>
+                  <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #C9BDB4;">AG COFFEESHOP CENTRUM</span>
+                    <span style="background: #46352F; border: 1px solid #5E4A43; color: #EBD79B; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px;">QR-scan</span>
+                    <span style="display: flex; align-items: center; gap: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #A2938A;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #C8A02A;"></span>vermoedelijk</span>
+                  </div>
+                  <div style="display: flex; gap: 8px; padding-top: 2px;">
+                    <div style="background: #C8A02A; color: #241B19; font-family: Archivo, sans-serif; font-weight: 700; font-size: 13px; padding: 8px 14px; border-radius: 6px;">Reactie opstellen</div>
+                    <div style="border: 1px solid #6A5A54; color: #E4DAD3; font-size: 13px; font-weight: 600; padding: 8px 14px; border-radius: 6px;">Toewijzen aan shift lead</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px;">
+              <div style="background: #FFFFFF; border: 1px solid #E4DFD4; border-radius: 8px; padding: 16px 18px;">
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #6E635C;">GEMIDDELDE SCORE</div>
+                <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 30px; margin-top: 6px;">4,4</div>
+                <div style="font-size: 12px; color: #8A6A10; font-weight: 600;">−0,2 vs vorige week</div>
+              </div>
+              <div style="background: #FFFFFF; border: 1px solid #E4DFD4; border-radius: 8px; padding: 16px 18px;">
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #6E635C;">NIEUWE REVIEWS</div>
+                <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 30px; margin-top: 6px;">25</div>
+                <div style="font-size: 12px; color: #24651F; font-weight: 600;">+6 vs vorige week</div>
+              </div>
+              <div style="background: #FFFFFF; border: 1px solid #E4DFD4; border-radius: 8px; padding: 16px 18px; border-top: 3px solid #C8A02A;">
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #6E635C;">1–2 STERREN OPEN</div>
+                <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 30px; margin-top: 6px; color: #7A5E0E;">2</div>
+                <div style="font-size: 12px; color: #8A6A10; font-weight: 600;">oudste: 2 dagen</div>
+              </div>
+              <div style="background: #FFFFFF; border: 1px solid #E4DFD4; border-radius: 8px; padding: 16px 18px;">
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #6E635C;">ZOEKWEERGAVEN</div>
+                <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 30px; margin-top: 6px;">14.208</div>
+                <div style="font-size: 12px; color: #24651F; font-weight: 600;">+8,3% vs vorige week</div>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 18px;">
+              <div style="background: #FFFFFF; border: 1px solid #E4DFD4; border-radius: 8px; padding: 18px 20px 8px;">
+                <div style="display: flex; align-items: baseline; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid #EAE6DD;">
+                  <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 16px;">Nieuwe reviews deze week</div>
+                  <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E635C;">25 totaal</div>
+                  <a href="#1b" style="margin-left: auto; font-size: 13px; font-weight: 600;">Alles bekijken</a>
+                </div>
+
+                <div style="display: flex; gap: 14px; padding: 15px 0; border-bottom: 1px solid #EAE6DD; background: #FDF8EA; margin: 0 -20px; padding-left: 20px; padding-right: 20px; border-left: 3px solid #C8A02A;">
+                  <div style="width: 38px; height: 38px; flex: 0 0 38px; border-radius: 50%; background: #F8F0D8; border: 1px solid #E9DCB0; display: flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-size: 12px; font-weight: 700; color: #7A5E0E;">RD</div>
+                  <div style="min-width: 0; flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="font-family: Archivo, sans-serif; font-weight: 600; font-size: 14px;">Rick van Dongen</span>
+                      <span style="color: #7A5E0E; font-size: 13px; letter-spacing: 1px;">★<span style="color: #C4B48C;">★★★★</span></span>
+                      <span style="font-size: 12px; color: #6E635C;">· AG Coffeeshop Oost</span>
+                    </div>
+                    <div style="font-size: 13px; color: #574B47; line-height: 1.5; margin-top: 3px; text-wrap: pretty;">“Onbeschoft behandeld bij de deur en daarna genegeerd.”</div>
+                  </div>
+                  <div style="flex: 0 0 168px; display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
+                    <span style="background: #EFEDE8; border: 1px solid #E2DED5; color: #6E655F; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px;">Onbekend</span>
+                    <span style="display: flex; align-items: center; gap: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #B6ADA5;"></span>onbekend</span>
+                    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;">2 dagen geleden</span>
+                  </div>
+                </div>
+
+                <div style="display: flex; gap: 14px; padding: 15px 20px; border-bottom: 1px solid #EAE6DD; background: #FDF8EA; margin: 0 -20px; border-left: 3px solid #C8A02A;">
+                  <div style="width: 38px; height: 38px; flex: 0 0 38px; border-radius: 50%; background: #F8F0D8; border: 1px solid #E9DCB0; display: flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-size: 12px; font-weight: 700; color: #7A5E0E;">IM</div>
+                  <div style="min-width: 0; flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="font-family: Archivo, sans-serif; font-weight: 600; font-size: 14px;">Iris Molenaar</span>
+                      <span style="color: #7A5E0E; font-size: 13px; letter-spacing: 1px;">★★<span style="color: #C4B48C;">★★★</span></span>
+                      <span style="font-size: 12px; color: #6E635C;">· AG Coffeeshop Centrum</span>
+                    </div>
+                    <div style="font-size: 13px; color: #574B47; line-height: 1.5; margin-top: 3px; text-wrap: pretty;">“Lange wachttijd en mijn vraag over CBD werd niet beantwoord.”</div>
+                  </div>
+                  <div style="flex: 0 0 168px; display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
+                    <span style="background: #F8F0D8; border: 1px solid #E9DCB0; color: #6B5209; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px;">QR-scan</span>
+                    <span style="display: flex; align-items: center; gap: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #C8A02A;"></span>vermoedelijk</span>
+                    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;">4 dagen geleden</span>
+                  </div>
+                </div>
+
+                <div style="display: flex; gap: 14px; padding: 15px 0; border-bottom: 1px solid #EAE6DD;">
+                  <div style="width: 38px; height: 38px; flex: 0 0 38px; border-radius: 50%; background: #F1EEE6; border: 1px solid #E2DED5; display: flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-size: 12px; font-weight: 700; color: #4D3935;">SB</div>
+                  <div style="min-width: 0; flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="font-family: Archivo, sans-serif; font-weight: 600; font-size: 14px;">Sanne Bakker</span>
+                      <span style="color: #7A5E0E; font-size: 13px; letter-spacing: 1px;">★★★★★</span>
+                      <span style="font-size: 12px; color: #6E635C;">· AG Coffeeshop Centrum</span>
+                    </div>
+                    <div style="font-size: 13px; color: #574B47; line-height: 1.5; margin-top: 3px; text-wrap: pretty;">“Vriendelijk personeel en het advies over de landrace strains was echt top.”</div>
+                  </div>
+                  <div style="flex: 0 0 168px; display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
+                    <span style="background: #EAF4E6; border: 1px solid #CBE4C4; color: #1C4A18; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px;">Organisch</span>
+                    <span style="display: flex; align-items: center; gap: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #3CAA36;"></span>bevestigd</span>
+                    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;">1 dag geleden</span>
+                  </div>
+                </div>
+
+                <div style="display: flex; gap: 14px; padding: 15px 0;">
+                  <div style="width: 38px; height: 38px; flex: 0 0 38px; border-radius: 50%; background: #F1EEE6; border: 1px solid #E2DED5; display: flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-size: 12px; font-weight: 700; color: #4D3935;">MV</div>
+                  <div style="min-width: 0; flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="font-family: Archivo, sans-serif; font-weight: 600; font-size: 14px;">Merel de Vries</span>
+                      <span style="color: #7A5E0E; font-size: 13px; letter-spacing: 1px;">★★★★★</span>
+                      <span style="font-size: 12px; color: #6E635C;">· AG Coffeeshop De Pijp</span>
+                    </div>
+                    <div style="font-size: 13px; color: #574B47; line-height: 1.5; margin-top: 3px; text-wrap: pretty;">“Via de Smoke Session binnengelopen — uitleg over terpenen was verhelderend.”</div>
+                  </div>
+                  <div style="flex: 0 0 168px; display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
+                    <span style="background: #F2EBE7; border: 1px solid #E0D3CC; color: #4D3935; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px;">Smoke Session</span>
+                    <span style="display: flex; align-items: center; gap: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #3CAA36;"></span>bevestigd</span>
+                    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;">3 dagen geleden</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style="background: #FFFFFF; border: 1px solid #E4DFD4; border-radius: 8px; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px;">
+                <div style="display: flex; align-items: flex-start; gap: 12px;">
+                  <div>
+                    <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 16px;">Zoekweergaven per locatie</div>
+                    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E635C;">laatste 8 weken · W29–W36</div>
+                  </div>
+                  <div style="margin-left: auto; background: #EFF5EA; border: 1px solid #CBE4C4; color: #1C4A18; font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 6px;">+8,3% vs vorige week</div>
+                </div>
+                <div style="display: flex; gap: 16px; font-size: 12px; color: #574B47;">
+                  <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 3px; background: #3CAA36;"></span>Centrum</span>
+                  <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 3px; background: #4D3935;"></span>Oost</span>
+                  <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 3px; background: #C8A02A;"></span>De Pijp</span>
+                </div>
+                <svg viewBox="0 0 620 240" style="width: 100%; height: 240px; overflow: visible;">
+                  <line x1="0" y1="10" x2="620" y2="10" stroke="#EFEDE8" stroke-width="1"></line>
+                  <line x1="0" y1="65" x2="620" y2="65" stroke="#EFEDE8" stroke-width="1"></line>
+                  <line x1="0" y1="120" x2="620" y2="120" stroke="#EFEDE8" stroke-width="1"></line>
+                  <line x1="0" y1="175" x2="620" y2="175" stroke="#EFEDE8" stroke-width="1"></line>
+                  <line x1="0" y1="205" x2="620" y2="205" stroke="#DCD7CC" stroke-width="1"></line>
+                  <polyline points="20,120 106,112 192,126 278,100 364,92 450,86 536,72 600,58" fill="none" stroke="#3CAA36" stroke-width="2.5" stroke-linejoin="round"></polyline>
+                  <polyline points="20,158 106,150 192,155 278,140 364,146 450,132 536,128 600,118" fill="none" stroke="#4D3935" stroke-width="2.5" stroke-linejoin="round"></polyline>
+                  <polyline points="20,182 106,176 192,168 278,172 364,158 450,150 536,152 600,140" fill="none" stroke="#C8A02A" stroke-width="2.5" stroke-linejoin="round"></polyline>
+                  <circle cx="600" cy="58" r="4" fill="#3CAA36"></circle>
+                  <circle cx="600" cy="118" r="4" fill="#4D3935"></circle>
+                  <circle cx="600" cy="140" r="4" fill="#C8A02A"></circle>
+                  <text x="20" y="224" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6E635C">W29</text>
+                  <text x="192" y="224" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6E635C">W31</text>
+                  <text x="364" y="224" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6E635C">W33</text>
+                  <text x="536" y="224" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6E635C">W35</text>
+                </svg>
+                <div style="border-top: 1px solid #EAE6DD; padding-top: 12px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
+                  <div>
+                    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;">CENTRUM</div>
+                    <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 17px;">6.940</div>
+                    <div style="font-size: 11px; color: #24651F; font-weight: 600;">+11,2%</div>
+                  </div>
+                  <div>
+                    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;">OOST</div>
+                    <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 17px;">4.115</div>
+                    <div style="font-size: 11px; color: #24651F; font-weight: 600;">+6,4%</div>
+                  </div>
+                  <div>
+                    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;">DE PIJP</div>
+                    <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 17px;">3.153</div>
+                    <div style="font-size: 11px; color: #24651F; font-weight: 600;">+4,1%</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="background: #FBFAF7; border: 1px solid #E4DFD4; border-radius: 8px; padding: 18px 20px;">
+              <div style="display: flex; align-items: center; gap: 10px; padding-bottom: 14px; border-bottom: 1px solid #EAE6DD;">
+                <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 16px;">Weeklog · handmatige updates</div>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; background: #EFEDE8; border: 1px solid #E2DED5; color: #6E655F; padding: 3px 8px; border-radius: 4px;">APPEND-ONLY</span>
+                <div style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E635C;">15 entries · 6 weken</div>
+              </div>
+              <div style="display: flex; gap: 18px; padding-top: 16px;">
+                <div style="flex: 0 0 92px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; color: #4D3935; padding-top: 2px;">2026-W36</div>
+                <div style="flex: 1; min-width: 0; border-left: 2px solid #E4DFD4; padding: 0 0 4px 20px; position: relative; display: flex; flex-direction: column; gap: 10px;">
+                  <div style="position: absolute; left: -6px; top: 4px; width: 10px; height: 10px; background: #C8A02A; border: 2px solid #FBFAF7;"></div>
+                  <div style="background: #FFFFFF; border: 1px solid #E4DFD4; border-radius: 6px; padding: 12px 14px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="background: #F2EBE7; border: 1px solid #E0D3CC; color: #4D3935; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px;">Smoke Session</span>
+                      <span style="font-size: 12px; color: #4D3935; font-weight: 600;">AG Coffeeshop Oost</span>
+                      <span style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;">Daan Smit · 08-09-2026 09:12</span>
+                    </div>
+                    <div style="font-size: 13px; color: #574B47; line-height: 1.55; margin-top: 6px;">Deurbeleid doorgesproken met avondshift naar aanleiding van de 1-sterren review. Reactie wordt vandaag geplaatst.</div>
+                  </div>
+                  <div style="background: #FFFFFF; border: 1px solid #E4DFD4; border-radius: 6px; padding: 12px 14px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="background: #F8F0D8; border: 1px solid #E9DCB0; color: #6B5209; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px;">QR-scan</span>
+                      <span style="font-size: 12px; color: #4D3935; font-weight: 600;">AG Coffeeshop Centrum</span>
+                      <span style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;">Lotte Verhoeven · 07-09-2026 16:42</span>
+                    </div>
+                    <div style="font-size: 13px; color: #574B47; line-height: 1.55; margin-top: 6px;">41 scans deze week. Twee gasten meldden lange wachttijd bij de balie — mogelijk gerelateerd aan de 2-sterren review.</div>
+                  </div>
+                </div>
+              </div>
+              <div style="border-top: 1px solid #EAE6DD; margin-top: 12px; padding-top: 12px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C; letter-spacing: 0.04em;">Regels worden nooit gewijzigd of verwijderd · correcties worden als nieuwe regel toegevoegd</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 1c + 1d ============ -->
+    <div style="display: flex; gap: 40px; align-items: flex-start; flex-wrap: wrap;">
+
+      <div id="1c" style="display: flex; flex-direction: column; gap: 14px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.1em; background: #241B19; color: #E8C24A; padding: 4px 9px; border-radius: 4px;">1C</span>
+          <span style="font-family: Archivo, sans-serif; font-weight: 600; font-size: 15px;">Weekly update · invoerscherm</span>
+          <span style="font-size: 13px; color: #6E635C;">960 breed</span>
+        </div>
+
+        <div style="width: 960px; background: #FFFFFF; border: 1px solid #D6D1C5; border-radius: 10px; overflow: hidden; box-shadow: 0 18px 40px -24px rgba(36,27,25,0.35);">
+          <div style="background: #2E2320; padding: 18px 28px; display: flex; align-items: center; gap: 12px;">
+            <div style="width: 30px; height: 30px; border-radius: 50%; background: #3CAA36; border: 2px solid #C8A02A; display: flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-weight: 800; font-size: 12px; color: #1C3F17;">AG</div>
+            <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 16px; color: #F5F1E8;">Weekly update</div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #A2938A;">2026-W37 · deadline vrijdag 17:00</div>
+            <div style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #C8A02A; letter-spacing: 0.1em;">INGELOGD ALS L. VERHOEVEN</div>
+          </div>
+
+          <div style="padding: 26px 28px 32px; background: #F7F5F0; display: flex; flex-direction: column; gap: 26px;">
+
+            <div style="background: #FFFFFF; border: 1px solid #E4DFD4; border-radius: 8px; padding: 22px 24px; display: flex; flex-direction: column; gap: 18px;">
+              <div>
+                <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 18px;">Nieuwe regel toevoegen</div>
+                <div style="font-size: 13px; color: #6E635C; margin-top: 2px;">Eén regel per week per locatie. Na versturen kan de regel niet meer worden aangepast.</div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px;">
+                <div>
+                  <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #6E635C; margin-bottom: 6px;">LOCATIE</div>
+                  <div style="border: 1px solid #DCD7CC; border-radius: 6px; background: #FFFFFF; padding: 11px 13px; font-size: 14px; color: #241B19; display: flex; align-items: center;">AG Coffeeshop Centrum<span style="margin-left: auto; color: #6E635C; font-size: 11px;">▾</span></div>
+                </div>
+                <div>
+                  <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #6E635C; margin-bottom: 6px;">WEEK</div>
+                  <div style="border: 1px solid #E4DFD4; border-radius: 6px; background: #F1EEE6; padding: 11px 13px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #6E635C; display: flex; align-items: center; gap: 8px;">2026-W37<span style="font-size: 10px; letter-spacing: 0.08em;">AUTOMATISCH</span></div>
+                </div>
+              </div>
+
+              <div>
+                <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px;">
+                  <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #6E635C;">SMOKE SESSION UPDATE</span>
+                  <span style="font-size: 11px; color: #6E635C;">wat is er besproken, hoeveel gasten, opvallende feedback</span>
+                </div>
+                <div style="border: 1px solid #DCD7CC; border-radius: 6px; background: #FFFFFF; padding: 12px 13px; min-height: 92px; font-size: 14px; color: #241B19; line-height: 1.55;">Session met 8 gasten rond de nieuwe White Choco. Drie gasten gaven aan een review te laten.<span style="display: inline-block; width: 1px; height: 16px; background: #3CAA36; vertical-align: -3px; margin-left: 2px;"></span></div>
+              </div>
+
+              <div>
+                <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px;">
+                  <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #6E635C;">QR-SCAN UPDATE</span>
+                  <span style="font-size: 11px; color: #6E635C;">aantal scans, plaatsing materiaal, bijzonderheden</span>
+                </div>
+                <div style="border: 1px solid #DCD7CC; border-radius: 6px; background: #FFFFFF; padding: 12px 13px; min-height: 92px; font-size: 14px; color: #6E635C; line-height: 1.55;">Bijv. “QR-standaard verplaatst naar de kassa, 41 scans deze week.”</div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: end;">
+                <div>
+                  <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: #6E635C; margin-bottom: 6px;">JOUW NAAM</div>
+                  <div style="border: 1px solid #DCD7CC; border-radius: 6px; background: #FFFFFF; padding: 11px 13px; font-size: 14px; color: #241B19;">Lotte Verhoeven</div>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                  <div style="border: 1px solid #DCD7CC; color: #4D3935; font-size: 14px; font-weight: 600; padding: 11px 18px; border-radius: 6px; background: #FFFFFF;">Annuleren</div>
+                  <div style="background: #24651F; color: #FFFFFF; font-family: Archivo, sans-serif; font-weight: 700; font-size: 14px; padding: 11px 22px; border-radius: 6px;">Definitief vastleggen</div>
+                </div>
+              </div>
+
+              <div style="border-top: 1px solid #EAE6DD; padding-top: 14px; display: flex; align-items: center; gap: 10px;">
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; background: #F8F0D8; border: 1px solid #E9DCB0; color: #6B5209; padding: 3px 8px; border-radius: 4px;">LET OP</span>
+                <div style="font-size: 12px; color: #6E635C;">Vastleggen voegt een onveranderlijke regel toe aan de weeklog, met jouw naam en tijdstempel.</div>
+              </div>
+            </div>
+
+            <div style="background: #FBFAF7; border: 1px solid #E4DFD4; border-radius: 8px; padding: 20px 22px;">
+              <div style="display: flex; align-items: center; gap: 10px; padding-bottom: 14px; border-bottom: 1px solid #EAE6DD;">
+                <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 16px;">Eerdere regels · AG Coffeeshop Centrum</div>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; background: #EFEDE8; border: 1px solid #E2DED5; color: #6E655F; padding: 3px 8px; border-radius: 4px;">ALLEEN-LEZEN</span>
+                <div style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #6E635C;">6 regels</div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 92px minmax(0, 1fr) minmax(0, 1fr) 168px; gap: 12px; padding: 12px 0 8px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; color: #6E635C; border-bottom: 1px solid #EAE6DD;">
+                <div>WEEK</div>
+                <div>SMOKE SESSION</div>
+                <div>QR-SCAN</div>
+                <div>INGEDIEND DOOR</div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 92px minmax(0, 1fr) minmax(0, 1fr) 168px; gap: 12px; padding: 14px 0; border-bottom: 1px solid #EAE6DD; align-items: start;">
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; color: #4D3935;">2026-W36</div>
+                <div style="font-size: 13px; color: #574B47; line-height: 1.5;">Session met 8 gasten rond White Choco; drie reviews toegezegd.</div>
+                <div style="font-size: 13px; color: #574B47; line-height: 1.5;">Nieuwe flyers in AG-groen/goud; 41 scans.</div>
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C; line-height: 1.6;">Lotte Verhoeven<br />07-09-2026 16:42</div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 92px minmax(0, 1fr) minmax(0, 1fr) 168px; gap: 12px; padding: 14px 0; border-bottom: 1px solid #EAE6DD; align-items: start;">
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; color: #4D3935;">2026-W35</div>
+                <div style="font-size: 13px; color: #574B47; line-height: 1.5;">Geen sessie — personeelstekort door vakantie.</div>
+                <div style="font-size: 13px; color: #574B47; line-height: 1.5;">27 scans; standaard stond achter de deur.</div>
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C; line-height: 1.6;">Daan Smit<br />31-08-2026 12:05</div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 92px minmax(0, 1fr) minmax(0, 1fr) 168px; gap: 12px; padding: 14px 0; border-bottom: 1px solid #EAE6DD; align-items: start;">
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; color: #4D3935;">2026-W34</div>
+                <div style="font-size: 13px; color: #574B47; line-height: 1.5;">Sessie met 6 gasten; veel vragen over landrace-herkomst.</div>
+                <div style="font-size: 13px; color: #574B47; line-height: 1.5;">33 scans; QR op de bonnen getest.</div>
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C; line-height: 1.6;">Lotte Verhoeven<br />24-08-2026 09:55</div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 92px minmax(0, 1fr) minmax(0, 1fr) 168px; gap: 12px; padding: 14px 0; align-items: start;">
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; color: #4D3935;">2026-W33</div>
+                <div style="font-size: 13px; color: #574B47; line-height: 1.5;">Sessie met 9 gasten; proefronde nieuwe hasj.</div>
+                <div style="font-size: 13px; color: #574B47; line-height: 1.5;">19 scans; materiaal was nog niet geleverd.</div>
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C; line-height: 1.6;">Sem Jansen<br />17-08-2026 18:31</div>
+              </div>
+
+              <div style="border-top: 1px solid #EAE6DD; margin-top: 6px; padding-top: 12px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C; letter-spacing: 0.04em;">Append-only log · geen bewerk- of verwijderopties · export via Locaties → Rapport</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="1d" style="display: flex; flex-direction: column; gap: 14px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.1em; background: #241B19; color: #E8C24A; padding: 4px 9px; border-radius: 4px;">1D</span>
+          <span style="font-family: Archivo, sans-serif; font-weight: 600; font-size: 15px;">Push · lockscreen</span>
+        </div>
+
+        <div style="width: 340px; height: 700px; border-radius: 44px; background: #24313A; border: 10px solid #1A1310; box-shadow: 0 24px 50px -20px rgba(36,27,25,0.55); overflow: hidden; position: relative; display: flex; flex-direction: column; align-items: center; padding: 0 16px;">
+          <div style="width: 108px; height: 26px; background: #1A1310; border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;"></div>
+          <div style="width: 100%; display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #E7EDF0; padding: 6px 6px 0; position: absolute; top: 12px; left: 0; box-sizing: border-box; padding-left: 24px; padding-right: 24px;">
+            <span>07:42</span>
+            <span>▮▮▮ 82%</span>
+          </div>
+
+          <div style="margin-top: 54px; text-align: center; color: #F2F6F8;">
+            <div style="font-family: Karla, sans-serif; font-size: 15px; letter-spacing: 0.02em; opacity: 0.85;">maandag 7 september</div>
+            <div style="font-family: Archivo, sans-serif; font-weight: 600; font-size: 70px; line-height: 1.05; letter-spacing: -1px;">07:42</div>
+          </div>
+
+          <div style="width: 100%; margin-top: 34px; background: rgba(255,255,255,0.94); border-radius: 18px; padding: 14px 15px; box-shadow: 0 8px 20px -10px rgba(0,0,0,0.5); border-left: 5px solid #C8A02A;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 30px; height: 30px; flex: 0 0 30px; border-radius: 8px; background: #24651F; border: 1.5px solid #C8A02A; display: flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-weight: 800; font-size: 11px; color: #E8C24A;">AG</div>
+              <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 13px; color: #241B19; letter-spacing: 0.01em;">REVIEW RADAR</div>
+              <div style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;">nu</div>
+            </div>
+            <div style="font-family: Archivo, sans-serif; font-weight: 700; font-size: 15px; color: #241B19; margin-top: 9px;">1–2 sterren review binnengekomen</div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-top: 7px;">
+              <span style="background: #C8A02A; color: #241B19; font-family: Archivo, sans-serif; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 4px;">1 ★</span>
+              <span style="font-size: 13px; font-weight: 600; color: #4D3935;">Rick van Dongen</span>
+            </div>
+            <div style="font-size: 12.5px; color: #574B47; line-height: 1.5; margin-top: 6px;">AG Coffeeshop Oost · “Onbeschoft behandeld bij de deur…”</div>
+            <div style="border-top: 1px solid #EAE6DD; margin-top: 11px; padding-top: 9px; display: flex; gap: 8px;">
+              <div style="flex: 1; text-align: center; font-family: Archivo, sans-serif; font-weight: 700; font-size: 12px; color: #24651F;">Openen</div>
+              <div style="width: 1px; background: #EAE6DD;"></div>
+              <div style="flex: 1; text-align: center; font-size: 12px; font-weight: 600; color: #6E635C;">Later</div>
+            </div>
+          </div>
+
+          <div style="width: 100%; margin-top: 10px; background: rgba(255,255,255,0.55); border-radius: 14px; padding: 11px 14px; display: flex; align-items: center; gap: 10px;">
+            <div style="width: 24px; height: 24px; flex: 0 0 24px; border-radius: 7px; background: #4D3935; display: flex; align-items: center; justify-content: center; font-family: Archivo, sans-serif; font-weight: 800; font-size: 9px; color: #E8C24A;">AG</div>
+            <div style="font-size: 12px; color: #3A2F2B;">Weekly update W37 sluit vrijdag 17:00</div>
+            <div style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #6E635C;">7u</div>
+          </div>
+
+          <div style="margin-top: auto; margin-bottom: 14px; width: 120px; height: 5px; border-radius: 999px; background: rgba(255,255,255,0.5);"></div>
+        </div>
+
+        <div style="width: 340px; font-size: 12px; color: #6E635C; line-height: 1.6;">Goud is gereserveerd voor urgentie — het is een merkkleur, dus de melding valt op zonder alarmrood.</div>
+      </div>
+    </div>
+
+  </section>
+</div>
+
+</x-dc>
+</body>
+</html>
