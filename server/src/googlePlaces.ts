@@ -123,10 +123,12 @@ const REVIEW_CAP = 5;
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
 async function getPlaceDetails(placeId: string): Promise<PlaceSummary> {
-  const url = new URL(`https://places.googleapis.com/v1/places/${placeId}`);
-  url.searchParams.set("reviewsSort", "newest");
-
-  const res = await fetch(url, {
+  // Note: a `reviewsSort` query param does not exist on this REST binding
+  // (confirmed by a live 400 from Google) despite some docs implying it
+  // does — the API returns its default "most relevant" 5 reviews, which
+  // may not be the most recent. newReviewsLast7d is still computed from
+  // each review's real publishTime, just potentially less complete.
+  const res = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
     headers: {
       "X-Goog-Api-Key": requireApiKey(),
       "X-Goog-FieldMask": "rating,userRatingCount,reviews",
