@@ -28,15 +28,17 @@ export interface LivePlaceSummary {
   newReviewsCapped: boolean;
 }
 
-/** True only when a backend URL is configured — lets the app run standalone
- * on mock data with zero setup, and switch on live data once a backend
- * exists. */
+/** True whenever VITE_API_BASE_URL is set at all — including to an empty
+ * string, which means "same origin" for a combined deploy where the
+ * backend serves this build itself (see app/.env.production). Lets the
+ * app run standalone on mock data with zero setup when the var is unset
+ * entirely, and switch on live data once a backend exists. */
 export function hasLiveBackend(): boolean {
-  return Boolean(API_BASE);
+  return API_BASE !== undefined;
 }
 
 export async function fetchLiveLocations(): Promise<LiveLocation[] | null> {
-  if (!API_BASE) return null;
+  if (!hasLiveBackend()) return null;
   try {
     const res = await fetch(`${API_BASE}/api/locations`);
     if (!res.ok) return null;
@@ -51,7 +53,7 @@ function weekSortKey(week: string): number {
 }
 
 export async function fetchLiveSearchViews(): Promise<SearchViewsWeek[] | null> {
-  if (!API_BASE) return null;
+  if (!hasLiveBackend()) return null;
   try {
     const res = await fetch(`${API_BASE}/api/search-views`);
     if (!res.ok) return null;
@@ -70,7 +72,7 @@ export async function fetchLiveSearchViews(): Promise<SearchViewsWeek[] | null> 
 export async function fetchLivePlacesSummary(): Promise<Partial<
   Record<LocationId, LivePlaceSummary>
 > | null> {
-  if (!API_BASE) return null;
+  if (!hasLiveBackend()) return null;
   try {
     const res = await fetch(`${API_BASE}/api/places-summary`);
     if (!res.ok) return null;
@@ -86,7 +88,7 @@ export async function fetchLivePlacesSummary(): Promise<Partial<
  * been snapshotted come back — sparse until the dashboard has been open
  * across enough weeks to build up history. */
 export async function fetchLiveReviewGrowth(): Promise<ReviewGrowthWeek[] | null> {
-  if (!API_BASE) return null;
+  if (!hasLiveBackend()) return null;
   try {
     const res = await fetch(`${API_BASE}/api/places-review-growth`);
     if (!res.ok) return null;
@@ -109,7 +111,7 @@ export async function fetchLiveReviewGrowth(): Promise<ReviewGrowthWeek[] | null
 }
 
 export async function fetchLiveWeeklyLog(): Promise<WeeklyLogEntry[] | null> {
-  if (!API_BASE) return null;
+  if (!hasLiveBackend()) return null;
   try {
     const res = await fetch(`${API_BASE}/api/weekly-log`);
     if (!res.ok) return null;
@@ -133,7 +135,7 @@ export type SubmitWeeklyLogResult =
 export async function submitWeeklyLogEntry(
   input: NewWeeklyLogEntry,
 ): Promise<SubmitWeeklyLogResult> {
-  if (!API_BASE) {
+  if (!hasLiveBackend()) {
     return { ok: false, error: "Geen backend geconfigureerd." };
   }
   try {

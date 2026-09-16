@@ -44,6 +44,20 @@
   font: var(--fs-label-md);
   font-weight: 700;
   color: var(--ag-neutral);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.betaBadge {
+  font: var(--fs-label-sm);
+  letter-spacing: var(--ls-label-sm);
+  font-weight: 700;
+  background: var(--ag-neutral);
+  color: var(--ag-primary-strong);
+  padding: 1px 7px;
+  border-radius: var(--r-full);
 }
 
 .brandSub {

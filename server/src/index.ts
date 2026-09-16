@@ -1,6 +1,9 @@
 import "dotenv/config";
 import cors from "cors";
 import express from "express";
+import { existsSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   buildConsentUrl,
   exchangeCodeForRefreshToken,
@@ -12,9 +15,34 @@ import { ACTIVE_LOCATIONS, getAllPlacesSummaries } from "./googlePlaces.js";
 import { getWeeklyReviewGrowth, recordSnapshot } from "./placesHistoryStore.js";
 import { appendWeeklyLogEntry, listWeeklyLog } from "./weeklyLogStore.js";
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = Number(process.env.PORT ?? 8787);
 
+// Gates the whole app behind a single shared username/password when both
+// are set — meant for a beta link handed to a small group, not real
+// per-user auth. Unset in local dev, so nothing changes there.
+function requireBetaAuth(
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction,
+): void {
+  const user = process.env.BETA_USER;
+  const pass = process.env.BETA_PASSWORD;
+  if (!user || !pass) {
+    next();
+    return;
+  }
+  const expected = `Basic ${Buffer.from(`${user}:${pass}`).toString("base64")}`;
+  if (req.headers.authorization === expected) {
+    next();
+    return;
+  }
+  res.set("WWW-Authenticate", 'Basic realm="AG Review Radar"');
+  res.status(401).send("Authenticatie vereist.");
+}
+
+app.use(requireBetaAuth);
 app.use(cors({ origin: process.env.FRONTEND_ORIGIN ?? "http://localhost:5173" }));
 app.use(express.json());
 
@@ -123,6 +151,19 @@ app.post("/api/weekly-log", (req, res) => {
   });
   res.status(201).json(entry);
 });
+
+// Serves the built frontend from the same origin/port when it's been
+// built alongside this server (see Dockerfile) — one deployable unit, one
+// URL, no CORS to configure. Falls back to API-only if app/dist isn't
+// there, so local `npm run dev` (frontend served separately by Vite) is
+// unaffected.
+const FRONTEND_DIST = join(__dirname, "..", "..", "app", "dist");
+if (existsSync(FRONTEND_DIST)) {
+  app.use(express.static(FRONTEND_DIST));
+  app.get("*", (_req, res) => {
+    res.sendFile(join(FRONTEND_DIST, "index.html"));
+  });
+}
 
 app.listen(PORT, () => {
   console.log(`Review Radar server listening on http://localhost:${PORT}`);

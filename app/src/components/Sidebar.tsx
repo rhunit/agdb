@@ -14,7 +14,10 @@ export function Sidebar() {
       <div className={styles.brand}>
         <div className={styles.mark}>AG</div>
         <div>
-          <div className={styles.brandName}>Review Radar</div>
+          <div className={styles.brandName}>
+            <span>Review Radar</span>
+            <span className={styles.betaBadge}>BETA</span>
+          </div>
           <div className={styles.brandSub}>Amsterdam Genetics</div>
         </div>
       </div>

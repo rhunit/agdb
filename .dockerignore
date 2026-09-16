@@ -1,0 +1,7 @@
+**/node_modules
+**/dist
+**/.data
+app/.env.local
+server/.env
+chats
+project
