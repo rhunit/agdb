@@ -77,7 +77,7 @@ app.get("/api/places-summary", async (_req, res) => {
   }
 });
 
-const LOCATION_IDS = new Set(["centrum", "oost", "depijp"]);
+const LOCATION_IDS = new Set(["centrum", "oost", "depijp", "boerejongens"]);
 const LOG_TYPES = new Set(["smoke", "qr"]);
 
 app.get("/api/weekly-log", (_req, res) => {
@@ -99,12 +99,13 @@ app.post("/api/weekly-log", (req, res) => {
     !note.trim()
   ) {
     res.status(400).json({
-      error: "Vereist: location (centrum|oost|depijp), type (smoke|qr), submitter, note.",
+      error:
+        "Vereist: location (centrum|oost|depijp|boerejongens), type (smoke|qr), submitter, note.",
     });
     return;
   }
   const entry = appendWeeklyLogEntry({
-    location: location as "centrum" | "oost" | "depijp",
+    location: location as "centrum" | "oost" | "depijp" | "boerejongens",
     type: type as "smoke" | "qr",
     submitter,
     note,

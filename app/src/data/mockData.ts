@@ -6,24 +6,29 @@ import type {
   WeeklyLogEntry,
 } from "../types";
 
+// All 4 are verified real locations connected via the live Places API
+// integration — see server/src/googlePlaces.ts. The internal ids
+// (centrum/oost/depijp/boerejongens) are historical/arbitrary and no
+// longer describe the actual business — only the display name does.
 export const LOCATIONS: Location[] = [
-  // Verified real location for testing the live Places API integration —
-  // see server/src/googlePlaces.ts.
   { id: "centrum", name: "Coffeeshop BIJ Amsterdam" },
-  { id: "oost", name: "AG Coffeeshop Oost" },
-  { id: "depijp", name: "AG Coffeeshop De Pijp" },
+  { id: "oost", name: "Coffeeshop Sloterdijk" },
+  { id: "depijp", name: "Boerejongens West" },
+  { id: "boerejongens", name: "Boerejongens Coffeeshop" },
 ];
 
 export const PREVIOUS_WEEK_AVG_SCORE: Record<LocationId, number> = {
   centrum: 4.5,
   oost: 4.4,
   depijp: 4.7,
+  boerejongens: 4.6,
 };
 
 export const PREVIOUS_WEEK_REVIEW_COUNT: Record<LocationId, number> = {
   centrum: 3,
   oost: 4,
   depijp: 3,
+  boerejongens: 3,
 };
 
 export const REVIEWS: Review[] = [
@@ -175,6 +180,42 @@ export const REVIEWS: Review[] = [
     daysAgo: 6,
     responded: false,
   },
+  {
+    id: "r13",
+    location: "boerejongens",
+    reviewer: "Ilse van Dijk",
+    initials: "IV",
+    rating: 5,
+    snippet: "Mooie winkel, ruime keuze en vriendelijke uitleg aan de balie.",
+    source: "organisch",
+    confidence: "bevestigd",
+    daysAgo: 2,
+    responded: true,
+  },
+  {
+    id: "r14",
+    location: "boerejongens",
+    reviewer: "Mark Hendriks",
+    initials: "MH",
+    rating: 4,
+    snippet: "QR-kaartje gekregen bij de kassa, scan ging soepel.",
+    source: "qr",
+    confidence: "vermoedelijk",
+    daysAgo: 4,
+    responded: true,
+  },
+  {
+    id: "r15",
+    location: "boerejongens",
+    reviewer: "Fenna Mulder",
+    initials: "FM",
+    rating: 5,
+    snippet: "Smoke Session was goed georganiseerd, veel uitleg over herkomst.",
+    source: "smoke",
+    confidence: "bevestigd",
+    daysAgo: 5,
+    responded: false,
+  },
 ];
 
 export const WEEKLY_LOG: WeeklyLogEntry[] = [
@@ -268,18 +309,36 @@ export const WEEKLY_LOG: WeeklyLogEntry[] = [
     timestamp: "03-08-2026 18:55",
     note: "Sessie met 5 gasten; korte uitleg gegeven over verschil sativa/indica landrace.",
   },
+  {
+    id: "w11",
+    week: "2026-W36",
+    location: "boerejongens",
+    type: "qr",
+    submitter: "Nina de Jong",
+    timestamp: "05-09-2026 14:15",
+    note: "QR-kaartjes bijgevuld bij de kassa; 18 scans deze week.",
+  },
+  {
+    id: "w12",
+    week: "2026-W34",
+    location: "boerejongens",
+    type: "smoke",
+    submitter: "Nina de Jong",
+    timestamp: "22-08-2026 19:40",
+    note: "Sessie met 7 gasten; goede vragen over het assortiment landrace hasj.",
+  },
 ];
 
 // 8 weeks of search-view volume per location (W29–W36), used to drive the
 // trend chart and the "zoekweergaven" KPI. Latest-week values sum to the
 // combined KPI shown in the header.
 export const SEARCH_VIEWS: SearchViewsWeek[] = [
-  { week: "W29", centrum: 4200, oost: 2900, depijp: 2400 },
-  { week: "W30", centrum: 4550, oost: 3050, depijp: 2500 },
-  { week: "W31", centrum: 4300, oost: 2980, depijp: 2550 },
-  { week: "W32", centrum: 5100, oost: 3300, depijp: 2650 },
-  { week: "W33", centrum: 5400, oost: 3450, depijp: 2750 },
-  { week: "W34", centrum: 5800, oost: 3700, depijp: 2900 },
-  { week: "W35", centrum: 6241, oost: 3867, depijp: 3029 },
-  { week: "W36", centrum: 6940, oost: 4115, depijp: 3153 },
+  { week: "W29", centrum: 4200, oost: 2900, depijp: 2400, boerejongens: 3100 },
+  { week: "W30", centrum: 4550, oost: 3050, depijp: 2500, boerejongens: 3250 },
+  { week: "W31", centrum: 4300, oost: 2980, depijp: 2550, boerejongens: 3180 },
+  { week: "W32", centrum: 5100, oost: 3300, depijp: 2650, boerejongens: 3400 },
+  { week: "W33", centrum: 5400, oost: 3450, depijp: 2750, boerejongens: 3600 },
+  { week: "W34", centrum: 5800, oost: 3700, depijp: 2900, boerejongens: 3850 },
+  { week: "W35", centrum: 6241, oost: 3867, depijp: 3029, boerejongens: 4050 },
+  { week: "W36", centrum: 6940, oost: 4115, depijp: 3153, boerejongens: 4300 },
 ];

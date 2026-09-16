@@ -1,4 +1,4 @@
-export type LocationId = "centrum" | "oost" | "depijp";
+export type LocationId = "centrum" | "oost" | "depijp" | "boerejongens";
 
 export type ReviewSource = "organisch" | "qr" | "smoke" | "onbekend";
 export type Confidence = "bevestigd" | "vermoedelijk" | "onbekend";
@@ -37,4 +37,5 @@ export interface SearchViewsWeek {
   centrum: number;
   oost: number;
   depijp: number;
+  boerejongens: number;
 }

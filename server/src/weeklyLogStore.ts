@@ -120,6 +120,24 @@ const SEED_ENTRIES: WeeklyLogEntry[] = [
     timestamp: "03-08-2026 18:55",
     note: "Sessie met 5 gasten; korte uitleg gegeven over verschil sativa/indica landrace.",
   },
+  {
+    id: "w11",
+    week: "2026-W36",
+    location: "boerejongens",
+    type: "qr",
+    submitter: "Nina de Jong",
+    timestamp: "05-09-2026 14:15",
+    note: "QR-kaartjes bijgevuld bij de kassa; 18 scans deze week.",
+  },
+  {
+    id: "w12",
+    week: "2026-W34",
+    location: "boerejongens",
+    type: "smoke",
+    submitter: "Nina de Jong",
+    timestamp: "22-08-2026 19:40",
+    note: "Sessie met 7 gasten; goede vragen over het assortiment landrace hasj.",
+  },
 ];
 
 function load(): WeeklyLogEntry[] {

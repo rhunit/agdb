@@ -6,18 +6,21 @@ const LOCATION_COLOR: Record<LocationId, string> = {
   centrum: "#38b449",
   oost: "#4d3935",
   depijp: "#6f5d58",
+  boerejongens: "#1f7a30",
 };
 
 const LOCATION_DASH: Record<LocationId, string | undefined> = {
   centrum: undefined,
   oost: undefined,
   depijp: "5 4",
+  boerejongens: "2 3",
 };
 
 const LOCATION_LABEL: Record<LocationId, string> = {
   centrum: "BIJ Amsterdam",
-  oost: "Oost",
-  depijp: "De Pijp",
+  oost: "Sloterdijk",
+  depijp: "Boerejongens West",
+  boerejongens: "Boerejongens",
 };
 
 interface SeriesPoint {

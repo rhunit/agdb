@@ -1,7 +1,7 @@
 import { google } from "googleapis";
 import type { OAuth2Client } from "google-auth-library";
 
-export type InternalLocationId = "centrum" | "oost" | "depijp";
+export type InternalLocationId = "centrum" | "oost" | "depijp" | "boerejongens";
 
 export interface DiscoveredLocation {
   /** Our internal id, matched by name — see matchInternalId(). */
@@ -136,7 +136,7 @@ export async function getWeeklySearchViews(
           );
           const week = isoWeekLabel(day);
           const value = Number(dated.value ?? 0);
-          weekly[week] ??= { centrum: 0, oost: 0, depijp: 0 };
+          weekly[week] ??= { centrum: 0, oost: 0, depijp: 0, boerejongens: 0 };
           weekly[week][loc.internalId] += value;
         }
       }
