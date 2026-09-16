@@ -3,12 +3,12 @@ import {
   LOCATIONS,
   PREVIOUS_WEEK_AVG_SCORE,
   PREVIOUS_WEEK_REVIEW_COUNT,
+  REVIEW_GROWTH,
   REVIEWS,
-  SEARCH_VIEWS,
   WEEKLY_LOG,
 } from "../data/mockData";
 import type { LivePlaceSummary } from "../lib/api";
-import type { LocationId, Review, SearchViewsWeek, WeeklyLogEntry } from "../types";
+import type { LocationId, Review, ReviewGrowthWeek, WeeklyLogEntry } from "../types";
 
 export type LocationFilter = LocationId | "all";
 
@@ -52,14 +52,14 @@ function liveReviewsFor(locationId: LocationId, summary: LivePlaceSummary): Revi
 
 export function useDashboardData(
   filter: LocationFilter,
-  searchViewsOverride?: SearchViewsWeek[] | null,
+  reviewGrowthOverride?: ReviewGrowthWeek[] | null,
   livePlaces?: Partial<Record<LocationId, LivePlaceSummary>> | null,
   weeklyLogOverride?: WeeklyLogEntry[] | null,
 ) {
-  const searchViewsSource =
-    searchViewsOverride && searchViewsOverride.length > 0
-      ? searchViewsOverride
-      : SEARCH_VIEWS;
+  const reviewGrowthSource =
+    reviewGrowthOverride && reviewGrowthOverride.length > 0
+      ? reviewGrowthOverride
+      : REVIEW_GROWTH;
   const weeklyLogSource = weeklyLogOverride ?? WEEKLY_LOG;
 
   return useMemo(() => {
@@ -132,8 +132,9 @@ export function useDashboardData(
     );
 
     const criticalReviews = reviews.filter((r) => r.rating <= 2);
+    const topRatedCount = reviews.filter((r) => r.rating === 5).length;
 
-    const searchViewsSeries = searchViewsSource.map((week) => ({
+    const reviewGrowthSeries = reviewGrowthSource.map((week) => ({
       week: week.week,
       total: locations.reduce((sum, id) => sum + week[id], 0),
       byLocation: Object.fromEntries(
@@ -141,10 +142,10 @@ export function useDashboardData(
       ) as Record<LocationId, number>,
     }));
 
-    const latestWeek = searchViewsSeries[searchViewsSeries.length - 1];
-    const previousWeek = searchViewsSeries[searchViewsSeries.length - 2];
-    const searchViewsTotal = latestWeek.total;
-    const searchViewsDeltaPct =
+    const latestWeek = reviewGrowthSeries[reviewGrowthSeries.length - 1];
+    const previousWeek = reviewGrowthSeries[reviewGrowthSeries.length - 2];
+    const reviewGrowthTotal = latestWeek.total;
+    const reviewGrowthDeltaPct =
       previousWeek && previousWeek.total > 0
         ? ((latestWeek.total - previousWeek.total) / previousWeek.total) * 100
         : 0;
@@ -170,12 +171,13 @@ export function useDashboardData(
       oldestCriticalDaysAgo: criticalReviews.length
         ? Math.max(...criticalReviews.map((r) => r.daysAgo))
         : 0,
-      searchViewsSeries,
-      searchViewsTotal,
-      searchViewsDeltaPct,
+      topRatedCount,
+      reviewGrowthSeries,
+      reviewGrowthTotal,
+      reviewGrowthDeltaPct,
       logEntries,
       logEntryCount: logEntries.length,
       logWeekCount: distinctWeeks.size,
     };
-  }, [filter, searchViewsSource, livePlaces, weeklyLogSource]);
+  }, [filter, reviewGrowthSource, livePlaces, weeklyLogSource]);
 }

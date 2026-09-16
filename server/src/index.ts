@@ -8,7 +8,8 @@ import {
   isConnected,
 } from "./googleAuth.js";
 import { getWeeklySearchViews, listLocations } from "./googleBusinessProfile.js";
-import { getAllPlacesSummaries } from "./googlePlaces.js";
+import { ACTIVE_LOCATIONS, getAllPlacesSummaries } from "./googlePlaces.js";
+import { getWeeklyReviewGrowth, recordSnapshot } from "./placesHistoryStore.js";
 import { appendWeeklyLogEntry, listWeeklyLog } from "./weeklyLogStore.js";
 
 const app = express();
@@ -70,11 +71,21 @@ app.get("/api/search-views", async (_req, res) => {
 app.get("/api/places-summary", async (_req, res) => {
   try {
     const summaries = await getAllPlacesSummaries();
+    for (const [location, summary] of Object.entries(summaries)) {
+      recordSnapshot(location as (typeof ACTIVE_LOCATIONS)[number], summary.userRatingCount);
+    }
     res.json(summaries);
   } catch (err) {
     console.error(err);
     res.status(503).json({ error: (err as Error).message });
   }
+});
+
+// Week-over-week new-review counts, built from the review-count snapshots
+// taken above — see placesHistoryStore.ts for why this needs no separate
+// polling job and why the series starts out short.
+app.get("/api/places-review-growth", (_req, res) => {
+  res.json(getWeeklyReviewGrowth(ACTIVE_LOCATIONS));
 });
 
 const LOCATION_IDS = new Set(["centrum", "oost", "depijp", "boerejongens"]);

@@ -27,7 +27,7 @@ const SEARCH_QUERIES: Partial<Record<InternalLocationId, string>> = {
 };
 
 /** Only fetch locations we have a verified query for — see note above. */
-const ACTIVE_LOCATIONS = Object.keys(SEARCH_QUERIES) as InternalLocationId[];
+export const ACTIVE_LOCATIONS = Object.keys(SEARCH_QUERIES) as InternalLocationId[];
 
 interface PlaceCache {
   [locationId: string]: { placeId: string; resolvedAt: string };

@@ -2,7 +2,6 @@ import {
   formatDutchDecimal,
   formatDutchInt,
   formatSignedDecimal,
-  formatSignedPercent,
 } from "../lib/format";
 import styles from "./KpiRow.module.css";
 
@@ -15,8 +14,8 @@ interface KpiRowProps {
   reviewCountDelta: number;
   responseRatio: number;
   openCount: number;
-  searchViewsTotal: number;
-  searchViewsDeltaPct: number;
+  topRatedCount: number;
+  criticalCount: number;
 }
 
 function deltaClass(value: number): string {
@@ -32,8 +31,8 @@ export function KpiRow({
   reviewCountDelta,
   responseRatio,
   openCount,
-  searchViewsTotal,
-  searchViewsDeltaPct,
+  topRatedCount,
+  criticalCount,
 }: KpiRowProps) {
   return (
     <div className={styles.row}>
@@ -69,10 +68,12 @@ export function KpiRow({
         <div className={styles.deltaMuted}>{openCount} open reacties</div>
       </div>
       <div className={styles.tile}>
-        <div className={styles.label}>ZOEKWEERGAVEN</div>
-        <div className={styles.value}>{formatDutchInt(searchViewsTotal)}</div>
-        <div className={deltaClass(searchViewsDeltaPct)}>
-          {formatSignedPercent(searchViewsDeltaPct)} vs vorige week
+        <div className={styles.label}>UITERSTEN DEZE WEEK</div>
+        <div className={styles.value}>{topRatedCount} × 5★</div>
+        <div className={criticalCount > 0 ? styles.deltaNegative : styles.deltaPositive}>
+          {criticalCount > 0
+            ? `${criticalCount} × 1–2★ deze week`
+            : "Geen 1–2★ deze week"}
         </div>
       </div>
     </div>

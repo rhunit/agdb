@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useDashboardData, type LocationFilter } from "../hooks/useDashboardData";
+import { useLivePlacesReviewGrowth } from "../hooks/useLivePlacesReviewGrowth";
 import { useLivePlacesSummary } from "../hooks/useLivePlacesSummary";
-import { useLiveSearchViews } from "../hooks/useLiveSearchViews";
 import { useWeeklyLog } from "../hooks/useWeeklyLog";
 import { KpiRow } from "./KpiRow";
 import { ReviewFeed } from "./ReviewFeed";
@@ -15,12 +15,12 @@ import styles from "./Dashboard.module.css";
 
 export function Dashboard() {
   const [filter, setFilter] = useState<LocationFilter>("all");
-  const liveSearchViews = useLiveSearchViews();
+  const reviewGrowth = useLivePlacesReviewGrowth();
   const livePlaces = useLivePlacesSummary();
   const weeklyLog = useWeeklyLog();
   const data = useDashboardData(
     filter,
-    liveSearchViews.data,
+    reviewGrowth.data,
     livePlaces.data,
     weeklyLog.entries,
   );
@@ -46,8 +46,8 @@ export function Dashboard() {
             reviewCountDelta={data.reviewCountDelta}
             responseRatio={data.responseRatio}
             openCount={data.openCount}
-            searchViewsTotal={data.searchViewsTotal}
-            searchViewsDeltaPct={data.searchViewsDeltaPct}
+            topRatedCount={data.topRatedCount}
+            criticalCount={data.criticalCount}
           />
 
           <div className={styles.split}>
@@ -57,11 +57,12 @@ export function Dashboard() {
               isLive={data.locations.some((id) => livePlaces.data?.[id] != null)}
             />
             <TrendChart
-              series={data.searchViewsSeries}
+              title="Nieuwe reviews per locatie"
+              series={data.reviewGrowthSeries}
               locations={data.locations}
-              total={data.searchViewsTotal}
-              deltaPct={data.searchViewsDeltaPct}
-              isLive={liveSearchViews.isLive}
+              total={data.reviewGrowthTotal}
+              deltaPct={data.reviewGrowthDeltaPct}
+              isLive={reviewGrowth.isLive}
             />
           </div>
 

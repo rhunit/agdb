@@ -30,6 +30,7 @@ interface SeriesPoint {
 }
 
 interface TrendChartProps {
+  title: string;
   series: SeriesPoint[];
   locations: LocationId[];
   total: number;
@@ -53,6 +54,7 @@ function scaleY(value: number, min: number, max: number) {
 }
 
 export function TrendChart({
+  title,
   series,
   locations,
   total,
@@ -73,7 +75,7 @@ export function TrendChart({
       <div className={styles.header}>
         <div>
           <div className={styles.title}>
-            Zoekweergaven per locatie
+            {title}
             {isLive && <span className={styles.liveBadge}>LIVE</span>}
           </div>
           <div className={styles.subtitle}>

@@ -39,3 +39,14 @@ export interface SearchViewsWeek {
   depijp: number;
   boerejongens: number;
 }
+
+/** New reviews per location per week — same shape as SearchViewsWeek, kept
+ * as a separate type since it's a different real-world metric (review
+ * count deltas vs search impressions). */
+export interface ReviewGrowthWeek {
+  week: string;
+  centrum: number;
+  oost: number;
+  depijp: number;
+  boerejongens: number;
+}

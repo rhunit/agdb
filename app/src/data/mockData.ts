@@ -2,7 +2,7 @@ import type {
   Location,
   LocationId,
   Review,
-  SearchViewsWeek,
+  ReviewGrowthWeek,
   WeeklyLogEntry,
 } from "../types";
 
@@ -329,16 +329,17 @@ export const WEEKLY_LOG: WeeklyLogEntry[] = [
   },
 ];
 
-// 8 weeks of search-view volume per location (W29–W36), used to drive the
-// trend chart and the "zoekweergaven" KPI. Latest-week values sum to the
-// combined KPI shown in the header.
-export const SEARCH_VIEWS: SearchViewsWeek[] = [
-  { week: "W29", centrum: 4200, oost: 2900, depijp: 2400, boerejongens: 3100 },
-  { week: "W30", centrum: 4550, oost: 3050, depijp: 2500, boerejongens: 3250 },
-  { week: "W31", centrum: 4300, oost: 2980, depijp: 2550, boerejongens: 3180 },
-  { week: "W32", centrum: 5100, oost: 3300, depijp: 2650, boerejongens: 3400 },
-  { week: "W33", centrum: 5400, oost: 3450, depijp: 2750, boerejongens: 3600 },
-  { week: "W34", centrum: 5800, oost: 3700, depijp: 2900, boerejongens: 3850 },
-  { week: "W35", centrum: 6241, oost: 3867, depijp: 3029, boerejongens: 4050 },
-  { week: "W36", centrum: 6940, oost: 4115, depijp: 3153, boerejongens: 4300 },
+// 8 weeks of new-reviews-per-location (W29–W36), used to drive the trend
+// chart on "Alle locaties". Latest-week values match the reviews shown in
+// the feed above (see REVIEWS), so the chart's rightmost point and the
+// "Nieuwe reviews" KPI tell the same story.
+export const REVIEW_GROWTH: ReviewGrowthWeek[] = [
+  { week: "W29", centrum: 2, oost: 2, depijp: 1, boerejongens: 2 },
+  { week: "W30", centrum: 2, oost: 3, depijp: 2, boerejongens: 2 },
+  { week: "W31", centrum: 3, oost: 2, depijp: 2, boerejongens: 3 },
+  { week: "W32", centrum: 3, oost: 3, depijp: 3, boerejongens: 2 },
+  { week: "W33", centrum: 4, oost: 3, depijp: 3, boerejongens: 3 },
+  { week: "W34", centrum: 3, oost: 4, depijp: 3, boerejongens: 3 },
+  { week: "W35", centrum: 4, oost: 4, depijp: 4, boerejongens: 2 },
+  { week: "W36", centrum: 4, oost: 4, depijp: 4, boerejongens: 3 },
 ];

@@ -81,7 +81,7 @@ function toDateParts(d: Date): DateParts {
   return { year: d.getUTCFullYear(), month: d.getUTCMonth() + 1, day: d.getUTCDate() };
 }
 
-function isoWeekLabel(d: Date): string {
+export function isoWeekLabel(d: Date): string {
   // ISO week number, formatted like the mock data's "W36".
   const date = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
   const dayNum = (date.getUTCDay() + 6) % 7;

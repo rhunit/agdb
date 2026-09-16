@@ -1,4 +1,10 @@
-import type { LocationId, LogType, SearchViewsWeek, WeeklyLogEntry } from "../types";
+import type {
+  LocationId,
+  LogType,
+  ReviewGrowthWeek,
+  SearchViewsWeek,
+  WeeklyLogEntry,
+} from "../types";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string | undefined;
 
@@ -69,6 +75,34 @@ export async function fetchLivePlacesSummary(): Promise<Partial<
     const res = await fetch(`${API_BASE}/api/places-summary`);
     if (!res.ok) return null;
     return (await res.json()) as Partial<Record<LocationId, LivePlaceSummary>>;
+  } catch {
+    return null;
+  }
+}
+
+/** Week-over-week new-review counts, derived server-side from weekly
+ * snapshots of each location's total review count (see
+ * server/src/placesHistoryStore.ts). Only as many weeks as have actually
+ * been snapshotted come back — sparse until the dashboard has been open
+ * across enough weeks to build up history. */
+export async function fetchLiveReviewGrowth(): Promise<ReviewGrowthWeek[] | null> {
+  if (!API_BASE) return null;
+  try {
+    const res = await fetch(`${API_BASE}/api/places-review-growth`);
+    if (!res.ok) return null;
+    const raw = (await res.json()) as Record<
+      string,
+      Partial<Record<LocationId, number>>
+    >;
+    return Object.entries(raw)
+      .map(([week, byLocation]) => ({
+        week,
+        centrum: byLocation.centrum ?? 0,
+        oost: byLocation.oost ?? 0,
+        depijp: byLocation.depijp ?? 0,
+        boerejongens: byLocation.boerejongens ?? 0,
+      }))
+      .sort((a, b) => weekSortKey(a.week) - weekSortKey(b.week));
   } catch {
     return null;
   }
