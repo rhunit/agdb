@@ -48,7 +48,6 @@ export function Dashboard() {
             openCount={data.openCount}
             topRatedCount={data.topRatedCount}
             criticalCount={data.criticalCount}
-            extremesAreLive={data.reviewsAreLive}
           />
 
           <div className={styles.split}>

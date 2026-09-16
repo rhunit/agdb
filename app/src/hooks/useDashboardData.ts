@@ -138,8 +138,12 @@ export function useDashboardData(
       0,
     );
 
-    const criticalReviews = reviews.filter((r) => r.rating <= 2);
-    const topRatedCount = reviews.filter((r) => r.rating === 5).length;
+    // Also mock-derived, for the same reason as reviewCount above: Places'
+    // 5-review "most relevant" sample can omit real recent reviews
+    // entirely, so a 5★/1–2★ split computed from it can misreport as 0
+    // when the actual count is higher.
+    const criticalReviews = mockReviews.filter((r) => r.rating <= 2);
+    const topRatedCount = mockReviews.filter((r) => r.rating === 5).length;
 
     const reviewGrowthSeries = reviewGrowthSource.map((week) => ({
       week: week.week,
