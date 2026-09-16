@@ -2,7 +2,7 @@ import { formatDutchInt, formatSignedPercent } from "../lib/format";
 import type { LocationId } from "../types";
 import styles from "./TrendChart.module.css";
 
-const LOCATION_COLOR: Record<LocationId, string> = {
+export const LOCATION_COLOR: Record<LocationId, string> = {
   centrum: "#38b449",
   oost: "#4d3935",
   depijp: "#6f5d58",

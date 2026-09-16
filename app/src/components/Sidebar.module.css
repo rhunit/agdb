@@ -81,6 +81,14 @@
   cursor: default;
 }
 
+.navItemClickable {
+  cursor: pointer;
+}
+
+.navItemClickable:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
 .navItemActive {
   background: rgba(0, 0, 0, 0.16);
   font-weight: 700;

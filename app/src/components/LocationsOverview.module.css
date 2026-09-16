@@ -1,0 +1,111 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-md);
+}
+
+.header {
+  padding-top: var(--sp-xs);
+}
+
+.title {
+  font: var(--fs-headline-lg);
+  color: var(--ag-secondary);
+}
+
+.subtitle {
+  font: var(--fs-body-sm);
+  color: var(--ag-muted);
+  margin-top: 2px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--sp-md);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  background: var(--ag-surface);
+  border: 1px solid var(--ag-border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.card:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.hero {
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.body {
+  padding: var(--sp-sm) var(--sp-md) var(--sp-md);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.name {
+  font: var(--fs-label-lg);
+  font-weight: 700;
+  color: var(--ag-secondary);
+}
+
+.subtext {
+  font: var(--fs-body-sm);
+  color: var(--ag-muted);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: var(--fs-body-sm);
+  font-weight: 600;
+  color: var(--ag-secondary);
+  background: var(--ag-neutral-100);
+  border: 1px solid var(--ag-border);
+  padding: 4px 10px;
+  border-radius: var(--r-full);
+}
+
+.liveBadge {
+  font: var(--fs-label-sm);
+  letter-spacing: var(--ls-label-sm);
+  background: var(--ag-primary);
+  color: var(--ag-neutral);
+  padding: 1px 6px;
+  border-radius: var(--r-full);
+}
+
+.cta {
+  margin-top: var(--sp-sm);
+  background: var(--ag-primary);
+  color: var(--ag-neutral);
+  font: var(--fs-label-md);
+  font-weight: 700;
+  text-align: center;
+  padding: 10px 14px;
+  border-radius: var(--r-full);
+}

@@ -4,8 +4,9 @@ import { useLivePlacesReviewGrowth } from "../hooks/useLivePlacesReviewGrowth";
 import { useLivePlacesSummary } from "../hooks/useLivePlacesSummary";
 import { useWeeklyLog } from "../hooks/useWeeklyLog";
 import { KpiRow } from "./KpiRow";
+import { LocationsOverview } from "./LocationsOverview";
 import { ReviewFeed } from "./ReviewFeed";
-import { Sidebar } from "./Sidebar";
+import { Sidebar, type SidebarView } from "./Sidebar";
 import { StatusStrip } from "./StatusStrip";
 import { Topbar } from "./Topbar";
 import { TrendChart } from "./TrendChart";
@@ -14,6 +15,7 @@ import { WeeklyUpdateForm } from "./WeeklyUpdateForm";
 import styles from "./Dashboard.module.css";
 
 export function Dashboard() {
+  const [view, setView] = useState<SidebarView>("dashboard");
   const [filter, setFilter] = useState<LocationFilter>("all");
   const reviewGrowth = useLivePlacesReviewGrowth();
   const livePlaces = useLivePlacesSummary();
@@ -25,9 +27,27 @@ export function Dashboard() {
     weeklyLog.entries,
   );
 
+  if (view === "locaties") {
+    return (
+      <div className={styles.shell}>
+        <Sidebar active={view} onNavigate={setView} />
+        <div className={styles.main}>
+          <div className={styles.content}>
+            <LocationsOverview
+              onSelect={(id) => {
+                setFilter(id);
+                setView("dashboard");
+              }}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.shell}>
-      <Sidebar />
+      <Sidebar active={view} onNavigate={setView} />
       <div className={styles.main}>
         <Topbar
           selected={filter}

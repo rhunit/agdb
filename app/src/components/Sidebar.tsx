@@ -1,14 +1,26 @@
 import styles from "./Sidebar.module.css";
 
-const NAV_ITEMS = [
-  "Dashboard",
-  "Alle reviews",
-  "Weekly update",
-  "Locaties",
-  "Instellingen",
+export type SidebarView = "dashboard" | "locaties";
+
+interface NavItem {
+  label: string;
+  view: SidebarView | null;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { label: "Dashboard", view: "dashboard" },
+  { label: "Alle reviews", view: null },
+  { label: "Weekly update", view: null },
+  { label: "Locaties", view: "locaties" },
+  { label: "Instellingen", view: null },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  active: SidebarView;
+  onNavigate: (view: SidebarView) => void;
+}
+
+export function Sidebar({ active, onNavigate }: SidebarProps) {
   return (
     <aside className={styles.sidebar}>
       <div className={styles.brand}>
@@ -25,14 +37,26 @@ export function Sidebar() {
       <nav className={styles.nav} aria-label="Hoofdnavigatie">
         {NAV_ITEMS.map((item) => (
           <div
-            key={item}
+            key={item.label}
             className={
-              item === "Dashboard"
+              item.view === active
                 ? `${styles.navItem} ${styles.navItemActive}`
-                : styles.navItem
+                : item.view
+                  ? `${styles.navItem} ${styles.navItemClickable}`
+                  : styles.navItem
+            }
+            role={item.view ? "button" : undefined}
+            tabIndex={item.view ? 0 : undefined}
+            onClick={item.view ? () => onNavigate(item.view!) : undefined}
+            onKeyDown={
+              item.view
+                ? (e) => {
+                    if (e.key === "Enter" || e.key === " ") onNavigate(item.view!);
+                  }
+                : undefined
             }
           >
-            {item}
+            {item.label}
           </div>
         ))}
       </nav>
