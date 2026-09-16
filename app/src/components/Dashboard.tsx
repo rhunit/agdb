@@ -48,13 +48,14 @@ export function Dashboard() {
             openCount={data.openCount}
             topRatedCount={data.topRatedCount}
             criticalCount={data.criticalCount}
+            extremesAreLive={data.reviewsAreLive}
           />
 
           <div className={styles.split}>
             <ReviewFeed
               reviews={data.reviews}
               showLocation={filter === "all"}
-              isLive={data.locations.some((id) => livePlaces.data?.[id] != null)}
+              isLive={data.reviewsAreLive}
             />
             <TrendChart
               title="Nieuwe reviews per locatie"
@@ -73,7 +74,11 @@ export function Dashboard() {
             onSubmit={weeklyLog.submit}
           />
 
-          <WeeklyLog entries={data.logEntries} weekCount={data.logWeekCount} />
+          <WeeklyLog
+            entries={data.logEntries}
+            weekCount={data.logWeekCount}
+            isLive={weeklyLog.isLive}
+          />
         </div>
       </div>
     </div>

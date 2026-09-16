@@ -95,6 +95,13 @@ export function useDashboardData(
       : [];
     const avgScoreIsLive = livePlaces != null && liveRatings.length > 0;
 
+    // Whether the review feed / extremes count for this selection includes
+    // at least one location with real Places data — used to badge those
+    // UI pieces as LIVE, since (unlike avgScore) they can be a mix of live
+    // and mock locations under "Alle locaties".
+    const reviewsAreLive =
+      livePlaces != null && locations.some((id) => livePlaces[id] != null);
+
     const avgScore = avgScoreIsLive
       ? liveRatings.reduce((sum, p) => sum + p.rating! * p.userRatingCount, 0) /
         liveRatings.reduce((sum, p) => sum + p.userRatingCount, 0)
@@ -159,6 +166,7 @@ export function useDashboardData(
     return {
       locations,
       reviews,
+      reviewsAreLive,
       avgScore,
       avgScoreIsLive,
       avgScoreReviewCount,

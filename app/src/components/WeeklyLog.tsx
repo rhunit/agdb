@@ -8,6 +8,7 @@ const LOCATION_NAME = new Map(LOCATIONS.map((l) => [l.id, l.name]));
 interface WeeklyLogProps {
   entries: WeeklyLogEntry[];
   weekCount: number;
+  isLive?: boolean;
 }
 
 function groupByWeek(entries: WeeklyLogEntry[]) {
@@ -20,13 +21,14 @@ function groupByWeek(entries: WeeklyLogEntry[]) {
   return groups;
 }
 
-export function WeeklyLog({ entries, weekCount }: WeeklyLogProps) {
+export function WeeklyLog({ entries, weekCount, isLive = false }: WeeklyLogProps) {
   const groups = groupByWeek(entries);
 
   return (
     <div className={styles.card}>
       <div className={styles.header}>
         <div className={styles.title}>Weeklog · handmatige updates</div>
+        {isLive && <span className={styles.liveBadge}>LIVE</span>}
         <span className={styles.appendOnly}>APPEND-ONLY</span>
         <div className={styles.count}>
           {entries.length} entries · {weekCount} weken

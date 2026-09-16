@@ -16,6 +16,7 @@ interface KpiRowProps {
   openCount: number;
   topRatedCount: number;
   criticalCount: number;
+  extremesAreLive?: boolean;
 }
 
 function deltaClass(value: number): string {
@@ -33,6 +34,7 @@ export function KpiRow({
   openCount,
   topRatedCount,
   criticalCount,
+  extremesAreLive = false,
 }: KpiRowProps) {
   return (
     <div className={styles.row}>
@@ -68,7 +70,10 @@ export function KpiRow({
         <div className={styles.deltaMuted}>{openCount} open reacties</div>
       </div>
       <div className={styles.tile}>
-        <div className={styles.label}>UITERSTEN DEZE WEEK</div>
+        <div className={styles.label}>
+          UITERSTEN DEZE WEEK
+          {extremesAreLive && <span className={styles.liveBadge}>LIVE</span>}
+        </div>
         <div className={styles.value}>{topRatedCount} × 5★</div>
         <div className={criticalCount > 0 ? styles.deltaNegative : styles.deltaPositive}>
           {criticalCount > 0
