@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useDashboardData, type LocationFilter } from "../hooks/useDashboardData";
 import { useLivePlacesSummary } from "../hooks/useLivePlacesSummary";
 import { useLiveSearchViews } from "../hooks/useLiveSearchViews";
+import { useWeeklyLog } from "../hooks/useWeeklyLog";
 import { KpiRow } from "./KpiRow";
 import { ReviewFeed } from "./ReviewFeed";
 import { Sidebar } from "./Sidebar";
@@ -9,13 +10,20 @@ import { StatusStrip } from "./StatusStrip";
 import { Topbar } from "./Topbar";
 import { TrendChart } from "./TrendChart";
 import { WeeklyLog } from "./WeeklyLog";
+import { WeeklyUpdateForm } from "./WeeklyUpdateForm";
 import styles from "./Dashboard.module.css";
 
 export function Dashboard() {
   const [filter, setFilter] = useState<LocationFilter>("all");
   const liveSearchViews = useLiveSearchViews();
   const livePlaces = useLivePlacesSummary();
-  const data = useDashboardData(filter, liveSearchViews.data, livePlaces.data);
+  const weeklyLog = useWeeklyLog();
+  const data = useDashboardData(
+    filter,
+    liveSearchViews.data,
+    livePlaces.data,
+    weeklyLog.entries,
+  );
 
   return (
     <div className={styles.shell}>
@@ -56,6 +64,13 @@ export function Dashboard() {
               isLive={liveSearchViews.isLive}
             />
           </div>
+
+          <WeeklyUpdateForm
+            isLive={weeklyLog.isLive}
+            submitting={weeklyLog.submitting}
+            submitError={weeklyLog.submitError}
+            onSubmit={weeklyLog.submit}
+          />
 
           <WeeklyLog entries={data.logEntries} weekCount={data.logWeekCount} />
         </div>

@@ -8,7 +8,7 @@ import {
   WEEKLY_LOG,
 } from "../data/mockData";
 import type { LivePlaceSummary } from "../lib/api";
-import type { LocationId, Review, SearchViewsWeek } from "../types";
+import type { LocationId, Review, SearchViewsWeek, WeeklyLogEntry } from "../types";
 
 export type LocationFilter = LocationId | "all";
 
@@ -54,11 +54,13 @@ export function useDashboardData(
   filter: LocationFilter,
   searchViewsOverride?: SearchViewsWeek[] | null,
   livePlaces?: Partial<Record<LocationId, LivePlaceSummary>> | null,
+  weeklyLogOverride?: WeeklyLogEntry[] | null,
 ) {
   const searchViewsSource =
     searchViewsOverride && searchViewsOverride.length > 0
       ? searchViewsOverride
       : SEARCH_VIEWS;
+  const weeklyLogSource = weeklyLogOverride ?? WEEKLY_LOG;
 
   return useMemo(() => {
     const locations = includedLocations(filter);
@@ -147,9 +149,9 @@ export function useDashboardData(
         ? ((latestWeek.total - previousWeek.total) / previousWeek.total) * 100
         : 0;
 
-    const logEntries = WEEKLY_LOG.filter((e) =>
-      locationSet.has(e.location),
-    ).sort((a, b) => (a.week < b.week ? 1 : a.week > b.week ? -1 : 0));
+    const logEntries = weeklyLogSource
+      .filter((e) => locationSet.has(e.location))
+      .sort((a, b) => (a.week < b.week ? 1 : a.week > b.week ? -1 : 0));
 
     const distinctWeeks = new Set(logEntries.map((e) => e.week));
 
@@ -175,5 +177,5 @@ export function useDashboardData(
       logEntryCount: logEntries.length,
       logWeekCount: distinctWeeks.size,
     };
-  }, [filter, searchViewsSource, livePlaces]);
+  }, [filter, searchViewsSource, livePlaces, weeklyLogSource]);
 }

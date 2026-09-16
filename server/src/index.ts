@@ -9,11 +9,13 @@ import {
 } from "./googleAuth.js";
 import { getWeeklySearchViews, listLocations } from "./googleBusinessProfile.js";
 import { getAllPlacesSummaries } from "./googlePlaces.js";
+import { appendWeeklyLogEntry, listWeeklyLog } from "./weeklyLogStore.js";
 
 const app = express();
 const PORT = Number(process.env.PORT ?? 8787);
 
 app.use(cors({ origin: process.env.FRONTEND_ORIGIN ?? "http://localhost:5173" }));
+app.use(express.json());
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true, googleConnected: isConnected() });
@@ -73,6 +75,41 @@ app.get("/api/places-summary", async (_req, res) => {
     console.error(err);
     res.status(503).json({ error: (err as Error).message });
   }
+});
+
+const LOCATION_IDS = new Set(["centrum", "oost", "depijp"]);
+const LOG_TYPES = new Set(["smoke", "qr"]);
+
+app.get("/api/weekly-log", (_req, res) => {
+  res.json(listWeeklyLog());
+});
+
+// Append-only by design: no PUT/PATCH/DELETE route exists for this
+// resource at all.
+app.post("/api/weekly-log", (req, res) => {
+  const { location, type, submitter, note } = req.body ?? {};
+  if (
+    typeof location !== "string" ||
+    !LOCATION_IDS.has(location) ||
+    typeof type !== "string" ||
+    !LOG_TYPES.has(type) ||
+    typeof submitter !== "string" ||
+    !submitter.trim() ||
+    typeof note !== "string" ||
+    !note.trim()
+  ) {
+    res.status(400).json({
+      error: "Vereist: location (centrum|oost|depijp), type (smoke|qr), submitter, note.",
+    });
+    return;
+  }
+  const entry = appendWeeklyLogEntry({
+    location: location as "centrum" | "oost" | "depijp",
+    type: type as "smoke" | "qr",
+    submitter,
+    note,
+  });
+  res.status(201).json(entry);
 });
 
 app.listen(PORT, () => {

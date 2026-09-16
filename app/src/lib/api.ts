@@ -1,4 +1,4 @@
-import type { LocationId, SearchViewsWeek } from "../types";
+import type { LocationId, LogType, SearchViewsWeek, WeeklyLogEntry } from "../types";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string | undefined;
 
@@ -71,5 +71,49 @@ export async function fetchLivePlacesSummary(): Promise<Partial<
     return (await res.json()) as Partial<Record<LocationId, LivePlaceSummary>>;
   } catch {
     return null;
+  }
+}
+
+export async function fetchLiveWeeklyLog(): Promise<WeeklyLogEntry[] | null> {
+  if (!API_BASE) return null;
+  try {
+    const res = await fetch(`${API_BASE}/api/weekly-log`);
+    if (!res.ok) return null;
+    return (await res.json()) as WeeklyLogEntry[];
+  } catch {
+    return null;
+  }
+}
+
+export interface NewWeeklyLogEntry {
+  location: LocationId;
+  type: LogType;
+  submitter: string;
+  note: string;
+}
+
+export type SubmitWeeklyLogResult =
+  | { ok: true; entry: WeeklyLogEntry }
+  | { ok: false; error: string };
+
+export async function submitWeeklyLogEntry(
+  input: NewWeeklyLogEntry,
+): Promise<SubmitWeeklyLogResult> {
+  if (!API_BASE) {
+    return { ok: false, error: "Geen backend geconfigureerd." };
+  }
+  try {
+    const res = await fetch(`${API_BASE}/api/weekly-log`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    });
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+      return { ok: false, error: body?.error ?? `Opslaan mislukt (${res.status}).` };
+    }
+    return { ok: true, entry: (await res.json()) as WeeklyLogEntry };
+  } catch {
+    return { ok: false, error: "Kon de server niet bereiken." };
   }
 }
