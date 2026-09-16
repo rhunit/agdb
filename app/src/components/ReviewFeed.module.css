@@ -116,3 +116,18 @@
   font: var(--fs-body-sm);
   color: var(--ag-muted);
 }
+
+@media (max-width: 560px) {
+  .item {
+    flex-wrap: wrap;
+  }
+
+  .aside {
+    flex: 1 1 100%;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-left: calc(38px + var(--sp-sm));
+    gap: var(--sp-xs);
+  }
+}

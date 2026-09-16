@@ -39,6 +39,12 @@
   gap: var(--sp-sm);
 }
 
+@media (max-width: 700px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .field {
   display: flex;
   flex-direction: column;

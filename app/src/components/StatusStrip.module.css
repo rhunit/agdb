@@ -5,6 +5,8 @@
   padding: var(--sp-sm) var(--sp-md);
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  row-gap: var(--sp-xs);
   gap: var(--sp-md);
 }
 

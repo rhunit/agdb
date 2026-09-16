@@ -4,6 +4,18 @@
   gap: var(--sp-md);
 }
 
+@media (max-width: 860px) {
+  .row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .tile {
   background: var(--ag-surface);
   border: 1px solid var(--ag-border);

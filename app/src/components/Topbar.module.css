@@ -10,7 +10,21 @@
 .row {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  row-gap: var(--sp-xs);
   gap: var(--sp-md);
+}
+
+@media (max-width: 640px) {
+  .row {
+    gap: var(--sp-sm);
+  }
+
+  .rightControls {
+    margin-left: 0;
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 
 .title {

@@ -8,6 +8,7 @@ import { LocationsOverview } from "./LocationsOverview";
 import { ReviewFeed } from "./ReviewFeed";
 import { Sidebar, type SidebarView } from "./Sidebar";
 import { StatusStrip } from "./StatusStrip";
+import { TestBanner } from "./TestBanner";
 import { Topbar } from "./Topbar";
 import { TrendChart } from "./TrendChart";
 import { WeeklyLog } from "./WeeklyLog";
@@ -27,79 +28,77 @@ export function Dashboard() {
     weeklyLog.entries,
   );
 
-  if (view === "locaties") {
-    return (
+  return (
+    <>
+      <TestBanner />
       <div className={styles.shell}>
         <Sidebar active={view} onNavigate={setView} />
         <div className={styles.main}>
-          <div className={styles.content}>
-            <LocationsOverview
-              onSelect={(id) => {
-                setFilter(id);
-                setView("dashboard");
-              }}
-            />
-          </div>
+          {view === "locaties" ? (
+            <div className={styles.content}>
+              <LocationsOverview
+                onSelect={(id) => {
+                  setFilter(id);
+                  setView("dashboard");
+                }}
+              />
+            </div>
+          ) : (
+            <>
+              <Topbar
+                selected={filter}
+                onSelect={setFilter}
+                updatedAt="08-09-2026 · 08:15"
+              />
+              <div className={styles.content}>
+                <StatusStrip reviewCount={data.reviewCount} />
+
+                <KpiRow
+                  avgScore={data.avgScore}
+                  avgScoreIsLive={data.avgScoreIsLive}
+                  avgScoreReviewCount={data.avgScoreReviewCount}
+                  avgScoreDelta={data.avgScoreDelta}
+                  reviewCount={data.reviewCount}
+                  reviewCountDelta={data.reviewCountDelta}
+                  responseRatio={data.responseRatio}
+                  openCount={data.openCount}
+                  topRatedCount={data.topRatedCount}
+                  criticalCount={data.criticalCount}
+                />
+
+                <div className={styles.split}>
+                  <ReviewFeed
+                    reviews={data.reviews}
+                    showLocation={filter === "all"}
+                    isLive={data.reviewsAreLive}
+                  />
+                  <TrendChart
+                    title="Nieuwe reviews per locatie"
+                    series={data.reviewGrowthSeries}
+                    locations={data.locations}
+                    total={data.reviewGrowthTotal}
+                    deltaPct={data.reviewGrowthDeltaPct}
+                    isLive={reviewGrowth.isLive}
+                  />
+                </div>
+
+                <WeeklyUpdateForm
+                  isLive={weeklyLog.isLive}
+                  submitting={weeklyLog.submitting}
+                  submitError={weeklyLog.submitError}
+                  onSubmit={weeklyLog.submit}
+                />
+
+                <WeeklyLog
+                  entries={data.logEntries}
+                  weekCount={data.logWeekCount}
+                  isLive={weeklyLog.isLive}
+                />
+              </div>
+            </>
+          )}
         </div>
       </div>
-    );
-  }
-
-  return (
-    <div className={styles.shell}>
-      <Sidebar active={view} onNavigate={setView} />
-      <div className={styles.main}>
-        <Topbar
-          selected={filter}
-          onSelect={setFilter}
-          updatedAt="08-09-2026 · 08:15"
-        />
-        <div className={styles.content}>
-          <StatusStrip reviewCount={data.reviewCount} />
-
-          <KpiRow
-            avgScore={data.avgScore}
-            avgScoreIsLive={data.avgScoreIsLive}
-            avgScoreReviewCount={data.avgScoreReviewCount}
-            avgScoreDelta={data.avgScoreDelta}
-            reviewCount={data.reviewCount}
-            reviewCountDelta={data.reviewCountDelta}
-            responseRatio={data.responseRatio}
-            openCount={data.openCount}
-            topRatedCount={data.topRatedCount}
-            criticalCount={data.criticalCount}
-          />
-
-          <div className={styles.split}>
-            <ReviewFeed
-              reviews={data.reviews}
-              showLocation={filter === "all"}
-              isLive={data.reviewsAreLive}
-            />
-            <TrendChart
-              title="Nieuwe reviews per locatie"
-              series={data.reviewGrowthSeries}
-              locations={data.locations}
-              total={data.reviewGrowthTotal}
-              deltaPct={data.reviewGrowthDeltaPct}
-              isLive={reviewGrowth.isLive}
-            />
-          </div>
-
-          <WeeklyUpdateForm
-            isLive={weeklyLog.isLive}
-            submitting={weeklyLog.submitting}
-            submitError={weeklyLog.submitError}
-            onSubmit={weeklyLog.submit}
-          />
-
-          <WeeklyLog
-            entries={data.logEntries}
-            weekCount={data.logWeekCount}
-            isLive={weeklyLog.isLive}
-          />
-        </div>
-      </div>
-    </div>
+    </>
   );
 }
