@@ -54,7 +54,16 @@ app.get("/health", (_req, res) => {
 // One-time admin flow: open this in a browser, log in as an account that
 // manages the Business Profile locations, and approve access.
 app.get("/auth/google", (_req, res) => {
-  res.redirect(buildConsentUrl());
+  try {
+    res.redirect(buildConsentUrl());
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(
+      `Kan de Google-koppeling niet starten: ${(err as Error).message}. ` +
+        "Controleer of GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET en " +
+        "GOOGLE_REDIRECT_URI zijn ingesteld.",
+    );
+  }
 });
 
 app.get("/auth/google/callback", async (req, res) => {
