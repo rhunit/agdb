@@ -11,14 +11,15 @@ export interface DiscoveredLocation {
   name: string;
 }
 
-/** Matches a Google Business Profile location title to one of our three
- * known locations by substring. Assumes the real listing names contain
- * "Centrum" / "Oost" / "Pijp" — adjust here if the real names differ. */
+/** Matches a Google Business Profile location title to one of our four
+ * real locations by substring. "boerejongens" alone is ambiguous between
+ * the two Boerejongens listings, so the "west" check must run first. */
 function matchInternalId(title: string): InternalLocationId | null {
   const t = title.toLowerCase();
-  if (t.includes("centrum")) return "centrum";
-  if (t.includes("oost")) return "oost";
-  if (t.includes("pijp")) return "depijp";
+  if (t.includes("bij amsterdam")) return "centrum";
+  if (t.includes("sloterdijk")) return "oost";
+  if (t.includes("boerejongens") && t.includes("west")) return "depijp";
+  if (t.includes("boerejongens")) return "boerejongens";
   return null;
 }
 
