@@ -8,6 +8,9 @@ export interface DiscoveredLocation {
   internalId: InternalLocationId | null;
   /** Google's resource name, e.g. "locations/12345678901234567890". */
   googleLocationId: string;
+  /** The owning account's resource name, e.g. "accounts/12345" — needed to
+   * address the legacy v4 reviews endpoint (see googleBusinessReviews.ts). */
+  accountName: string;
   name: string;
 }
 
@@ -60,6 +63,7 @@ async function fetchLocations(auth: OAuth2Client): Promise<DiscoveredLocation[]>
       out.push({
         internalId: matchInternalId(loc.title),
         googleLocationId: loc.name,
+        accountName: account.name,
         name: loc.title,
       });
     }

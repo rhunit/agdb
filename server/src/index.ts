@@ -11,6 +11,7 @@ import {
   isConnected,
 } from "./googleAuth.js";
 import { getWeeklySearchViews, listLocations } from "./googleBusinessProfile.js";
+import { listBusinessReviews } from "./googleBusinessReviews.js";
 import { ACTIVE_LOCATIONS, getAllPlacesSummaries } from "./googlePlaces.js";
 import { getWeeklyReviewGrowth, recordSnapshot } from "./placesHistoryStore.js";
 import { appendWeeklyLogEntry, listWeeklyLog } from "./weeklyLogStore.js";
@@ -114,6 +115,42 @@ app.get("/api/places-summary", async (_req, res) => {
 // polling job and why the series starts out short.
 app.get("/api/places-review-growth", (_req, res) => {
   res.json(getWeeklyReviewGrowth(ACTIVE_LOCATIONS));
+});
+
+// Diagnostic-only: tries the legacy v4 reviews endpoint for one location
+// and returns exactly what Google sent back (or its error), so this can
+// be tested directly in a browser before anything is wired into the real
+// dashboard. Not yet confirmed to work against this project's access —
+// see googleBusinessReviews.ts for why.
+app.get("/api/business-reviews-test", async (req, res) => {
+  const locationParam = req.query.location;
+  if (typeof locationParam !== "string") {
+    res.status(400).json({
+      error: "Vereist: ?location=centrum|oost|depijp|boerejongens",
+    });
+    return;
+  }
+  try {
+    const auth = getAuthorizedClient();
+    const locations = await listLocations(auth);
+    const match = locations.find((l) => l.internalId === locationParam);
+    if (!match) {
+      res.status(404).json({
+        error: `Locatie "${locationParam}" niet gevonden in de gekoppelde Business Profile-locaties.`,
+        discoveredLocations: locations,
+      });
+      return;
+    }
+    const reviews = await listBusinessReviews(
+      auth,
+      match.accountName,
+      match.googleLocationId,
+    );
+    res.json({ location: match, reviewCount: reviews.length, reviews });
+  } catch (err) {
+    console.error(err);
+    res.status(503).json({ error: (err as Error).message });
+  }
 });
 
 const LOCATION_IDS = new Set(["centrum", "oost", "depijp", "boerejongens"]);
