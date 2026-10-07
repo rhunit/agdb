@@ -111,7 +111,14 @@ export async function listBusinessReviews(
  * answer reliably (5-review cap, relevance ranking instead of recency, no
  * reply status at all). Two pages (100 reviews) per location is ample
  * margin for a single coffeeshop's weekly/biweekly review volume, so this
- * stays cheap even though the full history can run into the hundreds. */
+ * stays cheap even though the full history can run into the hundreds.
+ *
+ * Fetches are isolated per location (Promise.allSettled, not
+ * Promise.all): one location erroring — a quota hiccup, a location not
+ * yet matched on Google's side, anything — must not wipe out data for
+ * every other location that fetched fine. A location that failed is just
+ * absent from the result, same as one Google hasn't returned data for;
+ * the frontend already treats "missing" as "fall back for this one". */
 export async function getRecentBusinessReviews(
   auth: OAuth2Client,
   locations: DiscoveredLocation[],
@@ -119,7 +126,7 @@ export async function getRecentBusinessReviews(
 ): Promise<Partial<Record<InternalLocationId, BusinessReview[]>>> {
   const cutoff = Date.now() - withinDays * 24 * 60 * 60 * 1000;
 
-  const entries = await Promise.all(
+  const settled = await Promise.allSettled(
     locations
       .filter((loc) => loc.internalId)
       .map(async (loc) => {
@@ -136,5 +143,14 @@ export async function getRecentBusinessReviews(
       }),
   );
 
-  return Object.fromEntries(entries);
+  const out: Partial<Record<InternalLocationId, BusinessReview[]>> = {};
+  for (const result of settled) {
+    if (result.status === "fulfilled") {
+      const [id, recent] = result.value;
+      out[id] = recent;
+    } else {
+      console.error("getRecentBusinessReviews: one location failed:", result.reason);
+    }
+  }
+  return out;
 }
