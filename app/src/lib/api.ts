@@ -28,6 +28,15 @@ export interface LivePlaceSummary {
   newReviewsCapped: boolean;
 }
 
+export interface LiveBusinessReview {
+  id: string;
+  reviewer: string;
+  rating: number;
+  text: string;
+  createTime: string | null;
+  responded: boolean;
+}
+
 /** True whenever VITE_API_BASE_URL is set at all — including to an empty
  * string, which means "same origin" for a combined deploy where the
  * backend serves this build itself (see app/.env.production). Lets the
@@ -105,6 +114,23 @@ export async function fetchLiveReviewGrowth(): Promise<ReviewGrowthWeek[] | null
         boerejongens: byLocation.boerejongens ?? 0,
       }))
       .sort((a, b) => weekSortKey(a.week) - weekSortKey(b.week));
+  } catch {
+    return null;
+  }
+}
+
+/** Reviews from the last two weeks per location via the legacy v4
+ * Business Profile API — complete and correctly time-ordered, unlike the
+ * Places-based summary. The authoritative source for "Nieuwe reviews",
+ * reactieratio, and the 5★/1–2★ split when available. */
+export async function fetchLiveBusinessReviews(): Promise<Partial<
+  Record<LocationId, LiveBusinessReview[]>
+> | null> {
+  if (!hasLiveBackend()) return null;
+  try {
+    const res = await fetch(`${API_BASE}/api/business-reviews`);
+    if (!res.ok) return null;
+    return (await res.json()) as Partial<Record<LocationId, LiveBusinessReview[]>>;
   } catch {
     return null;
   }

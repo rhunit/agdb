@@ -12,6 +12,7 @@ interface KpiRowProps {
   avgScoreDelta: number;
   reviewCount: number;
   reviewCountDelta: number;
+  statsAreLive?: boolean;
   responseRatio: number;
   openCount: number;
   topRatedCount: number;
@@ -29,6 +30,7 @@ export function KpiRow({
   avgScoreDelta,
   reviewCount,
   reviewCountDelta,
+  statsAreLive = false,
   responseRatio,
   openCount,
   topRatedCount,
@@ -53,7 +55,10 @@ export function KpiRow({
         )}
       </div>
       <div className={styles.tile}>
-        <div className={styles.label}>NIEUWE REVIEWS</div>
+        <div className={styles.label}>
+          NIEUWE REVIEWS
+          {statsAreLive && <span className={styles.liveBadge}>LIVE</span>}
+        </div>
         <div className={styles.value}>{reviewCount}</div>
         <div className={deltaClass(reviewCountDelta)}>
           {reviewCountDelta >= 0 ? "+" : "−"}
@@ -61,14 +66,20 @@ export function KpiRow({
         </div>
       </div>
       <div className={styles.tile}>
-        <div className={styles.label}>REACTIERATIO</div>
+        <div className={styles.label}>
+          REACTIERATIO
+          {statsAreLive && <span className={styles.liveBadge}>LIVE</span>}
+        </div>
         <div className={styles.value}>
           {formatDutchInt(responseRatio)}%
         </div>
         <div className={styles.deltaMuted}>{openCount} open reacties</div>
       </div>
       <div className={styles.tile}>
-        <div className={styles.label}>UITERSTEN DEZE WEEK</div>
+        <div className={styles.label}>
+          UITERSTEN DEZE WEEK
+          {statsAreLive && <span className={styles.liveBadge}>LIVE</span>}
+        </div>
         <div className={styles.value}>{topRatedCount} × 5★</div>
         <div className={criticalCount > 0 ? styles.deltaNegative : styles.deltaPositive}>
           {criticalCount > 0

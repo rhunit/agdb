@@ -1,4 +1,5 @@
 import type { OAuth2Client } from "google-auth-library";
+import type { DiscoveredLocation, InternalLocationId } from "./googleBusinessProfile.js";
 
 // Review content (text, rating, reply status) isn't available through any
 // of the modern Business Profile APIs — only through the legacy "Google My
@@ -50,19 +51,22 @@ export interface BusinessReview {
   responseTime: string | null;
 }
 
-/** Lists every review for one location, newest-updated first, following
- * pagination to completion — unlike the Places API, there's no 5-review
- * cap here. accountName/googleLocationId come from DiscoveredLocation. */
+/** Lists reviews for one location, newest-updated first. `maxPages` bounds
+ * how far pagination goes — unbounded (the default) walks the complete
+ * history, which is fine for a one-off diagnostic call but wasteful for
+ * every dashboard load, where only the last week or two ever matters. */
 export async function listBusinessReviews(
   auth: OAuth2Client,
   accountName: string,
   googleLocationId: string,
+  maxPages = Infinity,
 ): Promise<BusinessReview[]> {
   const { token } = await auth.getAccessToken();
   if (!token) throw new Error("No access token available");
 
   const reviews: BusinessReview[] = [];
   let pageToken: string | undefined;
+  let pages = 0;
 
   do {
     const url = new URL(
@@ -81,6 +85,7 @@ export async function listBusinessReviews(
       );
     }
     const data = (await res.json()) as GbpReviewsListResponse;
+    pages++;
 
     for (const r of data.reviews ?? []) {
       reviews.push({
@@ -95,7 +100,41 @@ export async function listBusinessReviews(
       });
     }
     pageToken = data.nextPageToken ?? undefined;
-  } while (pageToken);
+  } while (pageToken && pages < maxPages);
 
   return reviews;
+}
+
+/** Reviews from the last `withinDays` for every location we have a
+ * matched internal id for — the live source for "Nieuwe reviews deze
+ * week", reactieratio, and the 5★/1–2★ split, none of which Places could
+ * answer reliably (5-review cap, relevance ranking instead of recency, no
+ * reply status at all). Two pages (100 reviews) per location is ample
+ * margin for a single coffeeshop's weekly/biweekly review volume, so this
+ * stays cheap even though the full history can run into the hundreds. */
+export async function getRecentBusinessReviews(
+  auth: OAuth2Client,
+  locations: DiscoveredLocation[],
+  withinDays = 14,
+): Promise<Partial<Record<InternalLocationId, BusinessReview[]>>> {
+  const cutoff = Date.now() - withinDays * 24 * 60 * 60 * 1000;
+
+  const entries = await Promise.all(
+    locations
+      .filter((loc) => loc.internalId)
+      .map(async (loc) => {
+        const all = await listBusinessReviews(
+          auth,
+          loc.accountName,
+          loc.googleLocationId,
+          2,
+        );
+        const recent = all.filter(
+          (r) => r.createTime && new Date(r.createTime).getTime() >= cutoff,
+        );
+        return [loc.internalId as InternalLocationId, recent] as const;
+      }),
+  );
+
+  return Object.fromEntries(entries);
 }

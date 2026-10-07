@@ -40,3 +40,20 @@
   color: var(--ag-primary-strong);
   white-space: nowrap;
 }
+
+.stripUrgent {
+  background: var(--ag-error-bg);
+  border-color: var(--ag-error-border);
+}
+
+.iconUrgent {
+  background: var(--ag-error);
+}
+
+.headlineUrgent {
+  color: var(--ag-error);
+}
+
+.statusUrgent {
+  color: var(--ag-error);
+}

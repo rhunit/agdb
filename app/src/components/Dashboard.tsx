@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useDashboardData, type LocationFilter } from "../hooks/useDashboardData";
+import { useLiveBusinessReviews } from "../hooks/useLiveBusinessReviews";
 import { useLivePlacesReviewGrowth } from "../hooks/useLivePlacesReviewGrowth";
 import { useLivePlacesSummary } from "../hooks/useLivePlacesSummary";
 import { useWeeklyLog } from "../hooks/useWeeklyLog";
@@ -21,11 +22,13 @@ export function Dashboard() {
   const reviewGrowth = useLivePlacesReviewGrowth();
   const livePlaces = useLivePlacesSummary();
   const weeklyLog = useWeeklyLog();
+  const businessReviews = useLiveBusinessReviews();
   const data = useDashboardData(
     filter,
     reviewGrowth.data,
     livePlaces.data,
     weeklyLog.entries,
+    businessReviews.data,
   );
 
   return (
@@ -51,7 +54,11 @@ export function Dashboard() {
                 updatedAt="08-09-2026 · 08:15"
               />
               <div className={styles.content}>
-                <StatusStrip reviewCount={data.reviewCount} />
+                <StatusStrip
+                  reviewCount={data.reviewCount}
+                  criticalCount={data.criticalCount}
+                  oldestCriticalDaysAgo={data.oldestCriticalDaysAgo}
+                />
 
                 <KpiRow
                   avgScore={data.avgScore}
@@ -60,6 +67,7 @@ export function Dashboard() {
                   avgScoreDelta={data.avgScoreDelta}
                   reviewCount={data.reviewCount}
                   reviewCountDelta={data.reviewCountDelta}
+                  statsAreLive={data.statsAreLive}
                   responseRatio={data.responseRatio}
                   openCount={data.openCount}
                   topRatedCount={data.topRatedCount}

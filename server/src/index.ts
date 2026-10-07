@@ -11,7 +11,7 @@ import {
   isConnected,
 } from "./googleAuth.js";
 import { getWeeklySearchViews, listLocations } from "./googleBusinessProfile.js";
-import { listBusinessReviews } from "./googleBusinessReviews.js";
+import { getRecentBusinessReviews, listBusinessReviews } from "./googleBusinessReviews.js";
 import { ACTIVE_LOCATIONS, getAllPlacesSummaries } from "./googlePlaces.js";
 import { getWeeklyReviewGrowth, recordSnapshot } from "./placesHistoryStore.js";
 import { appendWeeklyLogEntry, listWeeklyLog } from "./weeklyLogStore.js";
@@ -124,6 +124,22 @@ app.get("/api/places-summary", async (_req, res) => {
 // polling job and why the series starts out short.
 app.get("/api/places-review-growth", (_req, res) => {
   res.json(getWeeklyReviewGrowth(ACTIVE_LOCATIONS));
+});
+
+// Real data source for the dashboard: last two weeks of reviews per
+// location via the legacy v4 API (complete, correctly ordered, includes
+// reply status) — confirmed working, replaces the Places-based review
+// feed's 5-review relevance-ranked cap.
+app.get("/api/business-reviews", async (_req, res) => {
+  try {
+    const auth = getAuthorizedClient();
+    const locations = await listLocations(auth);
+    const reviews = await getRecentBusinessReviews(auth, locations);
+    res.json(reviews);
+  } catch (err) {
+    console.error(err);
+    res.status(503).json({ error: (err as Error).message });
+  }
 });
 
 // Diagnostic-only: tries the legacy v4 reviews endpoint for one location
