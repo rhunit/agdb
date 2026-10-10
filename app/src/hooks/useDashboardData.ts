@@ -12,6 +12,11 @@ import type { LocationId, Review, ReviewGrowthWeek, WeeklyLogEntry } from "../ty
 
 export type LocationFilter = LocationId | "all";
 
+// How many reviews the feed shows at most — it displays the latest
+// available reviews regardless of the weekly cutoff used for stats, so a
+// cap keeps a quiet multi-location view from turning into a long scroll.
+const FEED_DISPLAY_CAP = 12;
+
 function includedLocations(filter: LocationFilter): LocationId[] {
   return filter === "all" ? LOCATIONS.map((l) => l.id) : [filter];
 }
@@ -96,11 +101,16 @@ export function useDashboardData(
     // Per location: v4 Business Profile reviews (complete, correctly
     // ordered, real reply status) > Places reviews (5-review relevance-
     // ranked cap, no reply status) > mock. Only the ≤14-day business set
-    // is fetched server-side, so bucket it into "this week" (the feed,
-    // and — when every included location has it — the live stats below)
-    // and "last week" (the real baseline for reviewCountDelta).
+    // is fetched server-side, so bucket it into "this week" (used for the
+    // live stats below) and "last week" (the real baseline for
+    // reviewCountDelta). The feed itself shows the latest available
+    // reviews regardless of that weekly cutoff — a location can genuinely
+    // have no reviews in the last 7 days but several in the last 14,
+    // and hiding those behind an empty state would be less honest than
+    // showing them with their real (and clearly labelled) age.
     const thisWeekByLocation: Review[][] = [];
     const previousWeekBizByLocation: Review[][] = [];
+    const feedByLocation: Review[][] = [];
     for (const id of locations) {
       const biz = liveBusinessReviews?.[id];
       if (biz) {
@@ -109,18 +119,29 @@ export function useDashboardData(
         previousWeekBizByLocation.push(
           converted.filter((r) => r.daysAgo > 7 && r.daysAgo <= 14),
         );
+        feedByLocation.push(converted);
         continue;
       }
       const live = livePlaces?.[id];
-      thisWeekByLocation.push(
-        live
-          ? liveReviewsFor(id, live).filter((r) => r.daysAgo <= 7)
-          : mockReviews.filter((r) => r.location === id),
-      );
+      if (live) {
+        const converted = liveReviewsFor(id, live);
+        thisWeekByLocation.push(converted.filter((r) => r.daysAgo <= 7));
+        feedByLocation.push(converted);
+        continue;
+      }
+      const mockForLocation = mockReviews.filter((r) => r.location === id);
+      thisWeekByLocation.push(mockForLocation);
+      feedByLocation.push(mockForLocation);
     }
 
-    const reviews = thisWeekByLocation.flat().sort((a, b) => a.daysAgo - b.daysAgo);
+    const weeklyReviews = thisWeekByLocation
+      .flat()
+      .sort((a, b) => a.daysAgo - b.daysAgo);
     const previousWeekBizReviews = previousWeekBizByLocation.flat();
+    const reviews = feedByLocation
+      .flat()
+      .sort((a, b) => a.daysAgo - b.daysAgo)
+      .slice(0, FEED_DISPLAY_CAP);
 
     const liveRatings = livePlaces
       ? locations
@@ -141,7 +162,7 @@ export function useDashboardData(
     // EVERY included location has v4 data — otherwise the aggregate would
     // silently blend a complete real count for one location with a mock
     // placeholder for another, which is worse than being honestly mock
-    // everywhere. When true, `reviews` is guaranteed fully business-
+    // everywhere. When true, `weeklyReviews` is guaranteed fully business-
     // sourced (nothing fell through to the Places/mock branch above).
     const statsAreLive =
       liveBusinessReviews != null &&
@@ -164,7 +185,7 @@ export function useDashboardData(
       locations.reduce((sum, id) => sum + PREVIOUS_WEEK_AVG_SCORE[id], 0) /
       locations.length;
 
-    const statsSource = statsAreLive ? reviews : mockReviews;
+    const statsSource = statsAreLive ? weeklyReviews : mockReviews;
 
     const respondedCount = statsSource.filter((r) => r.responded).length;
     const openCount = statsSource.length - respondedCount;

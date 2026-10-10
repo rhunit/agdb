@@ -17,7 +17,7 @@ export function ReviewFeed({ reviews, showLocation, isLive = false }: ReviewFeed
     <div className={styles.card}>
       <div className={styles.header}>
         <div className={styles.title}>
-          Nieuwe reviews deze week
+          Laatste reviews
           {isLive && <span className={styles.liveBadge}>LIVE</span>}
         </div>
         <div className={styles.count}>{reviews.length} totaal</div>
@@ -27,7 +27,7 @@ export function ReviewFeed({ reviews, showLocation, isLive = false }: ReviewFeed
       </div>
 
       {reviews.length === 0 ? (
-        <div className={styles.empty}>Geen reviews in de laatste 7 dagen.</div>
+        <div className={styles.empty}>Nog geen reviews ontvangen.</div>
       ) : (
         reviews.map((review) => (
           <div key={review.id} className={styles.item}>
