@@ -113,6 +113,16 @@ export async function listBusinessReviews(
  * margin for a single coffeeshop's weekly/biweekly review volume, so this
  * stays cheap even though the full history can run into the hundreds.
  *
+ * A review counts as "recent" when EITHER its createTime or its
+ * updateTime falls in the window — not createTime alone. A review posted
+ * well outside the window but edited (or freshly replied to) inside it
+ * would otherwise be dropped before the frontend ever sees it, which is
+ * exactly the kind of activity worth surfacing in the feed; Google's own
+ * Business Profile UI does the same (it sorts/flags by last-updated, not
+ * original post date). The weekly stats bucketing in useDashboardData
+ * still keys off createTime specifically, so "nieuwe reviews deze week"
+ * keeps meaning newly-posted, not newly-edited.
+ *
  * Fetches are isolated per location (Promise.allSettled, not
  * Promise.all): one location erroring — a quota hiccup, a location not
  * yet matched on Google's side, anything — must not wipe out data for
@@ -136,9 +146,11 @@ export async function getRecentBusinessReviews(
           loc.googleLocationId,
           2,
         );
-        const recent = all.filter(
-          (r) => r.createTime && new Date(r.createTime).getTime() >= cutoff,
-        );
+        const recent = all.filter((r) => {
+          const created = r.createTime ? new Date(r.createTime).getTime() : 0;
+          const updated = r.updateTime ? new Date(r.updateTime).getTime() : 0;
+          return created >= cutoff || updated >= cutoff;
+        });
         return [loc.internalId as InternalLocationId, recent] as const;
       }),
   );
