@@ -1,6 +1,6 @@
 import { useMemo } from "react";
+import { VISIBLE_LOCATION_IDS } from "../config";
 import {
-  LOCATIONS,
   PREVIOUS_WEEK_AVG_SCORE,
   PREVIOUS_WEEK_CRITICAL_COUNT,
   PREVIOUS_WEEK_REVIEW_COUNT,
@@ -20,8 +20,14 @@ export type LocationFilter = LocationId | "all";
 const FEED_DISPLAY_CAP = 12;
 const CRITICAL_FEED_DISPLAY_CAP = 8;
 
+// "Dashboard" (filter "all") bundles only the locations that currently
+// have their own visible tab (see ../config) — not every location in the
+// data model. Blending in a location nobody can otherwise see or select
+// would silently inflate every stat (and the "Gebaseerd op N
+// Google-reviews" count) with data for a profile the dashboard doesn't
+// yet present as connected.
 function includedLocations(filter: LocationFilter): LocationId[] {
-  return filter === "all" ? LOCATIONS.map((l) => l.id) : [filter];
+  return filter === "all" ? VISIBLE_LOCATION_IDS : [filter];
 }
 
 function initialsFrom(name: string): string {

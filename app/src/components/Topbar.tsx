@@ -1,21 +1,20 @@
+import { VISIBLE_LOCATION_IDS } from "../config";
 import { formatDateRangeLabel } from "../lib/format";
 import type { LocationFilter } from "../hooks/useDashboardData";
 import styles from "./Topbar.module.css";
 
-// Only these two profile tabs are live for now — the rest of LOCATIONS
-// still exists in the data model (and still feeds the "Dashboard" bundle
-// below), it just doesn't get its own tab yet. More tabs land once those
-// profiles are ready to show on their own.
+const TAB_LABEL: Record<string, string> = {
+  centrum: "Coffeeshop BIJ",
+};
+
+// Only these profile tabs are live for now (see ../config) — the rest of
+// LOCATIONS still exists in the data model, it just doesn't get its own
+// tab yet. More tabs land once those profiles are ready to show on
+// their own.
 const VISIBLE_TABS: { filter: LocationFilter; label: string }[] = [
   { filter: "all", label: "Dashboard" },
-  { filter: "centrum", label: "Coffeeshop BIJ" },
+  ...VISIBLE_LOCATION_IDS.map((id) => ({ filter: id, label: TAB_LABEL[id] ?? id })),
 ];
-
-// Shared with LocationsOverview so its cards never link to a location
-// that doesn't have a working tab to land on yet.
-export const VISIBLE_LOCATION_IDS = VISIBLE_TABS.map((t) => t.filter).filter(
-  (f): f is Exclude<LocationFilter, "all"> => f !== "all",
-);
 
 interface TopbarProps {
   selected: LocationFilter;

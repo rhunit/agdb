@@ -1,5 +1,5 @@
 import { LOCATION_COLOR } from "./TrendChart";
-import { VISIBLE_LOCATION_IDS } from "./Topbar";
+import { VISIBLE_LOCATION_IDS } from "../config";
 import { useLocationSummaries } from "../hooks/useLocationSummaries";
 import { formatDutchDecimal } from "../lib/format";
 import type { LocationId } from "../types";
