@@ -1,3 +1,4 @@
+import { ThemeToggle } from "./ThemeToggle";
 import styles from "./Sidebar.module.css";
 
 export type SidebarView = "dashboard" | "locaties";
@@ -60,6 +61,10 @@ export function Sidebar({ active, onNavigate }: SidebarProps) {
           </div>
         ))}
       </nav>
+
+      <div className={styles.themeRow}>
+        <ThemeToggle />
+      </div>
 
       <div className={styles.footer}>
         Professor Harvest:

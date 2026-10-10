@@ -1,0 +1,24 @@
+.toggle {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--ag-neutral);
+  font: var(--fs-nav-link);
+  padding: 9px 12px;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.toggle:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.icon {
+  font-size: 15px;
+  line-height: 1;
+}

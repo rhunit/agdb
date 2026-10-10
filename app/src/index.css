@@ -7,7 +7,11 @@
 
   --ag-secondary: #4d3935;
   --ag-tertiary: #e5e7eb;
+  /* Literal white — used for text/icons sitting on a brand-colored (green,
+     red) surface, which stays colored in both themes. Not a page/card
+     background; that's --ag-page-bg / --ag-surface below. */
   --ag-neutral: #ffffff;
+  --ag-page-bg: #ffffff;
   --ag-surface: #ffffff;
   --ag-on-surface: #4d3935;
   --ag-border: #e5e7eb;
@@ -59,6 +63,65 @@
   color-scheme: light;
 }
 
+/* Dark mode — same brand hues, re-mixed against a warm near-black instead
+   of white so cards, borders and badges keep the same relative contrast.
+   --ag-neutral stays literal white throughout: it's only ever used for
+   text/icons on top of a brand-colored chip (LIVE badges, the sidebar),
+   which stays vivid green/red in both themes.
+
+   Applies automatically by system preference (prefers-color-scheme) unless
+   the person picked a theme explicitly, in which case [data-theme] (set by
+   the toggle in the sidebar, see useTheme.ts) always wins. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ag-primary: #42c95a;
+    --ag-primary-strong: #35e050;
+    --ag-primary-bg: color-mix(in srgb, var(--ag-primary) 16%, #14160f);
+    --ag-primary-border: color-mix(in srgb, var(--ag-primary) 40%, #14160f);
+
+    --ag-secondary: #f3ece7;
+    --ag-tertiary: #3c3530;
+    --ag-page-bg: #121310;
+    --ag-surface: #1b1c17;
+    --ag-on-surface: #e9e2dc;
+    --ag-border: #35332d;
+    --ag-muted: #a89c93;
+
+    --ag-error: #ff6b6b;
+    --ag-error-bg: color-mix(in srgb, var(--ag-error) 14%, #14160f);
+    --ag-error-border: color-mix(in srgb, var(--ag-error) 38%, #14160f);
+
+    --ag-neutral-100: #26241f;
+    --ag-neutral-200: #2d2a24;
+
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ag-primary: #42c95a;
+  --ag-primary-strong: #35e050;
+  --ag-primary-bg: color-mix(in srgb, var(--ag-primary) 16%, #14160f);
+  --ag-primary-border: color-mix(in srgb, var(--ag-primary) 40%, #14160f);
+
+  --ag-secondary: #f3ece7;
+  --ag-tertiary: #3c3530;
+  --ag-page-bg: #121310;
+  --ag-surface: #1b1c17;
+  --ag-on-surface: #e9e2dc;
+  --ag-border: #35332d;
+  --ag-muted: #a89c93;
+
+  --ag-error: #ff6b6b;
+  --ag-error-bg: color-mix(in srgb, var(--ag-error) 14%, #14160f);
+  --ag-error-border: color-mix(in srgb, var(--ag-error) 38%, #14160f);
+
+  --ag-neutral-100: #26241f;
+  --ag-neutral-200: #2d2a24;
+
+  color-scheme: dark;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -71,10 +134,11 @@ body,
 
 body {
   margin: 0;
-  background: var(--ag-neutral);
+  background: var(--ag-page-bg);
   color: var(--ag-on-surface);
   font: var(--fs-body-md);
   -webkit-font-smoothing: antialiased;
+  transition: background-color 160ms ease, color 160ms ease;
 }
 
 a {

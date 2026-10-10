@@ -97,8 +97,11 @@
   box-shadow: inset 2px 0 0 var(--ag-neutral);
 }
 
-.footer {
+.themeRow {
   margin-top: auto;
+}
+
+.footer {
   border-top: 1px solid rgba(255, 255, 255, 0.3);
   padding-top: var(--sp-sm);
   font: var(--fs-body-sm);
