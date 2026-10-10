@@ -2,7 +2,9 @@ import { useMemo } from "react";
 import {
   LOCATIONS,
   PREVIOUS_WEEK_AVG_SCORE,
+  PREVIOUS_WEEK_CRITICAL_COUNT,
   PREVIOUS_WEEK_REVIEW_COUNT,
+  PREVIOUS_WEEK_TOP_RATED_COUNT,
   REVIEW_GROWTH,
   REVIEWS,
   WEEKLY_LOG,
@@ -12,10 +14,11 @@ import type { LocationId, Review, ReviewGrowthWeek, WeeklyLogEntry } from "../ty
 
 export type LocationFilter = LocationId | "all";
 
-// How many reviews the feed shows at most — it displays the latest
+// How many reviews each feed shows at most — both display the latest
 // available reviews regardless of the weekly cutoff used for stats, so a
 // cap keeps a quiet multi-location view from turning into a long scroll.
 const FEED_DISPLAY_CAP = 12;
+const CRITICAL_FEED_DISPLAY_CAP = 8;
 
 function includedLocations(filter: LocationFilter): LocationId[] {
   return filter === "all" ? LOCATIONS.map((l) => l.id) : [filter];
@@ -138,10 +141,13 @@ export function useDashboardData(
       .flat()
       .sort((a, b) => a.daysAgo - b.daysAgo);
     const previousWeekBizReviews = previousWeekBizByLocation.flat();
-    const reviews = feedByLocation
+    const allFeedReviews = feedByLocation
       .flat()
-      .sort((a, b) => a.daysAgo - b.daysAgo)
-      .slice(0, FEED_DISPLAY_CAP);
+      .sort((a, b) => a.daysAgo - b.daysAgo);
+    const reviews = allFeedReviews.slice(0, FEED_DISPLAY_CAP);
+    const criticalFeedReviews = allFeedReviews
+      .filter((r) => r.rating <= 2)
+      .slice(0, CRITICAL_FEED_DISPLAY_CAP);
 
     const liveRatings = livePlaces
       ? locations
@@ -203,6 +209,28 @@ export function useDashboardData(
     const criticalReviews = statsSource.filter((r) => r.rating <= 2);
     const topRatedCount = statsSource.filter((r) => r.rating === 5).length;
 
+    // Same real-vs-mock baseline split as reviewCountDelta above, but per
+    // rating bucket, so the 5★ and 1–2★ tiles each get their own honest
+    // week-over-week delta instead of inheriting the combined one.
+    const previousTopRatedCount = statsAreLive
+      ? previousWeekBizReviews.filter((r) => r.rating === 5).length
+      : locations.reduce((sum, id) => sum + PREVIOUS_WEEK_TOP_RATED_COUNT[id], 0);
+    const previousCriticalCount = statsAreLive
+      ? previousWeekBizReviews.filter((r) => r.rating <= 2).length
+      : locations.reduce((sum, id) => sum + PREVIOUS_WEEK_CRITICAL_COUNT[id], 0);
+
+    // Reactieratio scoped to critical reviews specifically — the number
+    // that actually matters operationally (did we respond to the reviews
+    // that need damage control), not the response rate across all reviews.
+    const criticalRespondedCount = criticalReviews.filter((r) => r.responded).length;
+    const criticalResponseRatio =
+      criticalReviews.length > 0
+        ? (criticalRespondedCount / criticalReviews.length) * 100
+        : 0;
+    const openCriticalReviews = criticalReviews
+      .filter((r) => !r.responded)
+      .sort((a, b) => a.daysAgo - b.daysAgo);
+
     const reviewGrowthSeries = reviewGrowthSource.map((week) => ({
       week: week.week,
       total: locations.reduce((sum, id) => sum + week[id], 0),
@@ -229,6 +257,7 @@ export function useDashboardData(
       locations,
       reviews,
       reviewsAreLive,
+      criticalFeedReviews,
       avgScore,
       avgScoreIsLive,
       avgScoreReviewCount,
@@ -239,10 +268,14 @@ export function useDashboardData(
       responseRatio,
       openCount,
       criticalCount: criticalReviews.length,
+      criticalCountDelta: criticalReviews.length - previousCriticalCount,
       oldestCriticalDaysAgo: criticalReviews.length
         ? Math.max(...criticalReviews.map((r) => r.daysAgo))
         : 0,
       topRatedCount,
+      topRatedCountDelta: topRatedCount - previousTopRatedCount,
+      criticalResponseRatio,
+      openCriticalReviews,
       reviewGrowthSeries,
       reviewGrowthTotal,
       reviewGrowthDeltaPct,

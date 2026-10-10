@@ -1,7 +1,7 @@
 .strip {
   background: var(--ag-primary-bg);
   border: 1px solid var(--ag-primary-border);
-  border-radius: var(--r-md);
+  border-radius: var(--r-xl);
   padding: var(--sp-sm) var(--sp-md);
   display: flex;
   align-items: center;

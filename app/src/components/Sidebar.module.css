@@ -1,7 +1,7 @@
 .sidebar {
   width: 224px;
   flex: 0 0 224px;
-  background: var(--ag-primary);
+  background: linear-gradient(165deg, var(--ag-primary) 0%, var(--ag-primary-strong) 120%);
   padding: var(--sp-md) var(--sp-sm);
   display: flex;
   flex-direction: column;
@@ -94,6 +94,7 @@
 .navItemActive {
   background: rgba(0, 0, 0, 0.16);
   font-weight: 700;
+  box-shadow: inset 2px 0 0 var(--ag-neutral);
 }
 
 .footer {

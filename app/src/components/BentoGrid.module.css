@@ -1,0 +1,223 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, auto);
+  gap: var(--sp-sm);
+}
+
+.tile {
+  position: relative;
+  background: var(--ag-surface);
+  border: 1px solid var(--ag-border);
+  border-radius: var(--r-xl);
+  padding: var(--sp-md);
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(20, 20, 20, 0.04);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
+}
+
+.tile::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--ag-primary) 0%,
+    color-mix(in srgb, var(--ag-primary) 40%, transparent) 100%
+  );
+  opacity: 0.8;
+}
+
+.tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px -14px color-mix(in srgb, var(--ag-primary) 45%, transparent);
+  border-color: var(--ag-primary-border);
+}
+
+.hero {
+  grid-column: 1 / span 2;
+  grid-row: 1 / span 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  background:
+    radial-gradient(
+      120% 140% at 100% 0%,
+      color-mix(in srgb, var(--ag-primary) 10%, transparent) 0%,
+      transparent 60%
+    ),
+    var(--ag-surface);
+}
+
+.hero::before {
+  background: linear-gradient(
+    90deg,
+    var(--ag-primary) 0%,
+    var(--ag-primary-strong) 100%
+  );
+  height: 4px;
+  opacity: 1;
+}
+
+.heroValue {
+  font: 700 56px/1 var(--font-neue);
+  color: var(--ag-secondary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.accentPositive::before {
+  background: linear-gradient(
+    90deg,
+    var(--ag-primary) 0%,
+    color-mix(in srgb, var(--ag-primary) 20%, transparent) 100%
+  );
+}
+
+.accentCritical::before {
+  background: linear-gradient(
+    90deg,
+    var(--ag-error) 0%,
+    color-mix(in srgb, var(--ag-error) 20%, transparent) 100%
+  );
+}
+
+.ratio {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  font: var(--fs-label-sm);
+  letter-spacing: var(--ls-label-sm);
+  color: var(--ag-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.liveBadge {
+  position: relative;
+  font: var(--fs-label-sm);
+  letter-spacing: var(--ls-label-sm);
+  background: var(--ag-primary);
+  color: var(--ag-neutral);
+  padding: 1px 8px 1px 16px;
+  border-radius: var(--r-full);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ag-primary) 50%, transparent);
+}
+
+.liveBadge::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-full);
+  background: var(--ag-neutral);
+  transform: translateY(-50%);
+  animation: pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.6);
+  }
+  50% {
+    opacity: 0.6;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0);
+  }
+}
+
+.value {
+  font: var(--fs-headline-lg);
+  color: var(--ag-secondary);
+  margin-top: var(--sp-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.deltaPositive {
+  font: var(--fs-body-sm);
+  color: var(--ag-primary-strong);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.deltaNegative {
+  font: var(--fs-body-sm);
+  color: var(--ag-error);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.deltaMuted {
+  font: var(--fs-body-sm);
+  color: var(--ag-muted);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.openList {
+  list-style: none;
+  margin: var(--sp-xs) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.openItem {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font: var(--fs-body-sm);
+  color: var(--ag-on-surface);
+}
+
+.openName {
+  font-weight: 600;
+  color: var(--ag-secondary);
+}
+
+.openLocation {
+  color: var(--ag-muted);
+  font-size: 12px;
+}
+
+.openMore {
+  font: var(--fs-body-sm);
+  color: var(--ag-muted);
+}
+
+@media (max-width: 1100px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hero {
+    grid-column: 1 / span 2;
+    grid-row: auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hero {
+    grid-column: 1;
+  }
+
+  .heroValue {
+    font-size: 44px;
+  }
+}

@@ -1,4 +1,5 @@
 import { LOCATION_COLOR } from "./TrendChart";
+import { VISIBLE_LOCATION_IDS } from "./Topbar";
 import { useLocationSummaries } from "../hooks/useLocationSummaries";
 import { formatDutchDecimal } from "../lib/format";
 import type { LocationId } from "../types";
@@ -9,7 +10,11 @@ interface LocationsOverviewProps {
 }
 
 export function LocationsOverview({ onSelect }: LocationsOverviewProps) {
-  const summaries = useLocationSummaries();
+  // Only locations with a working Topbar tab are clickable here for now —
+  // the rest "volgen later" (see Topbar.VISIBLE_TABS).
+  const summaries = useLocationSummaries().filter((loc) =>
+    VISIBLE_LOCATION_IDS.includes(loc.id),
+  );
 
   return (
     <div className={styles.wrap}>

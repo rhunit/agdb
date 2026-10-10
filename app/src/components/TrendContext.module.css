@@ -1,0 +1,128 @@
+.card {
+  position: relative;
+  background: var(--ag-surface);
+  border: 1px solid var(--ag-border);
+  border-radius: var(--r-xl);
+  padding: var(--sp-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+}
+
+.up::before {
+  background: linear-gradient(
+    90deg,
+    var(--ag-primary) 0%,
+    color-mix(in srgb, var(--ag-primary) 20%, transparent) 100%
+  );
+}
+
+.down::before {
+  background: linear-gradient(
+    90deg,
+    var(--ag-error) 0%,
+    color-mix(in srgb, var(--ag-error) 20%, transparent) 100%
+  );
+}
+
+.flat::before {
+  background: linear-gradient(
+    90deg,
+    var(--ag-muted) 0%,
+    color-mix(in srgb, var(--ag-muted) 20%, transparent) 100%
+  );
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+}
+
+.icon {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border-radius: var(--r-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: var(--fs-label-lg);
+  color: var(--ag-neutral);
+}
+
+.up .icon {
+  background: var(--ag-primary);
+}
+
+.down .icon {
+  background: var(--ag-error);
+}
+
+.flat .icon {
+  background: var(--ag-muted);
+}
+
+.headline {
+  font: var(--fs-label-lg);
+  color: var(--ag-secondary);
+}
+
+.sub {
+  font: var(--fs-body-sm);
+  color: var(--ag-muted);
+}
+
+.context {
+  border-top: 1px solid var(--ag-border);
+  padding-top: var(--sp-sm);
+}
+
+.contextLabel {
+  font: var(--fs-label-sm);
+  letter-spacing: var(--ls-label-sm);
+  color: var(--ag-muted);
+  margin-bottom: 6px;
+}
+
+.contextEmpty {
+  font: var(--fs-body-sm);
+  color: var(--ag-muted);
+}
+
+.contextList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.contextItem {
+  font: var(--fs-body-sm);
+  color: var(--ag-on-surface);
+}
+
+.contextLocation {
+  font-weight: 600;
+  color: var(--ag-secondary);
+}
+
+.contextLocation::after {
+  content: " · ";
+  color: var(--ag-muted);
+  font-weight: 400;
+}
+
+.contextNote {
+  color: var(--ag-on-surface);
+}

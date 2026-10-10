@@ -1,8 +1,22 @@
 .card {
+  position: relative;
   background: var(--ag-surface);
   border: 1px solid var(--ag-border);
-  border-radius: var(--r-md);
+  border-radius: var(--r-xl);
   padding: var(--sp-md);
+  overflow: hidden;
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--ag-primary) 0%,
+    color-mix(in srgb, var(--ag-primary) 20%, transparent) 100%
+  );
 }
 
 .header {

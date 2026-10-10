@@ -4,7 +4,9 @@ import { useLiveBusinessReviews } from "../hooks/useLiveBusinessReviews";
 import { useLivePlacesReviewGrowth } from "../hooks/useLivePlacesReviewGrowth";
 import { useLivePlacesSummary } from "../hooks/useLivePlacesSummary";
 import { useWeeklyLog } from "../hooks/useWeeklyLog";
-import { KpiRow } from "./KpiRow";
+import { formatUpdatedAt } from "../lib/format";
+import { BentoGrid } from "./BentoGrid";
+import { CriticalReviewFeed } from "./CriticalReviewFeed";
 import { LocationsOverview } from "./LocationsOverview";
 import { ReviewFeed } from "./ReviewFeed";
 import { Sidebar, type SidebarView } from "./Sidebar";
@@ -12,6 +14,7 @@ import { StatusStrip } from "./StatusStrip";
 import { TestBanner } from "./TestBanner";
 import { Topbar } from "./Topbar";
 import { TrendChart } from "./TrendChart";
+import { TrendContext } from "./TrendContext";
 import { WeeklyLog } from "./WeeklyLog";
 import { WeeklyUpdateForm } from "./WeeklyUpdateForm";
 import styles from "./Dashboard.module.css";
@@ -51,7 +54,7 @@ export function Dashboard() {
               <Topbar
                 selected={filter}
                 onSelect={setFilter}
-                updatedAt="08-09-2026 · 08:15"
+                updatedAt={formatUpdatedAt()}
               />
               <div className={styles.content}>
                 <StatusStrip
@@ -60,7 +63,7 @@ export function Dashboard() {
                   oldestCriticalDaysAgo={data.oldestCriticalDaysAgo}
                 />
 
-                <KpiRow
+                <BentoGrid
                   avgScore={data.avgScore}
                   avgScoreIsLive={data.avgScoreIsLive}
                   avgScoreReviewCount={data.avgScoreReviewCount}
@@ -68,10 +71,12 @@ export function Dashboard() {
                   reviewCount={data.reviewCount}
                   reviewCountDelta={data.reviewCountDelta}
                   statsAreLive={data.statsAreLive}
-                  responseRatio={data.responseRatio}
-                  openCount={data.openCount}
                   topRatedCount={data.topRatedCount}
+                  topRatedCountDelta={data.topRatedCountDelta}
                   criticalCount={data.criticalCount}
+                  criticalCountDelta={data.criticalCountDelta}
+                  criticalResponseRatio={data.criticalResponseRatio}
+                  openCriticalReviews={data.openCriticalReviews}
                 />
 
                 <div className={styles.split}>
@@ -80,6 +85,14 @@ export function Dashboard() {
                     showLocation={filter === "all"}
                     isLive={data.reviewsAreLive}
                   />
+                  <CriticalReviewFeed
+                    reviews={data.criticalFeedReviews}
+                    showLocation={filter === "all"}
+                    isLive={data.reviewsAreLive}
+                  />
+                </div>
+
+                <div className={styles.split}>
                   <TrendChart
                     title="Nieuwe reviews per locatie"
                     series={data.reviewGrowthSeries}
@@ -87,6 +100,11 @@ export function Dashboard() {
                     total={data.reviewGrowthTotal}
                     deltaPct={data.reviewGrowthDeltaPct}
                     isLive={reviewGrowth.isLive}
+                  />
+                  <TrendContext
+                    avgScoreDelta={data.avgScoreDelta}
+                    reviewCountDelta={data.reviewCountDelta}
+                    logEntries={data.logEntries}
                   />
                 </div>
 

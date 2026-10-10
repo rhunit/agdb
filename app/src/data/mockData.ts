@@ -31,6 +31,23 @@ export const PREVIOUS_WEEK_REVIEW_COUNT: Record<LocationId, number> = {
   boerejongens: 3,
 };
 
+// Rating breakdown of the same previous-week baseline above — split out
+// so the 5★ and 1–2★ KPI tiles can each show a real week-over-week delta,
+// not just the combined review count.
+export const PREVIOUS_WEEK_TOP_RATED_COUNT: Record<LocationId, number> = {
+  centrum: 2,
+  oost: 1,
+  depijp: 2,
+  boerejongens: 1,
+};
+
+export const PREVIOUS_WEEK_CRITICAL_COUNT: Record<LocationId, number> = {
+  centrum: 0,
+  oost: 1,
+  depijp: 0,
+  boerejongens: 1,
+};
+
 export const REVIEWS: Review[] = [
   {
     id: "r1",
