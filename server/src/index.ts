@@ -81,19 +81,6 @@ app.get("/auth/google/callback", async (req, res) => {
   }
 });
 
-// Temporary, one-off: surfaces the refresh token that /auth/google just
-// stored locally, so it can be copied into the GOOGLE_REFRESH_TOKEN env
-// var (which — unlike this container's disk — survives redeploys). Sits
-// behind the same beta auth as everything else. Remove once copied.
-app.get("/auth/google/token", (_req, res) => {
-  const stored = isConnected();
-  if (!stored) {
-    res.status(404).json({ error: "Not connected yet. Visit /auth/google first." });
-    return;
-  }
-  res.json({ refreshToken: getAuthorizedClient().credentials.refresh_token });
-});
-
 app.get("/api/locations", async (_req, res) => {
   try {
     const auth = getAuthorizedClient();
