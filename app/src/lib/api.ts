@@ -35,6 +35,7 @@ export interface LiveBusinessReview {
   text: string;
   createTime: string | null;
   responded: boolean;
+  replyText: string | null;
 }
 
 /** True whenever VITE_API_BASE_URL is set at all — including to an empty

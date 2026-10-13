@@ -49,6 +49,7 @@ export interface BusinessReview {
   updateTime: string | null;
   responded: boolean;
   responseTime: string | null;
+  replyText: string | null;
 }
 
 /** Lists reviews for one location, newest-updated first. `maxPages` bounds
@@ -97,6 +98,7 @@ export async function listBusinessReviews(
         updateTime: r.updateTime ?? null,
         responded: Boolean(r.reviewReply),
         responseTime: r.reviewReply?.updateTime ?? null,
+        replyText: r.reviewReply?.comment ?? null,
       });
     }
     pageToken = data.nextPageToken ?? undefined;

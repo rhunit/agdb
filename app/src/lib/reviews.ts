@@ -37,5 +37,6 @@ export function businessReviewsFor(
     publishedAt: r.createTime ?? undefined,
     responded: r.responded,
     googleReviewId: r.id,
+    replyText: r.replyText ?? undefined,
   }));
 }

@@ -103,6 +103,26 @@
   text-wrap: pretty;
 }
 
+.reply {
+  margin-top: var(--sp-xs);
+  padding: var(--sp-xs) var(--sp-sm);
+  border-left: 2px solid var(--ag-primary-border);
+  background: var(--ag-primary-bg);
+}
+
+.replyLabel {
+  font: var(--fs-label-sm);
+  letter-spacing: var(--ls-label-sm);
+  color: var(--ag-primary-strong);
+}
+
+.replyText {
+  font: var(--fs-body-sm);
+  color: var(--ag-on-surface);
+  margin-top: 2px;
+  text-wrap: pretty;
+}
+
 .aside {
   flex: 0 0 110px;
   display: flex;

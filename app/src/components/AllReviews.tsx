@@ -45,11 +45,16 @@ export function AllReviews({
   const [ratingFilter, setRatingFilter] = useState<Set<number>>(new Set());
   const [activeTheme, setActiveTheme] = useState<string | null>(null);
   // Reviews replied to in this session, ahead of the next full refetch —
-  // lets the status flip to "Beantwoord" immediately after a send succeeds.
-  const [repliedIds, setRepliedIds] = useState<Set<string>>(new Set());
+  // lets the status (and the reply text itself) show immediately after a
+  // send succeeds, keyed by review id -> the text that was sent.
+  const [repliedText, setRepliedText] = useState<Map<string, string>>(new Map());
 
   function isResponded(review: Review): boolean {
-    return review.responded || repliedIds.has(review.id);
+    return review.responded || repliedText.has(review.id);
+  }
+
+  function replyTextFor(review: Review): string | undefined {
+    return repliedText.get(review.id) ?? review.replyText;
   }
 
   useEffect(() => {
@@ -78,7 +83,7 @@ export function AllReviews({
       if (activeTheme && !reviewMatchesTheme(r, activeTheme)) return false;
       return true;
     });
-  }, [allReviews, statusFilter, ratingFilter, activeTheme, repliedIds]);
+  }, [allReviews, statusFilter, ratingFilter, activeTheme, repliedText]);
 
   function updateStatusFilter(next: StatusFilter) {
     setStatusFilter(next);
@@ -229,12 +234,18 @@ export function AllReviews({
                     </span>
                   </div>
                   <div className={styles.snippet}>&ldquo;{review.snippet}&rdquo;</div>
+                  {isResponded(review) && replyTextFor(review) && (
+                    <div className={styles.reply}>
+                      <div className={styles.replyLabel}>Jullie antwoord</div>
+                      <div className={styles.replyText}>{replyTextFor(review)}</div>
+                    </div>
+                  )}
                   {!isResponded(review) && review.googleReviewId && (
                     <ReplyForm
                       location={review.location}
                       googleReviewId={review.googleReviewId}
-                      onSent={() =>
-                        setRepliedIds((prev) => new Set(prev).add(review.id))
+                      onSent={(text) =>
+                        setRepliedText((prev) => new Map(prev).set(review.id, text))
                       }
                     />
                   )}

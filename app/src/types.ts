@@ -29,6 +29,9 @@ export interface Review {
    * gate "can this review actually be replied to" without the reply
    * button ever appearing on fabricated mock data. */
   googleReviewId?: string;
+  /** The owner reply's text, straight from Google — only set when
+   * `responded` is true and the review is live. */
+  replyText?: string;
 }
 
 export interface WeeklyLogEntry {

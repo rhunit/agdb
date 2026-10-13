@@ -8,8 +8,10 @@ type Stage = "closed" | "editing" | "confirming" | "submitting";
 interface ReplyFormProps {
   location: LocationId;
   googleReviewId: string;
-  /** Called once the reply has actually been posted to Google. */
-  onSent: () => void;
+  /** Called once the reply has actually been posted to Google, with the
+   * text that was sent — the caller shows it immediately rather than
+   * waiting for the next full refetch. */
+  onSent: (text: string) => void;
 }
 
 /** Inline reply control for one review — posts straight to Google's public
@@ -29,9 +31,10 @@ export function ReplyForm({ location, googleReviewId, onSent }: ReplyFormProps) 
   async function send() {
     setStage("submitting");
     setError(null);
-    const result = await submitReviewReply(location, googleReviewId, text.trim());
+    const sentText = text.trim();
+    const result = await submitReviewReply(location, googleReviewId, sentText);
     if (result.ok) {
-      onSent();
+      onSent(sentText);
       close();
     } else {
       setError(result.error);
