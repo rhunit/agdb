@@ -1,0 +1,113 @@
+.toggle {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0;
+  font: var(--fs-body-sm);
+  font-weight: 700;
+  color: var(--ag-primary-strong);
+  cursor: pointer;
+}
+
+.toggle:hover {
+  text-decoration: underline;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-xs);
+  margin-top: var(--sp-xs);
+  padding: var(--sp-sm);
+  background: var(--ag-neutral-100);
+  border: 1px solid var(--ag-border);
+  border-radius: var(--r-md);
+}
+
+.textarea {
+  border: 1px solid var(--ag-border);
+  border-radius: var(--r-md);
+  background: var(--ag-surface);
+  color: var(--ag-on-surface);
+  font: var(--fs-body-sm);
+  padding: var(--sp-xs) var(--sp-sm);
+  font-family: inherit;
+  resize: vertical;
+}
+
+.textarea:focus {
+  outline: 2px solid var(--ag-primary-border);
+  outline-offset: 1px;
+}
+
+.textarea:disabled {
+  opacity: 0.7;
+}
+
+.error {
+  font: var(--fs-body-sm);
+  color: var(--ag-error);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sp-xs);
+}
+
+.confirmRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-xs);
+}
+
+.confirmText {
+  font: var(--fs-body-sm);
+  color: var(--ag-error);
+}
+
+.primary,
+.confirm {
+  background: var(--ag-primary);
+  color: var(--ag-neutral);
+  border: none;
+  border-radius: var(--r-full);
+  font: var(--fs-button-text);
+  font-size: 13px;
+  padding: 7px 16px;
+  cursor: pointer;
+}
+
+.confirm {
+  background: var(--ag-error);
+}
+
+.primary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.primary:not(:disabled):hover {
+  background: var(--ag-primary-strong);
+}
+
+.confirm:hover {
+  background: color-mix(in srgb, var(--ag-error) 85%, black);
+}
+
+.secondary {
+  appearance: none;
+  background: none;
+  border: 1px solid var(--ag-border);
+  border-radius: var(--r-full);
+  color: var(--ag-secondary);
+  font: var(--fs-button-text);
+  font-size: 13px;
+  padding: 7px 16px;
+  cursor: pointer;
+}
+
+.secondary:hover {
+  background: var(--ag-neutral-200);
+}

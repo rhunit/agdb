@@ -8,6 +8,7 @@ import { reviewMatchesTheme } from "../lib/reviewPatterns";
 import type { LocationId, Review } from "../types";
 import { StarRating } from "./badges";
 import { LoadingState } from "./LoadingState";
+import { ReplyForm } from "./ReplyForm";
 import { ReviewPatterns } from "./ReviewPatterns";
 import styles from "./AllReviews.module.css";
 
@@ -43,6 +44,13 @@ export function AllReviews({
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [ratingFilter, setRatingFilter] = useState<Set<number>>(new Set());
   const [activeTheme, setActiveTheme] = useState<string | null>(null);
+  // Reviews replied to in this session, ahead of the next full refetch —
+  // lets the status flip to "Beantwoord" immediately after a send succeeds.
+  const [repliedIds, setRepliedIds] = useState<Set<string>>(new Set());
+
+  function isResponded(review: Review): boolean {
+    return review.responded || repliedIds.has(review.id);
+  }
 
   useEffect(() => {
     if (!filterRequest) return;
@@ -64,13 +72,13 @@ export function AllReviews({
 
   const reviews = useMemo(() => {
     return allReviews.filter((r) => {
-      if (statusFilter === "open" && r.responded) return false;
-      if (statusFilter === "responded" && !r.responded) return false;
+      if (statusFilter === "open" && isResponded(r)) return false;
+      if (statusFilter === "responded" && !isResponded(r)) return false;
       if (ratingFilter.size > 0 && !ratingFilter.has(r.rating)) return false;
       if (activeTheme && !reviewMatchesTheme(r, activeTheme)) return false;
       return true;
     });
-  }, [allReviews, statusFilter, ratingFilter, activeTheme]);
+  }, [allReviews, statusFilter, ratingFilter, activeTheme, repliedIds]);
 
   function updateStatusFilter(next: StatusFilter) {
     setStatusFilter(next);
@@ -221,14 +229,23 @@ export function AllReviews({
                     </span>
                   </div>
                   <div className={styles.snippet}>&ldquo;{review.snippet}&rdquo;</div>
+                  {!isResponded(review) && review.googleReviewId && (
+                    <ReplyForm
+                      location={review.location}
+                      googleReviewId={review.googleReviewId}
+                      onSent={() =>
+                        setRepliedIds((prev) => new Set(prev).add(review.id))
+                      }
+                    />
+                  )}
                 </div>
                 <div className={styles.aside}>
                   <span
                     className={
-                      review.responded ? styles.statusResponded : styles.statusOpen
+                      isResponded(review) ? styles.statusResponded : styles.statusOpen
                     }
                   >
-                    {review.responded ? "Beantwoord" : "Open"}
+                    {isResponded(review) ? "Beantwoord" : "Open"}
                   </span>
                   <span className={styles.time}>
                     {daysAgoLabel(review.daysAgo)}

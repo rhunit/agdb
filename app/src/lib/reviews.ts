@@ -36,5 +36,6 @@ export function businessReviewsFor(
     daysAgo: daysAgoFrom(r.createTime),
     publishedAt: r.createTime ?? undefined,
     responded: r.responded,
+    googleReviewId: r.id,
   }));
 }

@@ -174,6 +174,41 @@ export type SubmitWeeklyLogResult =
   | { ok: true; entry: WeeklyLogEntry }
   | { ok: false; error: string };
 
+export type SubmitReviewReplyResult =
+  | { ok: true }
+  | { ok: false; error: string };
+
+/** Posts the owner reply to one review — this goes straight to the public
+ * Google listing the moment the request succeeds, there's no draft state
+ * on Google's side. Any "are you sure" step has to happen before this is
+ * called. */
+export async function submitReviewReply(
+  location: LocationId,
+  googleReviewId: string,
+  comment: string,
+): Promise<SubmitReviewReplyResult> {
+  if (!hasLiveBackend()) {
+    return { ok: false, error: "Geen backend geconfigureerd." };
+  }
+  try {
+    const res = await fetch(
+      `${API_BASE}/api/business-reviews/${location}/${googleReviewId}/reply`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ comment }),
+      },
+    );
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+      return { ok: false, error: body?.error ?? `Versturen mislukt (${res.status}).` };
+    }
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Kon de server niet bereiken." };
+  }
+}
+
 export async function submitWeeklyLogEntry(
   input: NewWeeklyLogEntry,
 ): Promise<SubmitWeeklyLogResult> {

@@ -24,6 +24,11 @@ export interface Review {
    * so they're left undefined rather than making up a time of day. */
   publishedAt?: string;
   responded: boolean;
+  /** Google's own review id (unprefixed) — only set for live reviews.
+   * Replying posts straight to Google, so this is the only safe way to
+   * gate "can this review actually be replied to" without the reply
+   * button ever appearing on fabricated mock data. */
+  googleReviewId?: string;
 }
 
 export interface WeeklyLogEntry {

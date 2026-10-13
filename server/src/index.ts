@@ -15,6 +15,7 @@ import {
   getAllBusinessReviews,
   getRecentBusinessReviews,
   listBusinessReviews,
+  replyToReview,
 } from "./googleBusinessReviews.js";
 import { ACTIVE_LOCATIONS, getAllPlacesSummaries } from "./googlePlaces.js";
 import { getWeeklyReviewGrowth, recordSnapshot } from "./placesHistoryStore.js";
@@ -23,6 +24,7 @@ import { appendWeeklyLogEntry, listWeeklyLog } from "./weeklyLogStore.js";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = Number(process.env.PORT ?? 8787);
+const LOCATION_IDS = new Set(["centrum", "oost", "depijp", "boerejongens", "almere"]);
 
 // Gates the whole app behind a single shared username/password when both
 // are set — meant for a beta link handed to a small group, not real
@@ -161,6 +163,46 @@ app.get("/api/business-reviews-all", async (_req, res) => {
   }
 });
 
+// Posts (or edits) the owner reply on one review. This writes straight to
+// the public Google listing the moment it succeeds — any "are you sure"
+// step belongs on the frontend before this is ever called.
+app.post("/api/business-reviews/:location/:reviewId/reply", async (req, res) => {
+  const { location, reviewId } = req.params;
+  const { comment } = req.body ?? {};
+  if (!LOCATION_IDS.has(location)) {
+    res.status(400).json({
+      error: "Onbekende locatie. Vereist: centrum|oost|depijp|boerejongens|almere.",
+    });
+    return;
+  }
+  if (typeof comment !== "string" || !comment.trim()) {
+    res.status(400).json({ error: "Vereist: comment (niet leeg)." });
+    return;
+  }
+  try {
+    const auth = getAuthorizedClient();
+    const locations = await listLocations(auth);
+    const match = locations.find((l) => l.internalId === location);
+    if (!match) {
+      res.status(404).json({
+        error: `Locatie "${location}" niet gevonden in de gekoppelde Business Profile-locaties.`,
+      });
+      return;
+    }
+    const reply = await replyToReview(
+      auth,
+      match.accountName,
+      match.googleLocationId,
+      reviewId,
+      comment.trim(),
+    );
+    res.json(reply);
+  } catch (err) {
+    console.error(err);
+    res.status(503).json({ error: (err as Error).message });
+  }
+});
+
 // Diagnostic-only: tries the legacy v4 reviews endpoint for one location
 // and returns exactly what Google sent back (or its error), so this can
 // be tested directly in a browser before anything is wired into the real
@@ -197,7 +239,6 @@ app.get("/api/business-reviews-test", async (req, res) => {
   }
 });
 
-const LOCATION_IDS = new Set(["centrum", "oost", "depijp", "boerejongens", "almere"]);
 const LOG_TYPES = new Set(["smoke", "qr"]);
 
 app.get("/api/weekly-log", (_req, res) => {

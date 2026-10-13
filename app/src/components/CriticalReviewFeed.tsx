@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { LOCATIONS } from "../data/mockData";
 import { daysAgoLabel, formatReviewTimestamp } from "../lib/format";
 import type { Review } from "../types";
 import { StarRating } from "./badges";
+import { ReplyForm } from "./ReplyForm";
 import styles from "./CriticalReviewFeed.module.css";
 
 const LOCATION_NAME = new Map(LOCATIONS.map((l) => [l.id, l.name]));
@@ -19,6 +21,14 @@ export function CriticalReviewFeed({
   reviews,
   showLocation,
 }: CriticalReviewFeedProps) {
+  // Reviews replied to in this session, ahead of the next full refetch —
+  // lets the status flip to "Beantwoord" immediately after a send succeeds.
+  const [repliedIds, setRepliedIds] = useState<Set<string>>(new Set());
+
+  function isResponded(review: Review): boolean {
+    return review.responded || repliedIds.has(review.id);
+  }
+
   return (
     <div className={styles.card}>
       <div className={styles.header}>
@@ -43,14 +53,23 @@ export function CriticalReviewFeed({
                 )}
               </div>
               <div className={styles.snippet}>&ldquo;{review.snippet}&rdquo;</div>
+              {!isResponded(review) && review.googleReviewId && (
+                <ReplyForm
+                  location={review.location}
+                  googleReviewId={review.googleReviewId}
+                  onSent={() =>
+                    setRepliedIds((prev) => new Set(prev).add(review.id))
+                  }
+                />
+              )}
             </div>
             <div className={styles.aside}>
               <span
                 className={
-                  review.responded ? styles.statusResponded : styles.statusOpen
+                  isResponded(review) ? styles.statusResponded : styles.statusOpen
                 }
               >
-                {review.responded ? "Beantwoord" : "Open"}
+                {isResponded(review) ? "Beantwoord" : "Open"}
               </span>
               <span className={styles.time}>
                 {daysAgoLabel(review.daysAgo)}

@@ -167,6 +167,41 @@ export async function getRecentBusinessReviews(
   return out;
 }
 
+/** Posts (or overwrites) the owner reply on one review — a PUT to Google's
+ * reply sub-resource upserts it, so this doubles as "edit my reply" when
+ * called again with new text. This writes directly to the public Google
+ * listing: there's no draft/preview step on Google's side, only whatever
+ * confirmation the caller adds before invoking this. */
+export async function replyToReview(
+  auth: OAuth2Client,
+  accountName: string,
+  googleLocationId: string,
+  reviewId: string,
+  comment: string,
+): Promise<{ comment: string; updateTime: string | null }> {
+  const { token } = await auth.getAccessToken();
+  if (!token) throw new Error("No access token available");
+
+  const res = await fetch(
+    `https://mybusiness.googleapis.com/v4/${accountName}/${googleLocationId}/reviews/${reviewId}/reply`,
+    {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ comment }),
+    },
+  );
+  if (!res.ok) {
+    throw new Error(
+      `Review reply request failed: ${res.status} ${await res.text()}`,
+    );
+  }
+  const data = (await res.json()) as { comment?: string; updateTime?: string };
+  return { comment: data.comment ?? comment, updateTime: data.updateTime ?? null };
+}
+
 /** The complete review history (not just a recent window) for every
  * location we have a matched internal id for — backs the "Alle reviews"
  * page, which is explicitly meant to be the full list rather than a
