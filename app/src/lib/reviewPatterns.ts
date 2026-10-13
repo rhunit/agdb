@@ -15,25 +15,37 @@ interface ThemeDefinition {
 // complaint. This is a cheap, instant, fully-explainable heuristic — it
 // can miss phrasing it doesn't recognize and can occasionally mismatch a
 // word used in another sense, but every match traces directly back to
-// real review text, nothing is inferred or fabricated. Themes with
-// overlapping keywords are intentional (e.g. "personeel" can also flag a
-// quality remark) — a review can count toward more than one theme.
+// real review text, nothing is inferred or fabricated.
+//
+// Grouped into exactly these three buckets per request — matching the
+// categories used in the manually-written location reports (see the
+// uploaded "Sloterdijk 28/08 t/m 28/09" PDF): staff/atmosphere
+// complaints under Klantvriendelijkheid, anything about the goods
+// themselves under Producten, and pricing/extra-costs/policy complaints
+// under Huisregels / voorwaarden.
 const THEMES: ThemeDefinition[] = [
   {
-    label: "Te duur / prijs",
+    label: "Klantvriendelijkheid",
     keywords: [
-      "duur",
-      "prijzig",
-      "prijzen",
-      "te veel geld",
-      "overpriced",
-      "expensive",
-      "pricey",
-    ],
-  },
-  {
-    label: "Hygiëne / netheid",
-    keywords: [
+      "onvriendelijk",
+      "chagrijnig",
+      "respectloos",
+      "lomp",
+      "onbeleefd",
+      "arrogant",
+      "slechte service",
+      "geen hulp",
+      "rude",
+      "unfriendly",
+      "unhelpful",
+      "wachttijd",
+      "lang wachten",
+      "te druk",
+      "lange rij",
+      "wachtrij",
+      "queue",
+      "crowded",
+      "busy",
       "vies",
       "smerig",
       "rommelig",
@@ -45,35 +57,7 @@ const THEMES: ThemeDefinition[] = [
     ],
   },
   {
-    label: "Personeel / service",
-    keywords: [
-      "onvriendelijk",
-      "chagrijnig",
-      "respectloos",
-      "lomp",
-      "onbeleefd",
-      "slechte service",
-      "geen hulp",
-      "rude",
-      "unfriendly",
-      "unhelpful",
-    ],
-  },
-  {
-    label: "Wachttijd / drukte",
-    keywords: [
-      "wachttijd",
-      "lang wachten",
-      "te druk",
-      "lange rij",
-      "wachtrij",
-      "queue",
-      "crowded",
-      "busy",
-    ],
-  },
-  {
-    label: "Productkwaliteit",
+    label: "Producten",
     keywords: [
       "slechte kwaliteit",
       "matige kwaliteit",
@@ -83,11 +67,6 @@ const THEMES: ThemeDefinition[] = [
       "poor quality",
       "moldy",
       "stale",
-    ],
-  },
-  {
-    label: "Aanbod / voorraad",
-    keywords: [
       "uitverkocht",
       "geen voorraad",
       "beperkt aanbod",
@@ -95,11 +74,6 @@ const THEMES: ThemeDefinition[] = [
       "out of stock",
       "sold out",
       "limited selection",
-    ],
-  },
-  {
-    label: "Gewicht / hoeveelheid",
-    keywords: [
       "te weinig",
       "ondergewicht",
       "weegschaal",
@@ -109,10 +83,27 @@ const THEMES: ThemeDefinition[] = [
       "scale",
     ],
   },
+  {
+    label: "Huisregels / voorwaarden",
+    keywords: [
+      "duur",
+      "prijzig",
+      "prijzen",
+      "te veel geld",
+      "overpriced",
+      "expensive",
+      "pricey",
+      "voorwaarden",
+      "huisregels",
+      "niet gratis",
+      "extra kosten",
+      "verplicht",
+    ],
+  },
 ];
 
 const MIN_COUNT = 2;
-const MAX_THEMES = 6;
+const MAX_THEMES = 3;
 
 function isCritical(review: Review): boolean {
   return review.rating <= 3 && review.snippet.trim().length > 0;

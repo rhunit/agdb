@@ -1,0 +1,106 @@
+.card {
+  background: var(--ag-surface);
+  border: 1px solid var(--ag-border);
+  border-radius: var(--r-xl);
+  padding: var(--sp-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title {
+  font: var(--fs-label-lg);
+  color: var(--ag-secondary);
+}
+
+.subtitle {
+  font: var(--fs-body-sm);
+  color: var(--ag-muted);
+}
+
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+}
+
+.rowLabel {
+  flex: 0 0 28px;
+  font: var(--fs-body-sm);
+  font-weight: 700;
+  color: var(--ag-secondary);
+}
+
+.track {
+  flex: 1;
+  height: 8px;
+  background: var(--ag-neutral-100);
+  border-radius: var(--r-full);
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  background: var(--ag-primary);
+  border-radius: var(--r-full);
+}
+
+.rowCount {
+  flex: 0 0 32px;
+  text-align: right;
+  font: var(--fs-body-sm);
+  color: var(--ag-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.split {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: var(--sp-xs);
+  padding-top: var(--sp-sm);
+  border-top: 1px solid var(--ag-border);
+}
+
+.splitTrack {
+  display: flex;
+  height: 10px;
+  border-radius: var(--r-full);
+  overflow: hidden;
+  background: var(--ag-error-bg);
+}
+
+.splitPositive {
+  height: 100%;
+  background: var(--ag-primary);
+}
+
+.splitLabels {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sp-xs);
+  font: var(--fs-body-sm);
+}
+
+.positiveLabel {
+  color: var(--ag-primary-strong);
+  font-weight: 700;
+}
+
+.notPositiveLabel {
+  color: var(--ag-error);
+  font-weight: 700;
+}

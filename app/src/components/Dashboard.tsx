@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { VISIBLE_LOCATION_IDS } from "../config";
+import { REVIEWS } from "../data/mockData";
 import { useDashboardData, type LocationFilter } from "../hooks/useDashboardData";
 import { useLiveAllBusinessReviews } from "../hooks/useLiveAllBusinessReviews";
 import { useLiveBusinessReviews } from "../hooks/useLiveBusinessReviews";
@@ -6,11 +8,14 @@ import { useLivePlacesReviewGrowth } from "../hooks/useLivePlacesReviewGrowth";
 import { useLivePlacesSummary } from "../hooks/useLivePlacesSummary";
 import { useWeeklyLog } from "../hooks/useWeeklyLog";
 import { formatUpdatedAt } from "../lib/format";
+import { businessReviewsFor } from "../lib/reviews";
+import type { LocationId, Review } from "../types";
 import { AllReviews } from "./AllReviews";
 import { BentoGrid } from "./BentoGrid";
 import { CriticalReviewFeed } from "./CriticalReviewFeed";
 import { LoadingState } from "./LoadingState";
 import { LocationsOverview } from "./LocationsOverview";
+import { RatingBreakdown } from "./RatingBreakdown";
 import { ReviewFeed } from "./ReviewFeed";
 import { Sidebar, type SidebarView } from "./Sidebar";
 import { Topbar } from "./Topbar";
@@ -35,7 +40,10 @@ export function Dashboard() {
   const livePlaces = useLivePlacesSummary();
   const weeklyLog = useWeeklyLog();
   const businessReviews = useLiveBusinessReviews();
-  const allBusinessReviews = useLiveAllBusinessReviews(view === "alle-reviews");
+  // Also drives the dashboard's full-history rating breakdown below, not
+  // just the "Alle reviews" page — so it's needed whenever that page or
+  // the dashboard itself is showing, just not for "Locaties".
+  const allBusinessReviews = useLiveAllBusinessReviews(view !== "locaties");
   const dashboardLoading =
     livePlaces.loading || businessReviews.loading || reviewGrowth.loading || weeklyLog.loading;
   const data = useDashboardData(
@@ -45,6 +53,25 @@ export function Dashboard() {
     weeklyLog.entries,
     businessReviews.data,
   );
+
+  // Full review history (not just the recent window `data` is built from)
+  // for whichever location(s) the current tab selects — backs the star
+  // breakdown. Falls back to the same mock review set used elsewhere on
+  // the dashboard when there's no live backend, rather than showing
+  // nothing or fabricating different numbers.
+  const allTimeReviews = useMemo(() => {
+    const ids: LocationId[] = filter === "all" ? VISIBLE_LOCATION_IDS : [filter];
+    const locationSet = new Set(ids);
+    if (allBusinessReviews.data) {
+      const combined: Review[] = [];
+      for (const id of ids) {
+        const items = allBusinessReviews.data[id];
+        if (items) combined.push(...businessReviewsFor(id, items));
+      }
+      return combined;
+    }
+    return REVIEWS.filter((r) => locationSet.has(r.location));
+  }, [allBusinessReviews.data, filter]);
 
   return (
     <>
@@ -104,6 +131,11 @@ export function Dashboard() {
                       criticalCountDelta={data.criticalCountDelta}
                       criticalResponseRatio={data.criticalResponseRatio}
                       openCriticalReviews={data.openCriticalReviews}
+                    />
+
+                    <RatingBreakdown
+                      reviews={allTimeReviews}
+                      loading={allBusinessReviews.loading}
                     />
 
                     <div className={styles.split}>
