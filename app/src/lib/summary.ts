@@ -20,7 +20,7 @@ export function buildWeekSummary(input: WeekSummaryInput): string[] {
   const lines: string[] = [];
 
   if (input.reviewCount === 0) {
-    lines.push("Deze week kwamen er geen nieuwe reviews binnen.");
+    lines.push("In deze periode kwamen er geen nieuwe reviews binnen.");
   } else {
     const breakdown: string[] = [];
     if (input.topRatedCount > 0) {
@@ -31,7 +31,7 @@ export function buildWeekSummary(input: WeekSummaryInput): string[] {
     }
     const suffix = breakdown.length > 0 ? `, waarvan ${breakdown.join(" en ")}` : "";
     lines.push(
-      `Deze week kwamen er ${formatDutchInt(input.reviewCount)} nieuwe review${
+      `In deze periode kwamen er ${formatDutchInt(input.reviewCount)} nieuwe review${
         input.reviewCount === 1 ? "" : "s"
       } binnen${suffix}.`,
     );

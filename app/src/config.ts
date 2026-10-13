@@ -8,3 +8,14 @@ import type { LocationId } from "./types";
 // silently blend in data for a location nobody can otherwise see or
 // select, which is confusing rather than honest.
 export const VISIBLE_LOCATION_IDS: LocationId[] = ["centrum", "almere"];
+
+/** Short tab labels for the locations above — used by both the
+ * dashboard's profile tabs (Topbar) and "Alle reviews"' per-location
+ * tabs, so the two stay worded the same. */
+export const LOCATION_TAB_LABEL: Record<LocationId, string> = {
+  centrum: "Coffeeshop BIJ",
+  almere: "Boerejongens Almere",
+  oost: "Sloterdijk",
+  depijp: "Boerejongens West",
+  boerejongens: "Boerejongens",
+};

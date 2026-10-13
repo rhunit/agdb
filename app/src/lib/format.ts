@@ -57,19 +57,3 @@ export function formatUpdatedAt(date: Date = new Date()): string {
   const min = String(date.getMinutes()).padStart(2, "0");
   return `${dd}-${mm}-${yyyy} · ${hh}:${min}`;
 }
-
-/** Explicit calendar range for "the last N days", e.g. "3 - 10 okt" (or
- * "28 sep - 4 okt" when the range crosses a month) — replaces a vague
- * "laatste N dagen" label with the actual dates it covers. */
-export function formatDateRangeLabel(daysBack = 7, end = new Date()): string {
-  const start = new Date(end);
-  start.setDate(start.getDate() - daysBack);
-
-  const startMonth = DUTCH_MONTHS_SHORT[start.getMonth()];
-  const endMonth = DUTCH_MONTHS_SHORT[end.getMonth()];
-
-  if (startMonth === endMonth) {
-    return `${start.getDate()} - ${end.getDate()} ${endMonth}`;
-  }
-  return `${start.getDate()} ${startMonth} - ${end.getDate()} ${endMonth}`;
-}

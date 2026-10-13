@@ -33,6 +33,35 @@
   white-space: nowrap;
 }
 
+.locationTabs {
+  display: flex;
+  gap: var(--sp-md);
+  overflow-x: auto;
+  border-bottom: 1px solid var(--ag-border);
+}
+
+.locationTab {
+  appearance: none;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: var(--sp-sm) 0;
+  font: var(--fs-nav-link);
+  color: var(--ag-muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.locationTab:hover {
+  color: var(--ag-secondary);
+}
+
+.locationTabActive {
+  font-weight: 700;
+  color: var(--ag-primary-strong);
+  border-bottom-color: var(--ag-primary);
+}
+
 .filters {
   display: flex;
   align-items: center;

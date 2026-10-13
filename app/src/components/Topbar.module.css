@@ -44,18 +44,6 @@
     display: none;
   }
 
-  .rangePill {
-    padding: 2px var(--sp-xs);
-    font: var(--fs-body-sm);
-    font-size: 12px;
-  }
-
-  .userAvatar {
-    width: 26px;
-    height: 26px;
-    font-size: 12px;
-  }
-
   .tabs {
     gap: var(--sp-sm);
   }
@@ -81,29 +69,6 @@
   display: flex;
   align-items: center;
   gap: var(--sp-sm);
-}
-
-.rangePill {
-  border: 1px solid var(--ag-border);
-  border-radius: var(--r-full);
-  padding: var(--sp-xs) var(--sp-sm);
-  font: var(--fs-label-md);
-  color: var(--ag-secondary);
-  background: var(--ag-surface);
-}
-
-.userAvatar {
-  width: 34px;
-  height: 34px;
-  border-radius: var(--r-full);
-  background: var(--ag-primary-bg);
-  border: 1px solid var(--ag-primary-border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font: var(--fs-label-md);
-  font-weight: 700;
-  color: var(--ag-primary-strong);
 }
 
 .tabs {

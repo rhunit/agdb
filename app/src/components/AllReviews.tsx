@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { VISIBLE_LOCATION_IDS } from "../config";
+import { LOCATION_TAB_LABEL, VISIBLE_LOCATION_IDS } from "../config";
 import { LOCATIONS } from "../data/mockData";
 import type { LiveBusinessReview } from "../lib/api";
 import { daysAgoLabel, formatReviewTimestamp } from "../lib/format";
@@ -41,6 +41,7 @@ export function AllReviews({
   filterRequest,
 }: AllReviewsProps) {
   const [shown, setShown] = useState(PAGE_SIZE);
+  const [locationTab, setLocationTab] = useState<LocationId | "all">("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [ratingFilter, setRatingFilter] = useState<Set<number>>(new Set());
   const [activeTheme, setActiveTheme] = useState<string | null>(null);
@@ -59,6 +60,7 @@ export function AllReviews({
 
   useEffect(() => {
     if (!filterRequest) return;
+    setLocationTab("all");
     setStatusFilter(filterRequest.status);
     setRatingFilter(new Set(filterRequest.ratings));
     setActiveTheme(null);
@@ -75,15 +77,25 @@ export function AllReviews({
     return combined.sort((a, b) => a.daysAgo - b.daysAgo);
   }, [reviewsByLocation]);
 
+  const scopedReviews = useMemo(() => {
+    if (locationTab === "all") return allReviews;
+    return allReviews.filter((r) => r.location === locationTab);
+  }, [allReviews, locationTab]);
+
   const reviews = useMemo(() => {
-    return allReviews.filter((r) => {
+    return scopedReviews.filter((r) => {
       if (statusFilter === "open" && isResponded(r)) return false;
       if (statusFilter === "responded" && !isResponded(r)) return false;
       if (ratingFilter.size > 0 && !ratingFilter.has(r.rating)) return false;
       if (activeTheme && !reviewMatchesTheme(r, activeTheme)) return false;
       return true;
     });
-  }, [allReviews, statusFilter, ratingFilter, activeTheme, repliedText]);
+  }, [scopedReviews, statusFilter, ratingFilter, activeTheme, repliedText]);
+
+  function selectLocationTab(next: LocationId | "all") {
+    setLocationTab(next);
+    setShown(PAGE_SIZE);
+  }
 
   function updateStatusFilter(next: StatusFilter) {
     setStatusFilter(next);
@@ -113,28 +125,63 @@ export function AllReviews({
         <div>
           <div className={styles.title}>Alle reviews</div>
           <div className={styles.subtitle}>
-            Volledige, ongefilterde lijst over alle gekoppelde locaties — niet beperkt tot
-            deze week.
+            {locationTab === "all"
+              ? "Volledige, ongefilterde lijst over alle gekoppelde locaties — niet beperkt tot deze week."
+              : `Volledige, ongefilterde lijst voor ${LOCATION_TAB_LABEL[locationTab]} — niet beperkt tot deze week.`}
           </div>
         </div>
-        {allReviews.length > 0 && (
+        {scopedReviews.length > 0 && (
           <div className={styles.count}>
-            {reviews.length === allReviews.length
-              ? `${allReviews.length} totaal`
-              : `${reviews.length} van ${allReviews.length}`}
+            {reviews.length === scopedReviews.length
+              ? `${scopedReviews.length} totaal`
+              : `${reviews.length} van ${scopedReviews.length}`}
           </div>
         )}
       </div>
 
-      {!loading && allReviews.length > 0 && (
+      {allReviews.length > 0 && (
+        <div className={styles.locationTabs} role="tablist" aria-label="Locatie">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={locationTab === "all"}
+            className={
+              locationTab === "all"
+                ? `${styles.locationTab} ${styles.locationTabActive}`
+                : styles.locationTab
+            }
+            onClick={() => selectLocationTab("all")}
+          >
+            Totaal
+          </button>
+          {VISIBLE_LOCATION_IDS.map((id) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={locationTab === id}
+              className={
+                locationTab === id
+                  ? `${styles.locationTab} ${styles.locationTabActive}`
+                  : styles.locationTab
+              }
+              onClick={() => selectLocationTab(id)}
+            >
+              {LOCATION_TAB_LABEL[id]}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {!loading && scopedReviews.length > 0 && (
         <ReviewPatterns
-          reviews={allReviews}
+          reviews={scopedReviews}
           activeTheme={activeTheme}
           onSelectTheme={selectTheme}
         />
       )}
 
-      {allReviews.length > 0 && (
+      {scopedReviews.length > 0 && (
         <div className={styles.filters}>
           <div className={styles.filterGroup}>
             <button
@@ -217,6 +264,8 @@ export function AllReviews({
         </div>
       ) : allReviews.length === 0 ? (
         <div className={styles.empty}>Geen reviews gevonden voor de gekoppelde locaties.</div>
+      ) : scopedReviews.length === 0 ? (
+        <div className={styles.empty}>Geen reviews voor deze locatie.</div>
       ) : reviews.length === 0 ? (
         <div className={styles.empty}>Geen reviews voor deze filtercombinatie.</div>
       ) : (
@@ -229,9 +278,11 @@ export function AllReviews({
                   <div className={styles.meta}>
                     <span className={styles.reviewer}>{review.reviewer}</span>
                     <StarRating rating={review.rating} />
-                    <span className={styles.locationName}>
-                      · {LOCATION_NAME.get(review.location)}
-                    </span>
+                    {locationTab === "all" && (
+                      <span className={styles.locationName}>
+                        · {LOCATION_NAME.get(review.location)}
+                      </span>
+                    )}
                   </div>
                   <div className={styles.snippet}>&ldquo;{review.snippet}&rdquo;</div>
                   {isResponded(review) && replyTextFor(review) && (

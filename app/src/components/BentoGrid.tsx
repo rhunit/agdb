@@ -75,7 +75,7 @@ export function BentoGrid({
         <div className={styles.label}>NIEUWE REVIEWS</div>
         <div className={styles.value}>{formatDutchInt(reviewCount)}</div>
         <div className={deltaClass(reviewCountDelta)}>
-          {signedCount(reviewCountDelta)} vs vorige week
+          {signedCount(reviewCountDelta)} vs vorige periode
         </div>
       </div>
 
@@ -83,7 +83,7 @@ export function BentoGrid({
         <div className={styles.label}>NIEUWE 5★ REVIEWS</div>
         <div className={styles.value}>{formatDutchInt(topRatedCount)}</div>
         <div className={deltaClass(topRatedCountDelta)}>
-          {signedCount(topRatedCountDelta)} vs vorige week
+          {signedCount(topRatedCountDelta)} vs vorige periode
         </div>
       </div>
 
@@ -91,7 +91,7 @@ export function BentoGrid({
         <div className={styles.label}>NIEUWE 1–2★ REVIEWS</div>
         <div className={styles.value}>{formatDutchInt(criticalCount)}</div>
         <div className={criticalCountDelta > 0 ? styles.deltaNegative : deltaClass(criticalCountDelta)}>
-          {signedCount(criticalCountDelta)} vs vorige week
+          {signedCount(criticalCountDelta)} vs vorige periode
         </div>
       </div>
 

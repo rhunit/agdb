@@ -9,24 +9,23 @@ import {
   REVIEWS,
   WEEKLY_LOG,
 } from "../data/mockData";
+import type { DateRange } from "../lib/dateRange";
+import { isWithinRange, previousRange } from "../lib/dateRange";
 import type { LiveBusinessReview, LivePlaceSummary } from "../lib/api";
-import { businessReviewsFor, daysAgoFrom, initialsFrom } from "../lib/reviews";
+import { businessReviewsFor, dateFromReview, daysAgoFrom, initialsFrom } from "../lib/reviews";
 import type { LocationId, Review, ReviewGrowthWeek, WeeklyLogEntry } from "../types";
 
 export type LocationFilter = LocationId | "all";
 
-// How many reviews each feed shows at most — both display the latest
-// available reviews regardless of the weekly cutoff used for stats, so a
-// cap keeps a quiet multi-location view from turning into a long scroll.
+// How many reviews each feed shows at most.
 const FEED_DISPLAY_CAP = 12;
 const CRITICAL_FEED_DISPLAY_CAP = 8;
 
 // "Dashboard" (filter "all") bundles only the locations that currently
 // have their own visible tab (see ../config) — not every location in the
 // data model. Blending in a location nobody can otherwise see or select
-// would silently inflate every stat (and the "Gebaseerd op N
-// Google-reviews" count) with data for a profile the dashboard doesn't
-// yet present as connected.
+// would silently inflate every stat with data for a profile the
+// dashboard doesn't yet present as connected.
 function includedLocations(filter: LocationFilter): LocationId[] {
   return filter === "all" ? VISIBLE_LOCATION_IDS : [filter];
 }
@@ -46,16 +45,26 @@ function liveReviewsFor(locationId: LocationId, summary: LivePlaceSummary): Revi
     source: "onbekend",
     confidence: "onbekend",
     daysAgo: daysAgoFrom(r.publishTime),
+    publishedAt: r.publishTime ?? undefined,
     responded: false,
   }));
 }
 
+function sumByLocation(
+  record: Record<LocationId, number>,
+  locations: LocationId[],
+): number {
+  return locations.reduce((sum, id) => sum + record[id], 0);
+}
+
 export function useDashboardData(
   filter: LocationFilter,
+  dateRange: DateRange,
   reviewGrowthOverride?: ReviewGrowthWeek[] | null,
   livePlaces?: Partial<Record<LocationId, LivePlaceSummary>> | null,
   weeklyLogOverride?: WeeklyLogEntry[] | null,
   liveBusinessReviews?: Partial<Record<LocationId, LiveBusinessReview[]>> | null,
+  allBusinessReviews?: Partial<Record<LocationId, LiveBusinessReview[]>> | null,
 ) {
   const reviewGrowthSource =
     reviewGrowthOverride && reviewGrowthOverride.length > 0
@@ -67,58 +76,51 @@ export function useDashboardData(
     const locations = includedLocations(filter);
     const locationSet = new Set(locations);
 
-    // Used whenever a location has no better live source — the mock set
-    // is the final fallback for the feed and every stat derived from it.
-    const mockReviews = REVIEWS.filter((r) => locationSet.has(r.location));
+    // reviewCount / reactieratio / extremes only trust live numbers when
+    // EVERY included location has the complete v4 history — otherwise the
+    // aggregate would silently blend a complete real count for one
+    // location with a mock placeholder for another, which is worse than
+    // being honestly mock everywhere.
+    const statsAreLive =
+      allBusinessReviews != null &&
+      locations.length > 0 &&
+      locations.every((id) => allBusinessReviews[id] != null);
 
-    // Per location: v4 Business Profile reviews (complete, correctly
-    // ordered, real reply status) > Places reviews (5-review relevance-
-    // ranked cap, no reply status) > mock. Only the ≤14-day business set
-    // is fetched server-side, so bucket it into "this week" (used for the
-    // live stats below) and "last week" (the real baseline for
-    // reviewCountDelta). The feed itself shows the latest available
-    // reviews regardless of that weekly cutoff — a location can genuinely
-    // have no reviews in the last 7 days but several in the last 14,
-    // and hiding those behind an empty state would be less honest than
-    // showing them with their real (and clearly labelled) age.
-    const thisWeekByLocation: Review[][] = [];
-    const previousWeekBizByLocation: Review[][] = [];
-    const feedByLocation: Review[][] = [];
-    for (const id of locations) {
-      const biz = liveBusinessReviews?.[id];
-      if (biz) {
-        const converted = businessReviewsFor(id, biz);
-        thisWeekByLocation.push(converted.filter((r) => r.daysAgo <= 7));
-        previousWeekBizByLocation.push(
-          converted.filter((r) => r.daysAgo > 7 && r.daysAgo <= 14),
-        );
-        feedByLocation.push(converted);
-        continue;
-      }
-      const live = livePlaces?.[id];
-      if (live) {
-        const converted = liveReviewsFor(id, live);
-        thisWeekByLocation.push(converted.filter((r) => r.daysAgo <= 7));
-        feedByLocation.push(converted);
-        continue;
-      }
-      const mockForLocation = mockReviews.filter((r) => r.location === id);
-      thisWeekByLocation.push(mockForLocation);
-      feedByLocation.push(mockForLocation);
+    // Best single source per location: complete v4 history > the ≤14-day
+    // v4 window (still useful if the full-history fetch happened to fail
+    // for a location Google otherwise has data for) > Places > mock. Used
+    // for everything below except avgScore, which deliberately stays
+    // sourced from Places' true current rating regardless of period (see
+    // avgScore below).
+    function reviewsForLocation(id: LocationId): Review[] {
+      const full = allBusinessReviews?.[id];
+      if (full) return businessReviewsFor(id, full);
+      const recent = liveBusinessReviews?.[id];
+      if (recent) return businessReviewsFor(id, recent);
+      const places = livePlaces?.[id];
+      if (places) return liveReviewsFor(id, places);
+      return REVIEWS.filter((r) => r.location === id);
     }
 
-    const weeklyReviews = thisWeekByLocation
-      .flat()
+    const combinedReviews = locations.flatMap(reviewsForLocation);
+    const previousDateRange = previousRange(dateRange);
+
+    const periodReviews = combinedReviews
+      .filter((r) => isWithinRange(dateFromReview(r), dateRange))
       .sort((a, b) => a.daysAgo - b.daysAgo);
-    const previousWeekBizReviews = previousWeekBizByLocation.flat();
-    const allFeedReviews = feedByLocation
-      .flat()
-      .sort((a, b) => a.daysAgo - b.daysAgo);
-    const reviews = allFeedReviews.slice(0, FEED_DISPLAY_CAP);
-    const criticalFeedReviews = allFeedReviews
+    const previousPeriodReviews = combinedReviews.filter((r) =>
+      isWithinRange(dateFromReview(r), previousDateRange),
+    );
+
+    const reviews = periodReviews.slice(0, FEED_DISPLAY_CAP);
+    const criticalFeedReviews = periodReviews
       .filter((r) => r.rating <= 2)
       .slice(0, CRITICAL_FEED_DISPLAY_CAP);
 
+    // avgScore is Google's true current aggregate rating (Places), not
+    // something scoped to the selected period — there's no "average
+    // score in March" concept to show here, just the real published
+    // number. Falls back to an all-time mock average with no live source.
     const liveRatings = livePlaces
       ? locations
           .map((id) => livePlaces[id])
@@ -126,31 +128,15 @@ export function useDashboardData(
       : [];
     const avgScoreIsLive = livePlaces != null && liveRatings.length > 0;
 
-    // Whether the review feed for this selection includes at least one
-    // location with real live data (either source) — used to badge the
-    // feed as LIVE, since (unlike avgScore) it can be a mix of live and
-    // mock locations under "Alle locaties".
-    const reviewsAreLive =
-      locations.some((id) => livePlaces?.[id] != null) ||
-      locations.some((id) => liveBusinessReviews?.[id] != null);
-
-    // reviewCount / reactieratio / extremes only trust live numbers when
-    // EVERY included location has v4 data — otherwise the aggregate would
-    // silently blend a complete real count for one location with a mock
-    // placeholder for another, which is worse than being honestly mock
-    // everywhere. When true, `weeklyReviews` is guaranteed fully business-
-    // sourced (nothing fell through to the Places/mock branch above).
-    const statsAreLive =
-      liveBusinessReviews != null &&
-      locations.length > 0 &&
-      locations.every((id) => liveBusinessReviews[id] != null);
-
     const avgScore = avgScoreIsLive
       ? liveRatings.reduce((sum, p) => sum + p.rating! * p.userRatingCount, 0) /
         liveRatings.reduce((sum, p) => sum + p.userRatingCount, 0)
-      : mockReviews.length > 0
-        ? mockReviews.reduce((sum, r) => sum + r.rating, 0) / mockReviews.length
-        : 0;
+      : (() => {
+          const mockAll = REVIEWS.filter((r) => locationSet.has(r.location));
+          return mockAll.length > 0
+            ? mockAll.reduce((sum, r) => sum + r.rating, 0) / mockAll.length
+            : 0;
+        })();
 
     const avgScoreReviewCount = liveRatings.reduce(
       (sum, p) => sum + p.userRatingCount,
@@ -161,33 +147,34 @@ export function useDashboardData(
       locations.reduce((sum, id) => sum + PREVIOUS_WEEK_AVG_SCORE[id], 0) /
       locations.length;
 
-    const statsSource = statsAreLive ? weeklyReviews : mockReviews;
+    const reviewCount = periodReviews.length;
+    const criticalReviews = periodReviews.filter((r) => r.rating <= 2);
+    const topRatedCount = periodReviews.filter((r) => r.rating === 5).length;
 
-    const respondedCount = statsSource.filter((r) => r.responded).length;
-    const openCount = statsSource.length - respondedCount;
-    const responseRatio =
-      statsSource.length > 0 ? (respondedCount / statsSource.length) * 100 : 0;
+    // The curated PREVIOUS_WEEK_* mock constants only model "the week
+    // before" — a meaningful baseline exclusively for the default 7-day
+    // preset. Any other preset in mock-only mode falls back to the same
+    // period-filtering logic applied to the (small, ~week-old) mock set,
+    // which usually comes up empty — an honest "nothing to compare
+    // against" rather than a baseline that was never modelled for that
+    // range.
+    const useMockWeekBaseline = !statsAreLive && dateRange.preset === "7d";
 
-    const reviewCount = statsSource.length;
-
-    // Real week-over-week delta when live (previousWeekBizReviews comes
-    // from the same complete v4 source), mock baseline otherwise.
     const previousReviewCount = statsAreLive
-      ? previousWeekBizReviews.length
-      : locations.reduce((sum, id) => sum + PREVIOUS_WEEK_REVIEW_COUNT[id], 0);
-
-    const criticalReviews = statsSource.filter((r) => r.rating <= 2);
-    const topRatedCount = statsSource.filter((r) => r.rating === 5).length;
-
-    // Same real-vs-mock baseline split as reviewCountDelta above, but per
-    // rating bucket, so the 5★ and 1–2★ tiles each get their own honest
-    // week-over-week delta instead of inheriting the combined one.
+      ? previousPeriodReviews.length
+      : useMockWeekBaseline
+        ? sumByLocation(PREVIOUS_WEEK_REVIEW_COUNT, locations)
+        : previousPeriodReviews.length;
     const previousTopRatedCount = statsAreLive
-      ? previousWeekBizReviews.filter((r) => r.rating === 5).length
-      : locations.reduce((sum, id) => sum + PREVIOUS_WEEK_TOP_RATED_COUNT[id], 0);
+      ? previousPeriodReviews.filter((r) => r.rating === 5).length
+      : useMockWeekBaseline
+        ? sumByLocation(PREVIOUS_WEEK_TOP_RATED_COUNT, locations)
+        : previousPeriodReviews.filter((r) => r.rating === 5).length;
     const previousCriticalCount = statsAreLive
-      ? previousWeekBizReviews.filter((r) => r.rating <= 2).length
-      : locations.reduce((sum, id) => sum + PREVIOUS_WEEK_CRITICAL_COUNT[id], 0);
+      ? previousPeriodReviews.filter((r) => r.rating <= 2).length
+      : useMockWeekBaseline
+        ? sumByLocation(PREVIOUS_WEEK_CRITICAL_COUNT, locations)
+        : previousPeriodReviews.filter((r) => r.rating <= 2).length;
 
     // Reactieratio scoped to critical reviews specifically — the number
     // that actually matters operationally (did we respond to the reviews
@@ -226,7 +213,7 @@ export function useDashboardData(
     return {
       locations,
       reviews,
-      reviewsAreLive,
+      periodReviews,
       criticalFeedReviews,
       avgScore,
       avgScoreIsLive,
@@ -235,8 +222,6 @@ export function useDashboardData(
       reviewCount,
       reviewCountDelta: reviewCount - previousReviewCount,
       statsAreLive,
-      responseRatio,
-      openCount,
       criticalCount: criticalReviews.length,
       criticalCountDelta: criticalReviews.length - previousCriticalCount,
       oldestCriticalDaysAgo: criticalReviews.length
@@ -253,5 +238,13 @@ export function useDashboardData(
       logEntryCount: logEntries.length,
       logWeekCount: distinctWeeks.size,
     };
-  }, [filter, reviewGrowthSource, livePlaces, weeklyLogSource, liveBusinessReviews]);
+  }, [
+    filter,
+    dateRange,
+    reviewGrowthSource,
+    livePlaces,
+    weeklyLogSource,
+    liveBusinessReviews,
+    allBusinessReviews,
+  ]);
 }

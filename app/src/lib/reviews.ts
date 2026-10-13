@@ -16,6 +16,15 @@ export function daysAgoFrom(publishTime: string | null): number {
   return Math.max(0, Math.floor(ms / (24 * 60 * 60 * 1000)));
 }
 
+/** The best available moment a review was posted — the real timestamp
+ * when there is one, otherwise a reconstruction from `daysAgo` (good
+ * enough for mock data, which only ever carries the latter). Powers
+ * date-range filtering across both live and mock reviews uniformly. */
+export function dateFromReview(review: Review): Date {
+  if (review.publishedAt) return new Date(review.publishedAt);
+  return new Date(Date.now() - review.daysAgo * 24 * 60 * 60 * 1000);
+}
+
 /** Converts a location's v4 Business Profile reviews into the feed's
  * Review shape — complete and correctly time-ordered (no 5-review cap,
  * no relevance ranking), and `responded` is real reply status, not a

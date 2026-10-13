@@ -11,9 +11,9 @@ interface RatingBreakdownProps {
 
 const ROWS = [5, 4, 3, 2, 1] as const;
 
-/** Full-history star distribution and positive/negative split for the
- * currently selected tab — deliberately based on the star rating alone,
- * never a guessed sentiment from the review text. */
+/** Star distribution and positive/negative split for the currently
+ * selected tab and date range — deliberately based on the star rating
+ * alone, never a guessed sentiment from the review text. */
 export function RatingBreakdown({ reviews, loading }: RatingBreakdownProps) {
   if (loading) {
     return (
@@ -31,8 +31,8 @@ export function RatingBreakdown({ reviews, loading }: RatingBreakdownProps) {
         <div className={styles.title}>Sterrenverdeling</div>
         <div className={styles.subtitle}>
           {stats.total > 0
-            ? `Op basis van alle ${formatDutchInt(stats.total)} reviews van deze selectie.`
-            : "Nog geen reviews voor deze selectie."}
+            ? `Op basis van ${formatDutchInt(stats.total)} reviews in de geselecteerde periode.`
+            : "Geen reviews in de geselecteerde periode."}
         </div>
       </div>
 

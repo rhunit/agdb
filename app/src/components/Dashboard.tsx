@@ -1,15 +1,12 @@
-import { useMemo, useState } from "react";
-import { VISIBLE_LOCATION_IDS } from "../config";
-import { REVIEWS } from "../data/mockData";
+import { useState } from "react";
 import { useDashboardData, type LocationFilter } from "../hooks/useDashboardData";
 import { useLiveAllBusinessReviews } from "../hooks/useLiveAllBusinessReviews";
 import { useLiveBusinessReviews } from "../hooks/useLiveBusinessReviews";
 import { useLivePlacesReviewGrowth } from "../hooks/useLivePlacesReviewGrowth";
 import { useLivePlacesSummary } from "../hooks/useLivePlacesSummary";
 import { useWeeklyLog } from "../hooks/useWeeklyLog";
+import { rangeForPreset, type DateRange } from "../lib/dateRange";
 import { formatUpdatedAt } from "../lib/format";
-import { businessReviewsFor } from "../lib/reviews";
-import type { LocationId, Review } from "../types";
 import { AllReviews } from "./AllReviews";
 import { BentoGrid } from "./BentoGrid";
 import { CriticalReviewFeed } from "./CriticalReviewFeed";
@@ -36,42 +33,26 @@ const SHOW_WEEKLY_UPDATE_FORM = false;
 export function Dashboard() {
   const [view, setView] = useState<SidebarView>("dashboard");
   const [filter, setFilter] = useState<LocationFilter>("all");
+  const [dateRange, setDateRange] = useState<DateRange>(() => rangeForPreset("7d"));
   const reviewGrowth = useLivePlacesReviewGrowth();
   const livePlaces = useLivePlacesSummary();
   const weeklyLog = useWeeklyLog();
   const businessReviews = useLiveBusinessReviews();
-  // Also drives the dashboard's full-history rating breakdown below, not
-  // just the "Alle reviews" page — so it's needed whenever that page or
-  // the dashboard itself is showing, just not for "Locaties".
+  // Also drives the dashboard's date-range-scoped stats below, not just
+  // the "Alle reviews" page — so it's needed whenever that page or the
+  // dashboard itself is showing, just not for "Locaties".
   const allBusinessReviews = useLiveAllBusinessReviews(view !== "locaties");
   const dashboardLoading =
     livePlaces.loading || businessReviews.loading || reviewGrowth.loading || weeklyLog.loading;
   const data = useDashboardData(
     filter,
+    dateRange,
     reviewGrowth.data,
     livePlaces.data,
     weeklyLog.entries,
     businessReviews.data,
+    allBusinessReviews.data,
   );
-
-  // Full review history (not just the recent window `data` is built from)
-  // for whichever location(s) the current tab selects — backs the star
-  // breakdown. Falls back to the same mock review set used elsewhere on
-  // the dashboard when there's no live backend, rather than showing
-  // nothing or fabricating different numbers.
-  const allTimeReviews = useMemo(() => {
-    const ids: LocationId[] = filter === "all" ? VISIBLE_LOCATION_IDS : [filter];
-    const locationSet = new Set(ids);
-    if (allBusinessReviews.data) {
-      const combined: Review[] = [];
-      for (const id of ids) {
-        const items = allBusinessReviews.data[id];
-        if (items) combined.push(...businessReviewsFor(id, items));
-      }
-      return combined;
-    }
-    return REVIEWS.filter((r) => locationSet.has(r.location));
-  }, [allBusinessReviews.data, filter]);
 
   return (
     <>
@@ -101,6 +82,8 @@ export function Dashboard() {
                 selected={filter}
                 onSelect={setFilter}
                 updatedAt={formatUpdatedAt()}
+                dateRange={dateRange}
+                onDateRangeChange={setDateRange}
               />
               <div className={styles.content}>
                 {dashboardLoading ? (
@@ -134,7 +117,7 @@ export function Dashboard() {
                     />
 
                     <RatingBreakdown
-                      reviews={allTimeReviews}
+                      reviews={data.periodReviews}
                       loading={allBusinessReviews.loading}
                     />
 
