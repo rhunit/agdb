@@ -151,7 +151,7 @@ app.get("/api/business-reviews-test", async (req, res) => {
   const locationParam = req.query.location;
   if (typeof locationParam !== "string") {
     res.status(400).json({
-      error: "Vereist: ?location=centrum|oost|depijp|boerejongens",
+      error: "Vereist: ?location=centrum|oost|depijp|boerejongens|almere",
     });
     return;
   }
@@ -178,7 +178,7 @@ app.get("/api/business-reviews-test", async (req, res) => {
   }
 });
 
-const LOCATION_IDS = new Set(["centrum", "oost", "depijp", "boerejongens"]);
+const LOCATION_IDS = new Set(["centrum", "oost", "depijp", "boerejongens", "almere"]);
 const LOG_TYPES = new Set(["smoke", "qr"]);
 
 app.get("/api/weekly-log", (_req, res) => {
@@ -201,12 +201,12 @@ app.post("/api/weekly-log", (req, res) => {
   ) {
     res.status(400).json({
       error:
-        "Vereist: location (centrum|oost|depijp|boerejongens), type (smoke|qr), submitter, note.",
+        "Vereist: location (centrum|oost|depijp|boerejongens|almere), type (smoke|qr), submitter, note.",
     });
     return;
   }
   const entry = appendWeeklyLogEntry({
-    location: location as "centrum" | "oost" | "depijp" | "boerejongens",
+    location: location as "centrum" | "oost" | "depijp" | "boerejongens" | "almere",
     type: type as "smoke" | "qr",
     submitter,
     note,

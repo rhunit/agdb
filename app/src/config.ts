@@ -7,4 +7,4 @@ import type { LocationId } from "./types";
 // to show on its own; until then, bundling them into "Dashboard" would
 // silently blend in data for a location nobody can otherwise see or
 // select, which is confusing rather than honest.
-export const VISIBLE_LOCATION_IDS: LocationId[] = ["centrum"];
+export const VISIBLE_LOCATION_IDS: LocationId[] = ["centrum", "almere"];

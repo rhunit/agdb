@@ -6,15 +6,20 @@ import type {
   WeeklyLogEntry,
 } from "../types";
 
-// All 4 are verified real locations connected via the live Places API
+// First 4 are verified real locations connected via the live Places API
 // integration — see server/src/googlePlaces.ts. The internal ids
 // (centrum/oost/depijp/boerejongens) are historical/arbitrary and no
 // longer describe the actual business — only the display name does.
+// "almere" is a newer location, discovered via the Business Profile
+// (OAuth) connection rather than Places — it has no Places API entry
+// yet (see ACTIVE_LOCATIONS in googlePlaces.ts), so its avgScore tile
+// stays mock/non-live until that's configured with its address.
 export const LOCATIONS: Location[] = [
   { id: "centrum", name: "Coffeeshop BIJ Amsterdam" },
   { id: "oost", name: "Coffeeshop Sloterdijk" },
   { id: "depijp", name: "Boerejongens West" },
   { id: "boerejongens", name: "Boerejongens Coffeeshop" },
+  { id: "almere", name: "Boerejongens Almere" },
 ];
 
 export const PREVIOUS_WEEK_AVG_SCORE: Record<LocationId, number> = {
@@ -22,6 +27,7 @@ export const PREVIOUS_WEEK_AVG_SCORE: Record<LocationId, number> = {
   oost: 4.4,
   depijp: 4.7,
   boerejongens: 4.6,
+  almere: 0,
 };
 
 export const PREVIOUS_WEEK_REVIEW_COUNT: Record<LocationId, number> = {
@@ -29,6 +35,7 @@ export const PREVIOUS_WEEK_REVIEW_COUNT: Record<LocationId, number> = {
   oost: 4,
   depijp: 3,
   boerejongens: 3,
+  almere: 0,
 };
 
 // Rating breakdown of the same previous-week baseline above — split out
@@ -39,6 +46,7 @@ export const PREVIOUS_WEEK_TOP_RATED_COUNT: Record<LocationId, number> = {
   oost: 1,
   depijp: 2,
   boerejongens: 1,
+  almere: 0,
 };
 
 export const PREVIOUS_WEEK_CRITICAL_COUNT: Record<LocationId, number> = {
@@ -46,6 +54,7 @@ export const PREVIOUS_WEEK_CRITICAL_COUNT: Record<LocationId, number> = {
   oost: 1,
   depijp: 0,
   boerejongens: 1,
+  almere: 0,
 };
 
 export const REVIEWS: Review[] = [
@@ -351,12 +360,12 @@ export const WEEKLY_LOG: WeeklyLogEntry[] = [
 // the feed above (see REVIEWS), so the chart's rightmost point and the
 // "Nieuwe reviews" KPI tell the same story.
 export const REVIEW_GROWTH: ReviewGrowthWeek[] = [
-  { week: "W29", centrum: 2, oost: 2, depijp: 1, boerejongens: 2 },
-  { week: "W30", centrum: 2, oost: 3, depijp: 2, boerejongens: 2 },
-  { week: "W31", centrum: 3, oost: 2, depijp: 2, boerejongens: 3 },
-  { week: "W32", centrum: 3, oost: 3, depijp: 3, boerejongens: 2 },
-  { week: "W33", centrum: 4, oost: 3, depijp: 3, boerejongens: 3 },
-  { week: "W34", centrum: 3, oost: 4, depijp: 3, boerejongens: 3 },
-  { week: "W35", centrum: 4, oost: 4, depijp: 4, boerejongens: 2 },
-  { week: "W36", centrum: 4, oost: 4, depijp: 4, boerejongens: 3 },
+  { week: "W29", centrum: 2, oost: 2, depijp: 1, boerejongens: 2, almere: 0 },
+  { week: "W30", centrum: 2, oost: 3, depijp: 2, boerejongens: 2, almere: 0 },
+  { week: "W31", centrum: 3, oost: 2, depijp: 2, boerejongens: 3, almere: 0 },
+  { week: "W32", centrum: 3, oost: 3, depijp: 3, boerejongens: 2, almere: 0 },
+  { week: "W33", centrum: 4, oost: 3, depijp: 3, boerejongens: 3, almere: 0 },
+  { week: "W34", centrum: 3, oost: 4, depijp: 3, boerejongens: 3, almere: 0 },
+  { week: "W35", centrum: 4, oost: 4, depijp: 4, boerejongens: 2, almere: 0 },
+  { week: "W36", centrum: 4, oost: 4, depijp: 4, boerejongens: 3, almere: 0 },
 ];

@@ -112,6 +112,7 @@ export async function fetchLiveReviewGrowth(): Promise<ReviewGrowthWeek[] | null
         oost: byLocation.oost ?? 0,
         depijp: byLocation.depijp ?? 0,
         boerejongens: byLocation.boerejongens ?? 0,
+        almere: byLocation.almere ?? 0,
       }))
       .sort((a, b) => weekSortKey(a.week) - weekSortKey(b.week));
   } catch {

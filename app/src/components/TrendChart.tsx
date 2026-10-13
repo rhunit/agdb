@@ -7,6 +7,7 @@ export const LOCATION_COLOR: Record<LocationId, string> = {
   oost: "#4d3935",
   depijp: "#6f5d58",
   boerejongens: "#1f7a30",
+  almere: "#b8902e",
 };
 
 const LOCATION_DASH: Record<LocationId, string | undefined> = {
@@ -14,6 +15,7 @@ const LOCATION_DASH: Record<LocationId, string | undefined> = {
   oost: undefined,
   depijp: "5 4",
   boerejongens: "2 3",
+  almere: "3 2",
 };
 
 const LOCATION_LABEL: Record<LocationId, string> = {
@@ -21,6 +23,7 @@ const LOCATION_LABEL: Record<LocationId, string> = {
   oost: "Sloterdijk",
   depijp: "Boerejongens West",
   boerejongens: "Boerejongens",
+  almere: "Boerejongens Almere",
 };
 
 interface SeriesPoint {

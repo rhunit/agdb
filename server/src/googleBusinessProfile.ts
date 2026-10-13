@@ -1,7 +1,12 @@
 import { google } from "googleapis";
 import type { OAuth2Client } from "google-auth-library";
 
-export type InternalLocationId = "centrum" | "oost" | "depijp" | "boerejongens";
+export type InternalLocationId =
+  | "centrum"
+  | "oost"
+  | "depijp"
+  | "boerejongens"
+  | "almere";
 
 export interface DiscoveredLocation {
   /** Our internal id, matched by name — see matchInternalId(). */
@@ -14,14 +19,19 @@ export interface DiscoveredLocation {
   name: string;
 }
 
-/** Matches a Google Business Profile location title to one of our four
- * real locations by substring. "boerejongens" alone is ambiguous between
- * the two Boerejongens listings, so the "west" check must run first. */
+/** Matches a Google Business Profile location title to one of our real
+ * locations by substring. "boerejongens" alone is ambiguous between
+ * multiple Boerejongens listings, so every more-specific check (west,
+ * almere, ...) must run before the generic fallback — a new Boerejongens
+ * location added later needs its own check here too, or it silently
+ * collapses into the generic "boerejongens" bucket and corrupts that
+ * other location's review data. */
 function matchInternalId(title: string): InternalLocationId | null {
   const t = title.toLowerCase();
   if (t.includes("bij amsterdam")) return "centrum";
   if (t.includes("sloterdijk")) return "oost";
   if (t.includes("boerejongens") && t.includes("west")) return "depijp";
+  if (t.includes("boerejongens") && t.includes("almere")) return "almere";
   if (t.includes("boerejongens")) return "boerejongens";
   return null;
 }
@@ -141,7 +151,13 @@ export async function getWeeklySearchViews(
           );
           const week = isoWeekLabel(day);
           const value = Number(dated.value ?? 0);
-          weekly[week] ??= { centrum: 0, oost: 0, depijp: 0, boerejongens: 0 };
+          weekly[week] ??= {
+            centrum: 0,
+            oost: 0,
+            depijp: 0,
+            boerejongens: 0,
+            almere: 0,
+          };
           weekly[week][loc.internalId] += value;
         }
       }

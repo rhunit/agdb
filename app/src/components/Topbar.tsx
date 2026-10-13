@@ -5,6 +5,7 @@ import styles from "./Topbar.module.css";
 
 const TAB_LABEL: Record<string, string> = {
   centrum: "Coffeeshop BIJ",
+  almere: "Boerejongens Almere",
 };
 
 // Only these profile tabs are live for now (see ../config) — the rest of
