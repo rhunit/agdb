@@ -1,24 +1,56 @@
-.toggle {
-  appearance: none;
-  display: inline-flex;
+.row {
+  display: flex;
   align-items: center;
-  gap: 7px;
-  width: 100%;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  background: rgba(0, 0, 0, 0.1);
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.label {
+  font: var(--fs-body-sm);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+  transition: color 150ms ease;
+}
+
+.labelActive {
   color: var(--ag-neutral);
-  font: var(--fs-nav-link);
-  padding: 9px 12px;
-  border-radius: var(--r-none);
-  cursor: pointer;
-  transition: background-color 120ms ease;
 }
 
-.toggle:hover {
+/* The switch itself is a control, not a menu item — pills/badges/switches
+   keep --r-full throughout this app even where cards and nav items are
+   square (see index.css). */
+.track {
+  position: relative;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 24px;
+  padding: 2px;
+  border: none;
+  border-radius: var(--r-full);
   background: rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: background-color 150ms ease;
 }
 
-.icon {
-  font-size: 15px;
-  line-height: 1;
+.trackDark {
+  background: #14152a;
+}
+
+.knob {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--r-full);
+  background: var(--ag-neutral);
+  color: var(--ag-primary-strong);
+  transform: translateX(0);
+  transition: transform 150ms ease, background-color 150ms ease, color 150ms ease;
+}
+
+.knobDark {
+  transform: translateX(20px);
+  background: var(--ag-neutral);
+  color: #14152a;
 }
