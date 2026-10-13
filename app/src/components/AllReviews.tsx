@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { VISIBLE_LOCATION_IDS } from "../config";
 import { LOCATIONS } from "../data/mockData";
 import type { LiveBusinessReview } from "../lib/api";
@@ -12,17 +12,34 @@ const LOCATION_NAME = new Map(LOCATIONS.map((l) => [l.id, l.name]));
 const PAGE_SIZE = 25;
 const RATINGS = [5, 4, 3, 2, 1] as const;
 
-type StatusFilter = "all" | "open" | "responded";
+export type StatusFilter = "all" | "open" | "responded";
+
+/** A request to jump straight into a specific filter combination (e.g.
+ * from the status strip's "view the critical reviews" link). Passing a
+ * new object — even with the same values — re-applies it, since the
+ * person may want to re-trigger the jump after changing filters by hand. */
+export interface AllReviewsFilterRequest {
+  status: StatusFilter;
+  ratings: number[];
+}
 
 interface AllReviewsProps {
   reviewsByLocation: Partial<Record<LocationId, LiveBusinessReview[]>> | null;
   isLive: boolean;
+  filterRequest?: AllReviewsFilterRequest | null;
 }
 
-export function AllReviews({ reviewsByLocation, isLive }: AllReviewsProps) {
+export function AllReviews({ reviewsByLocation, isLive, filterRequest }: AllReviewsProps) {
   const [shown, setShown] = useState(PAGE_SIZE);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [ratingFilter, setRatingFilter] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    if (!filterRequest) return;
+    setStatusFilter(filterRequest.status);
+    setRatingFilter(new Set(filterRequest.ratings));
+    setShown(PAGE_SIZE);
+  }, [filterRequest]);
 
   const allReviews = useMemo(() => {
     if (!reviewsByLocation) return [];

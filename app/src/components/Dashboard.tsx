@@ -6,7 +6,7 @@ import { useLivePlacesReviewGrowth } from "../hooks/useLivePlacesReviewGrowth";
 import { useLivePlacesSummary } from "../hooks/useLivePlacesSummary";
 import { useWeeklyLog } from "../hooks/useWeeklyLog";
 import { formatUpdatedAt } from "../lib/format";
-import { AllReviews } from "./AllReviews";
+import { AllReviews, type AllReviewsFilterRequest } from "./AllReviews";
 import { BentoGrid } from "./BentoGrid";
 import { CriticalReviewFeed } from "./CriticalReviewFeed";
 import { LocationsOverview } from "./LocationsOverview";
@@ -25,6 +25,8 @@ import styles from "./Dashboard.module.css";
 export function Dashboard() {
   const [view, setView] = useState<SidebarView>("dashboard");
   const [filter, setFilter] = useState<LocationFilter>("all");
+  const [allReviewsFilterRequest, setAllReviewsFilterRequest] =
+    useState<AllReviewsFilterRequest | null>(null);
   const reviewGrowth = useLivePlacesReviewGrowth();
   const livePlaces = useLivePlacesSummary();
   const weeklyLog = useWeeklyLog();
@@ -58,6 +60,7 @@ export function Dashboard() {
               <AllReviews
                 reviewsByLocation={allBusinessReviews.data}
                 isLive={allBusinessReviews.isLive}
+                filterRequest={allReviewsFilterRequest}
               />
             </div>
           ) : (
@@ -83,6 +86,14 @@ export function Dashboard() {
                   reviewCount={data.reviewCount}
                   criticalCount={data.criticalCount}
                   oldestCriticalDaysAgo={data.oldestCriticalDaysAgo}
+                  onViewCritical={
+                    data.criticalCount > 0
+                      ? () => {
+                          setAllReviewsFilterRequest({ status: "open", ratings: [1, 2] });
+                          setView("alle-reviews");
+                        }
+                      : undefined
+                  }
                 />
 
                 <BentoGrid

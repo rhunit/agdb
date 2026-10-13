@@ -57,3 +57,14 @@
 .statusUrgent {
   color: var(--ag-error);
 }
+
+.stripClickable {
+  cursor: pointer;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.stripClickable:hover,
+.stripClickable:focus-visible {
+  border-color: var(--ag-error);
+  box-shadow: 0 0 0 2px var(--ag-error-bg);
+}
