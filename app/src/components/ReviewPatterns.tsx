@@ -4,9 +4,11 @@ import styles from "./ReviewPatterns.module.css";
 
 interface ReviewPatternsProps {
   reviews: Review[];
+  activeTheme: string | null;
+  onSelectTheme: (label: string) => void;
 }
 
-export function ReviewPatterns({ reviews }: ReviewPatternsProps) {
+export function ReviewPatterns({ reviews, activeTheme, onSelectTheme }: ReviewPatternsProps) {
   const patterns = detectReviewPatterns(reviews);
 
   return (
@@ -14,8 +16,8 @@ export function ReviewPatterns({ reviews }: ReviewPatternsProps) {
       <div className={styles.header}>
         <div className={styles.title}>Terugkerende patronen in 1–3★ reviews</div>
         <div className={styles.subtitle}>
-          Op trefwoorden gebaseerd, geen AI — elk patroon is direct te herleiden naar
-          echte reviewtekst. Mist mogelijk andere bewoordingen.
+          Op trefwoorden gebaseerd, geen AI — klik op een patroon om de bijbehorende
+          reviews te zien. Mist mogelijk andere bewoordingen.
         </div>
       </div>
 
@@ -26,10 +28,19 @@ export function ReviewPatterns({ reviews }: ReviewPatternsProps) {
       ) : (
         <div className={styles.chips}>
           {patterns.map((pattern) => (
-            <div key={pattern.label} className={styles.chip}>
+            <button
+              key={pattern.label}
+              type="button"
+              className={
+                activeTheme === pattern.label
+                  ? `${styles.chip} ${styles.chipActive}`
+                  : styles.chip
+              }
+              onClick={() => onSelectTheme(pattern.label)}
+            >
               <span className={styles.label}>{pattern.label}</span>
               <span className={styles.count}>{pattern.count}×</span>
-            </div>
+            </button>
           ))}
         </div>
       )}

@@ -4,6 +4,7 @@ import { LOCATIONS } from "../data/mockData";
 import type { LiveBusinessReview } from "../lib/api";
 import { daysAgoLabel } from "../lib/format";
 import { businessReviewsFor } from "../lib/reviews";
+import { reviewMatchesTheme } from "../lib/reviewPatterns";
 import type { LocationId, Review } from "../types";
 import { StarRating } from "./badges";
 import { LoadingState } from "./LoadingState";
@@ -41,11 +42,13 @@ export function AllReviews({
   const [shown, setShown] = useState(PAGE_SIZE);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [ratingFilter, setRatingFilter] = useState<Set<number>>(new Set());
+  const [activeTheme, setActiveTheme] = useState<string | null>(null);
 
   useEffect(() => {
     if (!filterRequest) return;
     setStatusFilter(filterRequest.status);
     setRatingFilter(new Set(filterRequest.ratings));
+    setActiveTheme(null);
     setShown(PAGE_SIZE);
   }, [filterRequest]);
 
@@ -64,9 +67,10 @@ export function AllReviews({
       if (statusFilter === "open" && r.responded) return false;
       if (statusFilter === "responded" && !r.responded) return false;
       if (ratingFilter.size > 0 && !ratingFilter.has(r.rating)) return false;
+      if (activeTheme && !reviewMatchesTheme(r, activeTheme)) return false;
       return true;
     });
-  }, [allReviews, statusFilter, ratingFilter]);
+  }, [allReviews, statusFilter, ratingFilter, activeTheme]);
 
   function updateStatusFilter(next: StatusFilter) {
     setStatusFilter(next);
@@ -83,7 +87,12 @@ export function AllReviews({
     setShown(PAGE_SIZE);
   }
 
-  const filtersActive = statusFilter !== "all" || ratingFilter.size > 0;
+  function selectTheme(label: string) {
+    setActiveTheme((prev) => (prev === label ? null : label));
+    setShown(PAGE_SIZE);
+  }
+
+  const filtersActive = statusFilter !== "all" || ratingFilter.size > 0 || activeTheme !== null;
 
   return (
     <div className={styles.wrap}>
@@ -107,7 +116,13 @@ export function AllReviews({
         )}
       </div>
 
-      {!loading && allReviews.length > 0 && <ReviewPatterns reviews={allReviews} />}
+      {!loading && allReviews.length > 0 && (
+        <ReviewPatterns
+          reviews={allReviews}
+          activeTheme={activeTheme}
+          onSelectTheme={selectTheme}
+        />
+      )}
 
       {allReviews.length > 0 && (
         <div className={styles.filters}>
@@ -173,6 +188,7 @@ export function AllReviews({
               onClick={() => {
                 setStatusFilter("all");
                 setRatingFilter(new Set());
+                setActiveTheme(null);
                 setShown(PAGE_SIZE);
               }}
             >

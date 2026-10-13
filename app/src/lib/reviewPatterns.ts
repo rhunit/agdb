@@ -114,6 +114,21 @@ const THEMES: ThemeDefinition[] = [
 const MIN_COUNT = 2;
 const MAX_THEMES = 6;
 
+function isCritical(review: Review): boolean {
+  return review.rating <= 3 && review.snippet.trim().length > 0;
+}
+
+/** Whether a single review matches the given theme's keywords — same
+ * rule detectReviewPatterns uses to count matches, exposed so a theme
+ * chip can filter the review list down to exactly the reviews it was
+ * counted from. */
+export function reviewMatchesTheme(review: Review, themeLabel: string): boolean {
+  const theme = THEMES.find((t) => t.label === themeLabel);
+  if (!theme || !isCritical(review)) return false;
+  const text = review.snippet.toLowerCase();
+  return theme.keywords.some((kw) => text.includes(kw));
+}
+
 /** Surfaces recurring complaint themes across 1-3★ reviews by matching
  * each review's text against a small set of curated keyword groups (see
  * THEMES above) — not a model call, so it's free and instant, but it
@@ -122,7 +137,7 @@ const MAX_THEMES = 6;
  * pattern), and the result is capped and sorted by how often each theme
  * comes up, most frequent first. */
 export function detectReviewPatterns(reviews: Review[]): ReviewPattern[] {
-  const critical = reviews.filter((r) => r.rating <= 3 && r.snippet.trim().length > 0);
+  const critical = reviews.filter(isCritical);
 
   const patterns = THEMES.map((theme): ReviewPattern => {
     const count = critical.filter((r) => {
