@@ -166,3 +166,44 @@ export async function getRecentBusinessReviews(
   }
   return out;
 }
+
+/** The complete review history (not just a recent window) for every
+ * location we have a matched internal id for — backs the "Alle reviews"
+ * page, which is explicitly meant to be the full list rather than a
+ * recency-capped feed. 10 pages (500 reviews) per location is well above
+ * any of these locations' actual review counts (the largest currently
+ * sits at a few hundred); it's a safety bound against pagination running
+ * away, not an expected ceiling.
+ *
+ * Same per-location fault isolation as getRecentBusinessReviews — one
+ * location erroring must not blank out the others. */
+export async function getAllBusinessReviews(
+  auth: OAuth2Client,
+  locations: DiscoveredLocation[],
+  maxPagesPerLocation = 10,
+): Promise<Partial<Record<InternalLocationId, BusinessReview[]>>> {
+  const settled = await Promise.allSettled(
+    locations
+      .filter((loc) => loc.internalId)
+      .map(async (loc) => {
+        const all = await listBusinessReviews(
+          auth,
+          loc.accountName,
+          loc.googleLocationId,
+          maxPagesPerLocation,
+        );
+        return [loc.internalId as InternalLocationId, all] as const;
+      }),
+  );
+
+  const out: Partial<Record<InternalLocationId, BusinessReview[]>> = {};
+  for (const result of settled) {
+    if (result.status === "fulfilled") {
+      const [id, all] = result.value;
+      out[id] = all;
+    } else {
+      console.error("getAllBusinessReviews: one location failed:", result.reason);
+    }
+  }
+  return out;
+}

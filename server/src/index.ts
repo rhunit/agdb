@@ -11,7 +11,11 @@ import {
   isConnected,
 } from "./googleAuth.js";
 import { getWeeklySearchViews, listLocations } from "./googleBusinessProfile.js";
-import { getRecentBusinessReviews, listBusinessReviews } from "./googleBusinessReviews.js";
+import {
+  getAllBusinessReviews,
+  getRecentBusinessReviews,
+  listBusinessReviews,
+} from "./googleBusinessReviews.js";
 import { ACTIVE_LOCATIONS, getAllPlacesSummaries } from "./googlePlaces.js";
 import { getWeeklyReviewGrowth, recordSnapshot } from "./placesHistoryStore.js";
 import { appendWeeklyLogEntry, listWeeklyLog } from "./weeklyLogStore.js";
@@ -135,6 +139,21 @@ app.get("/api/business-reviews", async (_req, res) => {
     const auth = getAuthorizedClient();
     const locations = await listLocations(auth);
     const reviews = await getRecentBusinessReviews(auth, locations);
+    res.json(reviews);
+  } catch (err) {
+    console.error(err);
+    res.status(503).json({ error: (err as Error).message });
+  }
+});
+
+// Backs the "Alle reviews" page — the complete review history per
+// location, not just the recent window /api/business-reviews uses for
+// the dashboard's weekly stats and feed.
+app.get("/api/business-reviews-all", async (_req, res) => {
+  try {
+    const auth = getAuthorizedClient();
+    const locations = await listLocations(auth);
+    const reviews = await getAllBusinessReviews(auth, locations);
     res.json(reviews);
   } catch (err) {
     console.error(err);

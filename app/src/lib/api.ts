@@ -137,6 +137,21 @@ export async function fetchLiveBusinessReviews(): Promise<Partial<
   }
 }
 
+/** The complete review history per location (not just the recent window
+ * fetchLiveBusinessReviews uses) — backs the "Alle reviews" page. */
+export async function fetchLiveAllBusinessReviews(): Promise<Partial<
+  Record<LocationId, LiveBusinessReview[]>
+> | null> {
+  if (!hasLiveBackend()) return null;
+  try {
+    const res = await fetch(`${API_BASE}/api/business-reviews-all`);
+    if (!res.ok) return null;
+    return (await res.json()) as Partial<Record<LocationId, LiveBusinessReview[]>>;
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchLiveWeeklyLog(): Promise<WeeklyLogEntry[] | null> {
   if (!hasLiveBackend()) return null;
   try {

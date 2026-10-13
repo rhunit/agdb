@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useDashboardData, type LocationFilter } from "../hooks/useDashboardData";
+import { useLiveAllBusinessReviews } from "../hooks/useLiveAllBusinessReviews";
 import { useLiveBusinessReviews } from "../hooks/useLiveBusinessReviews";
 import { useLivePlacesReviewGrowth } from "../hooks/useLivePlacesReviewGrowth";
 import { useLivePlacesSummary } from "../hooks/useLivePlacesSummary";
 import { useWeeklyLog } from "../hooks/useWeeklyLog";
 import { formatUpdatedAt } from "../lib/format";
+import { AllReviews } from "./AllReviews";
 import { BentoGrid } from "./BentoGrid";
 import { CriticalReviewFeed } from "./CriticalReviewFeed";
 import { LocationsOverview } from "./LocationsOverview";
@@ -27,6 +29,7 @@ export function Dashboard() {
   const livePlaces = useLivePlacesSummary();
   const weeklyLog = useWeeklyLog();
   const businessReviews = useLiveBusinessReviews();
+  const allBusinessReviews = useLiveAllBusinessReviews(view === "alle-reviews");
   const data = useDashboardData(
     filter,
     reviewGrowth.data,
@@ -48,6 +51,13 @@ export function Dashboard() {
                   setFilter(id);
                   setView("dashboard");
                 }}
+              />
+            </div>
+          ) : view === "alle-reviews" ? (
+            <div className={styles.content}>
+              <AllReviews
+                reviewsByLocation={allBusinessReviews.data}
+                isLive={allBusinessReviews.isLive}
               />
             </div>
           ) : (

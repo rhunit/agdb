@@ -1,7 +1,7 @@
 import { ThemeToggle } from "./ThemeToggle";
 import styles from "./Sidebar.module.css";
 
-export type SidebarView = "dashboard" | "locaties";
+export type SidebarView = "dashboard" | "alle-reviews" | "locaties";
 
 interface NavItem {
   label: string;
@@ -10,8 +10,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", view: "dashboard" },
-  { label: "Alle reviews", view: null },
-  { label: "Weekly update", view: null },
+  { label: "Alle reviews", view: "alle-reviews" },
   { label: "Locaties", view: "locaties" },
 ];
 
@@ -66,9 +65,17 @@ export function Sidebar({ active, onNavigate }: SidebarProps) {
       </div>
 
       <div className={styles.footer}>
-        Professor Harvest:
-        <br />
-        &ldquo;Get smart, before you get high.&rdquo;
+        <img
+          className={styles.professorImg}
+          src="https://www.amsterdamgenetics.com/wp-content/uploads/2023/10/2023_homepage_profh.jpg.webp"
+          alt="Professor Harvest"
+          loading="lazy"
+        />
+        <div>
+          Professor Harvest:
+          <br />
+          &ldquo;Get smart, before you get high.&rdquo;
+        </div>
       </div>
     </aside>
   );
