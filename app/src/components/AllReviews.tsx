@@ -7,6 +7,7 @@ import { businessReviewsFor } from "../lib/reviews";
 import type { LocationId, Review } from "../types";
 import { StarRating } from "./badges";
 import { LoadingState } from "./LoadingState";
+import { ReviewPatterns } from "./ReviewPatterns";
 import styles from "./AllReviews.module.css";
 
 const LOCATION_NAME = new Map(LOCATIONS.map((l) => [l.id, l.name]));
@@ -105,6 +106,8 @@ export function AllReviews({
           </div>
         )}
       </div>
+
+      {!loading && allReviews.length > 0 && <ReviewPatterns reviews={allReviews} />}
 
       {allReviews.length > 0 && (
         <div className={styles.filters}>

@@ -1,0 +1,86 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title {
+  font: var(--fs-label-lg);
+  color: var(--ag-secondary);
+}
+
+.subtitle {
+  font: var(--fs-body-sm);
+  color: var(--ag-muted);
+}
+
+.empty {
+  background: var(--ag-surface);
+  border: 1px solid var(--ag-border);
+  border-radius: var(--r-xl);
+  padding: var(--sp-md);
+  font: var(--fs-body-sm);
+  color: var(--ag-muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--sp-sm);
+}
+
+.card {
+  position: relative;
+  background: var(--ag-surface);
+  border: 1px solid var(--ag-error-border);
+  border-radius: var(--r-xl);
+  padding: var(--sp-sm) var(--sp-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--ag-error) 0%,
+    color-mix(in srgb, var(--ag-error) 20%, transparent) 100%
+  );
+}
+
+.cardHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-xs);
+}
+
+.label {
+  font: var(--fs-label-md);
+  font-weight: 700;
+  color: var(--ag-secondary);
+}
+
+.count {
+  font: var(--fs-label-sm);
+  letter-spacing: var(--ls-label-sm);
+  color: var(--ag-error);
+  white-space: nowrap;
+}
+
+.example {
+  font: var(--fs-body-sm);
+  color: var(--ag-muted);
+  text-wrap: pretty;
+}

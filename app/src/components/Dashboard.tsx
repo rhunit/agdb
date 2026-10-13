@@ -23,6 +23,13 @@ import { WeeklyUpdateForm } from "./WeeklyUpdateForm";
 import { WeekSummary } from "./WeekSummary";
 import styles from "./Dashboard.module.css";
 
+// Temporarily hidden per request ("verberg deze tegels voor nu maar
+// even") — the components themselves are untouched, flip back to true
+// to bring them back.
+const SHOW_REVIEW_GROWTH_CHART = false;
+const SHOW_TREND_CONTEXT = false;
+const SHOW_WEEKLY_UPDATE_FORM = false;
+
 export function Dashboard() {
   const [view, setView] = useState<SidebarView>("dashboard");
   const [filter, setFilter] = useState<LocationFilter>("all");
@@ -133,28 +140,36 @@ export function Dashboard() {
                       />
                     </div>
 
-                    <div className={styles.split}>
-                      <TrendChart
-                        title="Nieuwe reviews per locatie"
-                        series={data.reviewGrowthSeries}
-                        locations={data.locations}
-                        total={data.reviewGrowthTotal}
-                        deltaPct={data.reviewGrowthDeltaPct}
-                        isLive={reviewGrowth.isLive}
-                      />
-                      <TrendContext
-                        avgScoreDelta={data.avgScoreDelta}
-                        reviewCountDelta={data.reviewCountDelta}
-                        logEntries={data.logEntries}
-                      />
-                    </div>
+                    {(SHOW_REVIEW_GROWTH_CHART || SHOW_TREND_CONTEXT) && (
+                      <div className={styles.split}>
+                        {SHOW_REVIEW_GROWTH_CHART && (
+                          <TrendChart
+                            title="Nieuwe reviews per locatie"
+                            series={data.reviewGrowthSeries}
+                            locations={data.locations}
+                            total={data.reviewGrowthTotal}
+                            deltaPct={data.reviewGrowthDeltaPct}
+                            isLive={reviewGrowth.isLive}
+                          />
+                        )}
+                        {SHOW_TREND_CONTEXT && (
+                          <TrendContext
+                            avgScoreDelta={data.avgScoreDelta}
+                            reviewCountDelta={data.reviewCountDelta}
+                            logEntries={data.logEntries}
+                          />
+                        )}
+                      </div>
+                    )}
 
-                    <WeeklyUpdateForm
-                      isLive={weeklyLog.isLive}
-                      submitting={weeklyLog.submitting}
-                      submitError={weeklyLog.submitError}
-                      onSubmit={weeklyLog.submit}
-                    />
+                    {SHOW_WEEKLY_UPDATE_FORM && (
+                      <WeeklyUpdateForm
+                        isLive={weeklyLog.isLive}
+                        submitting={weeklyLog.submitting}
+                        submitError={weeklyLog.submitError}
+                        onSubmit={weeklyLog.submit}
+                      />
+                    )}
 
                     <WeeklyLog
                       entries={data.logEntries}
