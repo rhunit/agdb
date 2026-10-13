@@ -157,7 +157,7 @@ export function AllReviews({
               }
               onClick={() => updateStatusFilter("open")}
             >
-              Open
+              Onbeantwoord
             </button>
             <button
               type="button"
@@ -256,7 +256,7 @@ export function AllReviews({
                       isResponded(review) ? styles.statusResponded : styles.statusOpen
                     }
                   >
-                    {isResponded(review) ? "Beantwoord" : "Open"}
+                    {isResponded(review) ? "Beantwoord" : "Onbeantwoord"}
                   </span>
                   <span className={styles.time}>
                     {daysAgoLabel(review.daysAgo)}

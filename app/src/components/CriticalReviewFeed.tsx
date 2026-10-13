@@ -80,7 +80,7 @@ export function CriticalReviewFeed({
                   isResponded(review) ? styles.statusResponded : styles.statusOpen
                 }
               >
-                {isResponded(review) ? "Beantwoord" : "Open"}
+                {isResponded(review) ? "Beantwoord" : "Onbeantwoord"}
               </span>
               <span className={styles.time}>
                 {daysAgoLabel(review.daysAgo)}
