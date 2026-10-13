@@ -24,6 +24,7 @@ const SEARCH_QUERIES: Partial<Record<InternalLocationId, string>> = {
   oost: "Coffeeshop Sloterdijk, Humberweg 2, 1043 AC Amsterdam",
   depijp: "Boerejongens West, Baarsjesweg 239, 1058 AA Amsterdam",
   boerejongens: "Boerejongens Coffeeshop, Utrechtsestraat 21, 1017 VH Amsterdam",
+  almere: "Boerejongens Almere, Grote Markt 23, 1315 JA Almere",
 };
 
 /** Only fetch locations we have a verified query for — see note above. */
@@ -166,14 +167,30 @@ async function getPlaceDetails(placeId: string): Promise<PlaceSummary> {
   };
 }
 
+// Isolated per location (Promise.allSettled, not Promise.all): one
+// location's query failing to resolve (a typo, a brand-new address
+// Places hasn't indexed cleanly yet, a transient quota error) must not
+// take down live data for every other location that resolved fine. A
+// location that failed is just absent from the result, same as a
+// location nobody has set up a query for.
 export async function getAllPlacesSummaries(): Promise<
   Partial<Record<InternalLocationId, PlaceSummary>>
 > {
-  const entries = await Promise.all(
+  const settled = await Promise.allSettled(
     ACTIVE_LOCATIONS.map(async (id) => {
       const placeId = await resolvePlaceId(id);
       return [id, await getPlaceDetails(placeId)] as const;
     }),
   );
-  return Object.fromEntries(entries);
+
+  const out: Partial<Record<InternalLocationId, PlaceSummary>> = {};
+  for (const result of settled) {
+    if (result.status === "fulfilled") {
+      const [id, summary] = result.value;
+      out[id] = summary;
+    } else {
+      console.error("getAllPlacesSummaries: one location failed:", result.reason);
+    }
+  }
+  return out;
 }
