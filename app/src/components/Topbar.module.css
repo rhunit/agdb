@@ -27,6 +27,45 @@
   }
 }
 
+@media (max-width: 860px) {
+  .topbar {
+    position: sticky;
+    top: var(--mobile-nav-h);
+    z-index: 40;
+    padding: var(--sp-xs) var(--sp-sm) 0;
+    gap: var(--sp-xs);
+  }
+
+  .title {
+    font: var(--fs-label-lg);
+  }
+
+  .updated {
+    display: none;
+  }
+
+  .rangePill {
+    padding: 2px var(--sp-xs);
+    font: var(--fs-body-sm);
+    font-size: 12px;
+  }
+
+  .userAvatar {
+    width: 26px;
+    height: 26px;
+    font-size: 12px;
+  }
+
+  .tabs {
+    gap: var(--sp-sm);
+  }
+
+  .tab {
+    padding: var(--sp-xs) 0;
+    font-size: 14px;
+  }
+}
+
 .title {
   font: var(--fs-headline-md);
   color: var(--ag-secondary);

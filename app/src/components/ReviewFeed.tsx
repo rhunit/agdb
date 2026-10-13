@@ -1,7 +1,7 @@
 import { LOCATIONS } from "../data/mockData";
 import { daysAgoLabel, formatReviewTimestamp } from "../lib/format";
 import type { Review } from "../types";
-import { ConfidenceTag, SourceBadge, StarRating } from "./badges";
+import { StarRating } from "./badges";
 import styles from "./ReviewFeed.module.css";
 
 const LOCATION_NAME = new Map(LOCATIONS.map((l) => [l.id, l.name]));
@@ -41,8 +41,6 @@ export function ReviewFeed({ reviews, showLocation }: ReviewFeedProps) {
               <div className={styles.snippet}>&ldquo;{review.snippet}&rdquo;</div>
             </div>
             <div className={styles.aside}>
-              <SourceBadge source={review.source} />
-              <ConfidenceTag confidence={review.confidence} />
               <span className={styles.time}>
                 {daysAgoLabel(review.daysAgo)}
                 {review.publishedAt && (

@@ -7,21 +7,6 @@
   white-space: nowrap;
 }
 
-.confidenceTag {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font: var(--fs-body-sm);
-  color: var(--ag-muted);
-}
-
-.confidenceDot {
-  width: 6px;
-  height: 6px;
-  border-radius: var(--r-full);
-  flex: 0 0 6px;
-}
-
 .stars {
   font-size: 13px;
   letter-spacing: 1px;

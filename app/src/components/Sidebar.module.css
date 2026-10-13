@@ -19,6 +19,31 @@
     height: auto;
     width: 100%;
     flex: 0 0 auto;
+    /* .stickyTop below is fixed and out of flow, so this padding is what
+       keeps the theme toggle / footer from starting underneath it. */
+    padding: calc(var(--mobile-nav-h) + var(--sp-sm)) var(--sp-sm) var(--sp-sm);
+  }
+}
+
+.stickyTop {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-md);
+}
+
+@media (max-width: 860px) {
+  .stickyTop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--sp-sm);
+    height: var(--mobile-nav-h);
+    padding: 0 var(--sp-sm);
+    background: var(--ag-primary-strong);
   }
 }
 
@@ -26,6 +51,22 @@
   display: flex;
   align-items: center;
   gap: var(--sp-sm);
+}
+
+@media (max-width: 860px) {
+  /* The page title in Topbar already identifies the app — the sidebar's
+     own brand text would just compete with the nav for the little space
+     this bar has, so only the mark stays. */
+  .brandText {
+    display: none;
+  }
+
+  .mark {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    font-size: 13px;
+  }
 }
 
 .mark {
@@ -75,12 +116,31 @@
   gap: 3px;
 }
 
+@media (max-width: 860px) {
+  .nav {
+    flex-direction: row;
+    align-items: center;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+  }
+}
+
 .navItem {
   padding: 10px 12px;
   border-radius: var(--r-none);
   color: var(--ag-neutral);
   font: var(--fs-nav-link);
   cursor: default;
+}
+
+@media (max-width: 860px) {
+  .navItem {
+    padding: 6px 10px;
+    font-size: 14px;
+    white-space: nowrap;
+  }
 }
 
 .navItemClickable {

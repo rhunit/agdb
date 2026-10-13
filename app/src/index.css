@@ -33,6 +33,11 @@
   --sp-lg: 50px;
   --sp-xl: 96px;
 
+  /* Height of the compact fixed nav bar that replaces the full sidebar on
+     narrow screens (see Sidebar.module.css / Topbar.module.css) — kept
+     deliberately small so a sticky header doesn't eat the screen. */
+  --mobile-nav-h: 52px;
+
   /* Corner radii */
   --r-none: 0px;
   --r-sm: 4px;

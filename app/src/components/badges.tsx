@@ -1,4 +1,4 @@
-import type { Confidence, ReviewSource } from "../types";
+import type { ReviewSource } from "../types";
 import styles from "./badges.module.css";
 
 const SOURCE_META: Record<
@@ -31,12 +31,6 @@ const SOURCE_META: Record<
   },
 };
 
-const CONFIDENCE_META: Record<Confidence, { label: string; dot: string }> = {
-  bevestigd: { label: "bevestigd", dot: "var(--ag-primary)" },
-  vermoedelijk: { label: "vermoedelijk", dot: "var(--ag-muted)" },
-  onbekend: { label: "onbekend", dot: "var(--ag-tertiary)" },
-};
-
 export function SourceBadge({ source }: { source: ReviewSource }) {
   const meta = SOURCE_META[source];
   return (
@@ -48,16 +42,6 @@ export function SourceBadge({ source }: { source: ReviewSource }) {
         color: meta.text,
       }}
     >
-      {meta.label}
-    </span>
-  );
-}
-
-export function ConfidenceTag({ confidence }: { confidence: Confidence }) {
-  const meta = CONFIDENCE_META[confidence];
-  return (
-    <span className={styles.confidenceTag}>
-      <span className={styles.confidenceDot} style={{ background: meta.dot }} />
       {meta.label}
     </span>
   );
