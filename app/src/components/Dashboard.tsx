@@ -17,6 +17,7 @@ import { TrendChart } from "./TrendChart";
 import { TrendContext } from "./TrendContext";
 import { WeeklyLog } from "./WeeklyLog";
 import { WeeklyUpdateForm } from "./WeeklyUpdateForm";
+import { WeekSummary } from "./WeekSummary";
 import styles from "./Dashboard.module.css";
 
 export function Dashboard() {
@@ -57,6 +58,17 @@ export function Dashboard() {
                 updatedAt={formatUpdatedAt()}
               />
               <div className={styles.content}>
+                <WeekSummary
+                  reviewCount={data.reviewCount}
+                  topRatedCount={data.topRatedCount}
+                  criticalCount={data.criticalCount}
+                  avgScore={data.avgScore}
+                  avgScoreDelta={data.avgScoreDelta}
+                  avgScoreIsLive={data.avgScoreIsLive}
+                  avgScoreReviewCount={data.avgScoreReviewCount}
+                  openCriticalCount={data.openCriticalReviews.length}
+                />
+
                 <StatusStrip
                   reviewCount={data.reviewCount}
                   criticalCount={data.criticalCount}

@@ -77,7 +77,7 @@
 
 .navItem {
   padding: 10px 12px;
-  border-radius: var(--r-md);
+  border-radius: var(--r-none);
   color: var(--ag-neutral);
   font: var(--fs-nav-link);
   cursor: default;

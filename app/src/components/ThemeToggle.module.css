@@ -9,7 +9,7 @@
   color: var(--ag-neutral);
   font: var(--fs-nav-link);
   padding: 9px 12px;
-  border-radius: var(--r-md);
+  border-radius: var(--r-none);
   cursor: pointer;
   transition: background-color 120ms ease;
 }
