@@ -46,14 +46,6 @@ const THEMES: ThemeDefinition[] = [
       "queue",
       "crowded",
       "busy",
-      "vies",
-      "smerig",
-      "rommelig",
-      "niet schoon",
-      "vuil",
-      "dirty",
-      "unclean",
-      "messy",
     ],
   },
   {
@@ -81,6 +73,16 @@ const THEMES: ThemeDefinition[] = [
       "short-weighed",
       "under weight",
       "scale",
+      // "vies/dirty" in a coffeeshop review almost always describes the
+      // product itself ("burns dirty", "vieze smaak", "smerig spul"), not
+      // the shop — moved here after exactly that kind of review got
+      // mis-filed under Klantvriendelijkheid.
+      "vies",
+      "smerig",
+      "vuil",
+      "dirty",
+      "unclean",
+      "niet schoon",
     ],
   },
   {
