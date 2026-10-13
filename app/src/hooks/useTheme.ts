@@ -4,10 +4,6 @@ export type Theme = "light" | "dark";
 
 const STORAGE_KEY = "ag-theme";
 
-function systemPrefersDark(): boolean {
-  return window.matchMedia("(prefers-color-scheme: dark)").matches;
-}
-
 function readStored(): Theme | null {
   try {
     const value = localStorage.getItem(STORAGE_KEY);
@@ -17,15 +13,12 @@ function readStored(): Theme | null {
   }
 }
 
-/** Explicit light/dark toggle, persisted in localStorage. With nothing
- * stored yet, the page already renders in the system's preferred scheme
- * (see the `prefers-color-scheme` block in index.css) — this hook only
- * tracks and writes an override once the person actually picks one, so
- * reading it never flashes the wrong theme on load. */
+/** Explicit light/dark toggle, persisted in localStorage. Light is the
+ * hard default — the page does not follow the system's prefers-color-scheme
+ * (see index.css), so it never opens dark just because the OS is set to
+ * dark. Dark only applies once the person picks it here. */
 export function useTheme(): [Theme, () => void] {
-  const [theme, setTheme] = useState<Theme>(
-    () => readStored() ?? (systemPrefersDark() ? "dark" : "light"),
-  );
+  const [theme, setTheme] = useState<Theme>(() => readStored() ?? "light");
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
