@@ -24,10 +24,10 @@ export function Sidebar({ active, onNavigate }: SidebarProps) {
     <aside className={styles.sidebar}>
       <div className={styles.stickyTop}>
         <div className={styles.brand}>
-          <div className={styles.mark}>AG</div>
+          <img className={styles.mark} src="/favicon.svg" alt="Amsterdam Genetics" />
           <div className={styles.brandText}>
             <div className={styles.brandName}>
-              <span>Review Radar</span>
+              <span>Dashboard</span>
               <span className={styles.betaBadge}>BETA</span>
             </div>
             <div className={styles.brandSub}>Amsterdam Genetics</div>
