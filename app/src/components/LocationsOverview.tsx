@@ -82,6 +82,9 @@ export function LocationsOverview({ onSelect }: LocationsOverviewProps) {
                 </span>
                 <span className={styles.tag}>
                   {loc.reviewCount} reviews deze week
+                  {loc.reviewCountIsLive && (
+                    <span className={styles.liveBadge}>LIVE</span>
+                  )}
                 </span>
               </div>
 
