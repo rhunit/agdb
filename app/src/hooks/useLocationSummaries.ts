@@ -11,14 +11,19 @@ export interface LocationSummary {
   reviewCount: number;
 }
 
+interface LocationSummariesState {
+  summaries: LocationSummary[];
+  loading: boolean;
+}
+
 /** One row per location for the "Locaties" overview cards — average score
  * (live if Places has a rating for it, mock otherwise, same fallback rule
  * as the main dashboard) and this-week review count (always mock, for the
  * same reliability reason reviewCount stays mock on the dashboard). */
-export function useLocationSummaries(): LocationSummary[] {
+export function useLocationSummaries(): LocationSummariesState {
   const livePlaces = useLivePlacesSummary();
 
-  return useMemo(() => {
+  const summaries = useMemo(() => {
     return LOCATIONS.map((loc) => {
       const live = livePlaces.data?.[loc.id];
       const mockReviews = REVIEWS.filter((r) => r.location === loc.id);
@@ -37,4 +42,6 @@ export function useLocationSummaries(): LocationSummary[] {
       };
     });
   }, [livePlaces.data]);
+
+  return { summaries, loading: livePlaces.loading };
 }

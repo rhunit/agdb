@@ -7,6 +7,10 @@ type PlacesSummaryMap = Partial<Record<LocationId, LivePlaceSummary>>;
 interface LivePlacesState {
   data: PlacesSummaryMap | null;
   isLive: boolean;
+  /** True only while a live backend is configured and this fetch hasn't
+   * resolved yet — always false in mock-only mode, since there's nothing
+   * to wait for there. */
+  loading: boolean;
 }
 
 /** Interim live data source (average rating, total review count, a few
@@ -27,5 +31,5 @@ export function useLivePlacesSummary(): LivePlacesState {
     };
   }, []);
 
-  return { data, isLive: data !== null };
+  return { data, isLive: data !== null, loading: hasLiveBackend() && data === null };
 }

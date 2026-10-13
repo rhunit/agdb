@@ -10,6 +10,7 @@ import type { WeeklyLogEntry } from "../types";
 interface UseWeeklyLogResult {
   entries: WeeklyLogEntry[] | null;
   isLive: boolean;
+  loading: boolean;
   submitting: boolean;
   submitError: string | null;
   submit: (input: NewWeeklyLogEntry) => Promise<boolean>;
@@ -48,5 +49,12 @@ export function useWeeklyLog(): UseWeeklyLogResult {
     [],
   );
 
-  return { entries, isLive: entries !== null, submitting, submitError, submit };
+  return {
+    entries,
+    isLive: entries !== null,
+    loading: hasLiveBackend() && entries === null,
+    submitting,
+    submitError,
+    submit,
+  };
 }

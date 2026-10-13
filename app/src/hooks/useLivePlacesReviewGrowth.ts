@@ -5,6 +5,7 @@ import type { ReviewGrowthWeek } from "../types";
 interface LiveReviewGrowthState {
   data: ReviewGrowthWeek[] | null;
   isLive: boolean;
+  loading: boolean;
 }
 
 /** Fetches real week-over-week review-growth data from the backend when
@@ -25,5 +26,9 @@ export function useLivePlacesReviewGrowth(): LiveReviewGrowthState {
     };
   }, []);
 
-  return { data, isLive: data !== null && data.length > 0 };
+  return {
+    data,
+    isLive: data !== null && data.length > 0,
+    loading: hasLiveBackend() && data === null,
+  };
 }

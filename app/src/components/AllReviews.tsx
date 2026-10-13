@@ -6,6 +6,7 @@ import { daysAgoLabel } from "../lib/format";
 import { businessReviewsFor } from "../lib/reviews";
 import type { LocationId, Review } from "../types";
 import { StarRating } from "./badges";
+import { LoadingState } from "./LoadingState";
 import styles from "./AllReviews.module.css";
 
 const LOCATION_NAME = new Map(LOCATIONS.map((l) => [l.id, l.name]));
@@ -26,10 +27,16 @@ export interface AllReviewsFilterRequest {
 interface AllReviewsProps {
   reviewsByLocation: Partial<Record<LocationId, LiveBusinessReview[]>> | null;
   isLive: boolean;
+  loading: boolean;
   filterRequest?: AllReviewsFilterRequest | null;
 }
 
-export function AllReviews({ reviewsByLocation, isLive, filterRequest }: AllReviewsProps) {
+export function AllReviews({
+  reviewsByLocation,
+  isLive,
+  loading,
+  filterRequest,
+}: AllReviewsProps) {
   const [shown, setShown] = useState(PAGE_SIZE);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [ratingFilter, setRatingFilter] = useState<Set<number>>(new Set());
@@ -172,7 +179,9 @@ export function AllReviews({ reviewsByLocation, isLive, filterRequest }: AllRevi
         </div>
       )}
 
-      {!isLive ? (
+      {loading ? (
+        <LoadingState />
+      ) : !isLive ? (
         <div className={styles.empty}>
           Nog niet gekoppeld — er is geen backend-verbinding voor de volledige
           reviewgeschiedenis.

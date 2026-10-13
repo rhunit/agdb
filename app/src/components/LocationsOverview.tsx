@@ -1,4 +1,5 @@
 import { LOCATION_COLOR } from "./TrendChart";
+import { LoadingState } from "./LoadingState";
 import { VISIBLE_LOCATION_IDS } from "../config";
 import { useLocationSummaries } from "../hooks/useLocationSummaries";
 import { formatDutchDecimal } from "../lib/format";
@@ -12,9 +13,23 @@ interface LocationsOverviewProps {
 export function LocationsOverview({ onSelect }: LocationsOverviewProps) {
   // Only locations with a working Topbar tab are clickable here for now —
   // the rest "volgen later" (see Topbar.VISIBLE_TABS).
-  const summaries = useLocationSummaries().filter((loc) =>
-    VISIBLE_LOCATION_IDS.includes(loc.id),
-  );
+  const { summaries: allSummaries, loading } = useLocationSummaries();
+  const summaries = allSummaries.filter((loc) => VISIBLE_LOCATION_IDS.includes(loc.id));
+
+  if (loading) {
+    return (
+      <div className={styles.wrap}>
+        <div className={styles.header}>
+          <div className={styles.title}>Locaties</div>
+          <div className={styles.subtitle}>
+            Kies een locatie om het reviewoverzicht van die vestiging te
+            bekijken.
+          </div>
+        </div>
+        <LoadingState />
+      </div>
+    );
+  }
 
   return (
     <div className={styles.wrap}>

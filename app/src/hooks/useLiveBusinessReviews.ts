@@ -11,6 +11,7 @@ type BusinessReviewsMap = Partial<Record<LocationId, LiveBusinessReview[]>>;
 interface LiveBusinessReviewsState {
   data: BusinessReviewsMap | null;
   isLive: boolean;
+  loading: boolean;
 }
 
 /** Fetches the last two weeks of reviews per location via the legacy v4
@@ -32,5 +33,5 @@ export function useLiveBusinessReviews(): LiveBusinessReviewsState {
     };
   }, []);
 
-  return { data, isLive: data !== null };
+  return { data, isLive: data !== null, loading: hasLiveBackend() && data === null };
 }
