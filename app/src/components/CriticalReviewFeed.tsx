@@ -9,7 +9,6 @@ const LOCATION_NAME = new Map(LOCATIONS.map((l) => [l.id, l.name]));
 interface CriticalReviewFeedProps {
   reviews: Review[];
   showLocation: boolean;
-  isLive?: boolean;
 }
 
 /** Dedicated panel for 1–2★ reviews — separate from the general feed so a
@@ -19,15 +18,11 @@ interface CriticalReviewFeedProps {
 export function CriticalReviewFeed({
   reviews,
   showLocation,
-  isLive = false,
 }: CriticalReviewFeedProps) {
   return (
     <div className={styles.card}>
       <div className={styles.header}>
-        <div className={styles.title}>
-          1–2★ reviews
-          {isLive && <span className={styles.liveBadge}>LIVE</span>}
-        </div>
+        <div className={styles.title}>1–2★ reviews</div>
         <div className={styles.count}>{reviews.length} totaal</div>
       </div>
 

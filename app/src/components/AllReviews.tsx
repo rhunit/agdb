@@ -98,10 +98,7 @@ export function AllReviews({
     <div className={styles.wrap}>
       <div className={styles.header}>
         <div>
-          <div className={styles.title}>
-            Alle reviews
-            {isLive && <span className={styles.liveBadge}>LIVE</span>}
-          </div>
+          <div className={styles.title}>Alle reviews</div>
           <div className={styles.subtitle}>
             Volledige, ongefilterde lijst over alle gekoppelde locaties — niet beperkt tot
             deze week.

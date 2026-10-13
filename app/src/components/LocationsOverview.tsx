@@ -74,18 +74,8 @@ export function LocationsOverview({ onSelect }: LocationsOverviewProps) {
               <div className={styles.subtext}>Google Business Profile</div>
 
               <div className={styles.tags}>
-                <span className={styles.tag}>
-                  ★ {formatDutchDecimal(loc.avgScore)}
-                  {loc.avgScoreIsLive && (
-                    <span className={styles.liveBadge}>LIVE</span>
-                  )}
-                </span>
-                <span className={styles.tag}>
-                  {loc.reviewCount} reviews deze week
-                  {loc.reviewCountIsLive && (
-                    <span className={styles.liveBadge}>LIVE</span>
-                  )}
-                </span>
+                <span className={styles.tag}>★ {formatDutchDecimal(loc.avgScore)}</span>
+                <span className={styles.tag}>{loc.reviewCount} reviews deze week</span>
               </div>
 
               <span className={styles.cta}>Bekijk locatie →</span>

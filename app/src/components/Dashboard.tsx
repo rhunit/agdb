@@ -6,15 +6,13 @@ import { useLivePlacesReviewGrowth } from "../hooks/useLivePlacesReviewGrowth";
 import { useLivePlacesSummary } from "../hooks/useLivePlacesSummary";
 import { useWeeklyLog } from "../hooks/useWeeklyLog";
 import { formatUpdatedAt } from "../lib/format";
-import { AllReviews, type AllReviewsFilterRequest } from "./AllReviews";
+import { AllReviews } from "./AllReviews";
 import { BentoGrid } from "./BentoGrid";
 import { CriticalReviewFeed } from "./CriticalReviewFeed";
 import { LoadingState } from "./LoadingState";
 import { LocationsOverview } from "./LocationsOverview";
 import { ReviewFeed } from "./ReviewFeed";
 import { Sidebar, type SidebarView } from "./Sidebar";
-import { StatusStrip } from "./StatusStrip";
-import { TestBanner } from "./TestBanner";
 import { Topbar } from "./Topbar";
 import { TrendChart } from "./TrendChart";
 import { TrendContext } from "./TrendContext";
@@ -33,8 +31,6 @@ const SHOW_WEEKLY_UPDATE_FORM = false;
 export function Dashboard() {
   const [view, setView] = useState<SidebarView>("dashboard");
   const [filter, setFilter] = useState<LocationFilter>("all");
-  const [allReviewsFilterRequest, setAllReviewsFilterRequest] =
-    useState<AllReviewsFilterRequest | null>(null);
   const reviewGrowth = useLivePlacesReviewGrowth();
   const livePlaces = useLivePlacesSummary();
   const weeklyLog = useWeeklyLog();
@@ -52,7 +48,6 @@ export function Dashboard() {
 
   return (
     <>
-      <TestBanner />
       <div className={styles.shell}>
         <Sidebar active={view} onNavigate={setView} />
         <div className={styles.main}>
@@ -71,7 +66,6 @@ export function Dashboard() {
                 reviewsByLocation={allBusinessReviews.data}
                 isLive={allBusinessReviews.isLive}
                 loading={allBusinessReviews.loading}
-                filterRequest={allReviewsFilterRequest}
               />
             </div>
           ) : (
@@ -97,20 +91,6 @@ export function Dashboard() {
                       openCriticalCount={data.openCriticalReviews.length}
                     />
 
-                    <StatusStrip
-                      reviewCount={data.reviewCount}
-                      criticalCount={data.criticalCount}
-                      oldestCriticalDaysAgo={data.oldestCriticalDaysAgo}
-                      onViewCritical={
-                        data.criticalCount > 0
-                          ? () => {
-                              setAllReviewsFilterRequest({ status: "open", ratings: [1, 2] });
-                              setView("alle-reviews");
-                            }
-                          : undefined
-                      }
-                    />
-
                     <BentoGrid
                       avgScore={data.avgScore}
                       avgScoreIsLive={data.avgScoreIsLive}
@@ -118,7 +98,6 @@ export function Dashboard() {
                       avgScoreDelta={data.avgScoreDelta}
                       reviewCount={data.reviewCount}
                       reviewCountDelta={data.reviewCountDelta}
-                      statsAreLive={data.statsAreLive}
                       topRatedCount={data.topRatedCount}
                       topRatedCountDelta={data.topRatedCountDelta}
                       criticalCount={data.criticalCount}
@@ -131,12 +110,10 @@ export function Dashboard() {
                       <ReviewFeed
                         reviews={data.reviews}
                         showLocation={filter === "all"}
-                        isLive={data.reviewsAreLive}
                       />
                       <CriticalReviewFeed
                         reviews={data.criticalFeedReviews}
                         showLocation={filter === "all"}
-                        isLive={data.reviewsAreLive}
                       />
                     </div>
 
@@ -149,7 +126,6 @@ export function Dashboard() {
                             locations={data.locations}
                             total={data.reviewGrowthTotal}
                             deltaPct={data.reviewGrowthDeltaPct}
-                            isLive={reviewGrowth.isLive}
                           />
                         )}
                         {SHOW_TREND_CONTEXT && (
@@ -174,7 +150,6 @@ export function Dashboard() {
                     <WeeklyLog
                       entries={data.logEntries}
                       weekCount={data.logWeekCount}
-                      isLive={weeklyLog.isLive}
                     />
                   </>
                 )}

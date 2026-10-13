@@ -90,15 +90,6 @@
   border-radius: var(--r-full);
 }
 
-.liveBadge {
-  font: var(--fs-label-sm);
-  letter-spacing: var(--ls-label-sm);
-  background: var(--ag-primary);
-  color: var(--ag-neutral);
-  padding: 1px 6px;
-  border-radius: var(--r-full);
-}
-
 .cta {
   margin-top: var(--sp-sm);
   background: var(--ag-primary);

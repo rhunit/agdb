@@ -101,42 +101,6 @@
   gap: 6px;
 }
 
-.liveBadge {
-  position: relative;
-  font: var(--fs-label-sm);
-  letter-spacing: var(--ls-label-sm);
-  background: var(--ag-primary);
-  color: var(--ag-neutral);
-  padding: 1px 8px 1px 16px;
-  border-radius: var(--r-full);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ag-primary) 50%, transparent);
-}
-
-.liveBadge::before {
-  content: "";
-  position: absolute;
-  left: 6px;
-  top: 50%;
-  width: 6px;
-  height: 6px;
-  border-radius: var(--r-full);
-  background: var(--ag-neutral);
-  transform: translateY(-50%);
-  animation: pulse 1.8s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.6);
-  }
-  50% {
-    opacity: 0.6;
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0);
-  }
-}
-
 .value {
   font: var(--fs-headline-lg);
   color: var(--ag-secondary);

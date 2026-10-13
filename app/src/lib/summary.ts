@@ -14,9 +14,8 @@ export interface WeekSummaryInput {
 /** Builds a plain-language, at-most-3-line recap from numbers the
  * dashboard already computed and displays elsewhere — no model call, so
  * it's free, instant, and can never say something the data doesn't
- * support. Each line maps 1:1 to a stat already shown (and badged LIVE
- * where relevant) in BentoGrid/StatusStrip, so this is a summary of the
- * page, not a separate claim. */
+ * support. Each line maps 1:1 to a stat already shown in BentoGrid, so
+ * this is a summary of the page, not a separate claim. */
 export function buildWeekSummary(input: WeekSummaryInput): string[] {
   const lines: string[] = [];
 

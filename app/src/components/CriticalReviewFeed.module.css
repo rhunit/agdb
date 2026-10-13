@@ -35,15 +35,6 @@
   gap: 8px;
 }
 
-.liveBadge {
-  font: var(--fs-label-sm);
-  letter-spacing: var(--ls-label-sm);
-  background: var(--ag-error);
-  color: var(--ag-neutral);
-  padding: 2px 8px;
-  border-radius: var(--r-full);
-}
-
 .count {
   margin-left: auto;
   font: var(--fs-body-sm);

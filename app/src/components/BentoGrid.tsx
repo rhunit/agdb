@@ -29,7 +29,6 @@ interface BentoGridProps {
   avgScoreDelta: number;
   reviewCount: number;
   reviewCountDelta: number;
-  statsAreLive?: boolean;
   topRatedCount: number;
   topRatedCountDelta: number;
   criticalCount: number;
@@ -45,7 +44,6 @@ export function BentoGrid({
   avgScoreDelta,
   reviewCount,
   reviewCountDelta,
-  statsAreLive = false,
   topRatedCount,
   topRatedCountDelta,
   criticalCount,
@@ -59,10 +57,7 @@ export function BentoGrid({
   return (
     <div className={styles.grid}>
       <div className={`${styles.tile} ${styles.hero}`}>
-        <div className={styles.label}>
-          GEMIDDELDE SCORE
-          {avgScoreIsLive && <span className={styles.liveBadge}>LIVE</span>}
-        </div>
+        <div className={styles.label}>GEMIDDELDE SCORE</div>
         <div className={styles.heroValue}>{formatDutchDecimal(avgScore)}</div>
         <StarRating rating={Math.round(avgScore)} />
         {avgScoreIsLive ? (
@@ -77,10 +72,7 @@ export function BentoGrid({
       </div>
 
       <div className={styles.tile}>
-        <div className={styles.label}>
-          NIEUWE REVIEWS
-          {statsAreLive && <span className={styles.liveBadge}>LIVE</span>}
-        </div>
+        <div className={styles.label}>NIEUWE REVIEWS</div>
         <div className={styles.value}>{formatDutchInt(reviewCount)}</div>
         <div className={deltaClass(reviewCountDelta)}>
           {signedCount(reviewCountDelta)} vs vorige week
@@ -88,10 +80,7 @@ export function BentoGrid({
       </div>
 
       <div className={`${styles.tile} ${styles.accentPositive}`}>
-        <div className={styles.label}>
-          NIEUWE 5★ REVIEWS
-          {statsAreLive && <span className={styles.liveBadge}>LIVE</span>}
-        </div>
+        <div className={styles.label}>NIEUWE 5★ REVIEWS</div>
         <div className={styles.value}>{formatDutchInt(topRatedCount)}</div>
         <div className={deltaClass(topRatedCountDelta)}>
           {signedCount(topRatedCountDelta)} vs vorige week
@@ -99,10 +88,7 @@ export function BentoGrid({
       </div>
 
       <div className={`${styles.tile} ${styles.accentCritical}`}>
-        <div className={styles.label}>
-          NIEUWE 1–2★ REVIEWS
-          {statsAreLive && <span className={styles.liveBadge}>LIVE</span>}
-        </div>
+        <div className={styles.label}>NIEUWE 1–2★ REVIEWS</div>
         <div className={styles.value}>{formatDutchInt(criticalCount)}</div>
         <div className={criticalCountDelta > 0 ? styles.deltaNegative : deltaClass(criticalCountDelta)}>
           {signedCount(criticalCountDelta)} vs vorige week
@@ -110,10 +96,7 @@ export function BentoGrid({
       </div>
 
       <div className={`${styles.tile} ${styles.ratio}`}>
-        <div className={styles.label}>
-          REACTIERATIO 1–2★
-          {statsAreLive && <span className={styles.liveBadge}>LIVE</span>}
-        </div>
+        <div className={styles.label}>REACTIERATIO 1–2★</div>
         <div className={styles.value}>{formatDutchInt(criticalResponseRatio)}%</div>
         {openCriticalReviews.length === 0 ? (
           <div className={styles.deltaMuted}>Alles beantwoord</div>
