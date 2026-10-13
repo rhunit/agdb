@@ -19,6 +19,10 @@ export interface Review {
   source: ReviewSource;
   confidence: Confidence;
   daysAgo: number;
+  /** Exact moment the review was posted (ISO 8601), straight from Google —
+   * only set for live data. Mock reviews only carry a daysAgo estimate,
+   * so they're left undefined rather than making up a time of day. */
+  publishedAt?: string;
   responded: boolean;
 }
 

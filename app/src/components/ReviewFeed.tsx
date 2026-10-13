@@ -1,5 +1,5 @@
 import { LOCATIONS } from "../data/mockData";
-import { daysAgoLabel } from "../lib/format";
+import { daysAgoLabel, formatReviewTimestamp } from "../lib/format";
 import type { Review } from "../types";
 import { ConfidenceTag, SourceBadge, StarRating } from "./badges";
 import styles from "./ReviewFeed.module.css";
@@ -45,6 +45,11 @@ export function ReviewFeed({ reviews, showLocation }: ReviewFeedProps) {
               <ConfidenceTag confidence={review.confidence} />
               <span className={styles.time}>
                 {daysAgoLabel(review.daysAgo)}
+                {review.publishedAt && (
+                  <span className={styles.timestamp}>
+                    {formatReviewTimestamp(review.publishedAt)}
+                  </span>
+                )}
               </span>
             </div>
           </div>

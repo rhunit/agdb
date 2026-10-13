@@ -1,5 +1,5 @@
 import { LOCATIONS } from "../data/mockData";
-import { daysAgoLabel } from "../lib/format";
+import { daysAgoLabel, formatReviewTimestamp } from "../lib/format";
 import type { Review } from "../types";
 import { StarRating } from "./badges";
 import styles from "./CriticalReviewFeed.module.css";
@@ -52,7 +52,14 @@ export function CriticalReviewFeed({
               >
                 {review.responded ? "Beantwoord" : "Open"}
               </span>
-              <span className={styles.time}>{daysAgoLabel(review.daysAgo)}</span>
+              <span className={styles.time}>
+                {daysAgoLabel(review.daysAgo)}
+                {review.publishedAt && (
+                  <span className={styles.timestamp}>
+                    {formatReviewTimestamp(review.publishedAt)}
+                  </span>
+                )}
+              </span>
             </div>
           </div>
         ))

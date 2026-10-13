@@ -120,6 +120,14 @@
 .time {
   font: var(--fs-body-sm);
   color: var(--ag-muted);
+  text-align: right;
+}
+
+.timestamp {
+  display: block;
+  font: var(--fs-label-sm);
+  color: var(--ag-muted);
+  opacity: 0.75;
 }
 
 @media (max-width: 560px) {

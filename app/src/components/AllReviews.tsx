@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { VISIBLE_LOCATION_IDS } from "../config";
 import { LOCATIONS } from "../data/mockData";
 import type { LiveBusinessReview } from "../lib/api";
-import { daysAgoLabel } from "../lib/format";
+import { daysAgoLabel, formatReviewTimestamp } from "../lib/format";
 import { businessReviewsFor } from "../lib/reviews";
 import { reviewMatchesTheme } from "../lib/reviewPatterns";
 import type { LocationId, Review } from "../types";
@@ -230,7 +230,14 @@ export function AllReviews({
                   >
                     {review.responded ? "Beantwoord" : "Open"}
                   </span>
-                  <span className={styles.time}>{daysAgoLabel(review.daysAgo)}</span>
+                  <span className={styles.time}>
+                    {daysAgoLabel(review.daysAgo)}
+                    {review.publishedAt && (
+                      <span className={styles.timestamp}>
+                        {formatReviewTimestamp(review.publishedAt)}
+                      </span>
+                    )}
+                  </span>
                 </div>
               </div>
             ))}

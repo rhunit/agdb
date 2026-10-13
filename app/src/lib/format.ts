@@ -37,6 +37,18 @@ const DUTCH_MONTHS_SHORT = [
   "dec",
 ];
 
+/** Exact posting time, e.g. "10 okt 2026, 14:15" — only ever called with a
+ * real timestamp from Google, never a guessed one. */
+export function formatReviewTimestamp(iso: string): string {
+  const date = new Date(iso);
+  const dd = date.getDate();
+  const month = DUTCH_MONTHS_SHORT[date.getMonth()];
+  const yyyy = date.getFullYear();
+  const hh = String(date.getHours()).padStart(2, "0");
+  const min = String(date.getMinutes()).padStart(2, "0");
+  return `${dd} ${month} ${yyyy}, ${hh}:${min}`;
+}
+
 export function formatUpdatedAt(date: Date = new Date()): string {
   const dd = String(date.getDate()).padStart(2, "0");
   const mm = String(date.getMonth() + 1).padStart(2, "0");

@@ -34,6 +34,7 @@ export function businessReviewsFor(
     source: "onbekend",
     confidence: "onbekend",
     daysAgo: daysAgoFrom(r.createTime),
+    publishedAt: r.createTime ?? undefined,
     responded: r.responded,
   }));
 }
