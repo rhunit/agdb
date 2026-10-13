@@ -10,6 +10,9 @@ import styles from "./AllReviews.module.css";
 
 const LOCATION_NAME = new Map(LOCATIONS.map((l) => [l.id, l.name]));
 const PAGE_SIZE = 25;
+const RATINGS = [5, 4, 3, 2, 1] as const;
+
+type StatusFilter = "all" | "open" | "responded";
 
 interface AllReviewsProps {
   reviewsByLocation: Partial<Record<LocationId, LiveBusinessReview[]>> | null;
@@ -18,8 +21,10 @@ interface AllReviewsProps {
 
 export function AllReviews({ reviewsByLocation, isLive }: AllReviewsProps) {
   const [shown, setShown] = useState(PAGE_SIZE);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [ratingFilter, setRatingFilter] = useState<Set<number>>(new Set());
 
-  const reviews = useMemo(() => {
+  const allReviews = useMemo(() => {
     if (!reviewsByLocation) return [];
     const combined: Review[] = [];
     for (const id of VISIBLE_LOCATION_IDS) {
@@ -28,6 +33,32 @@ export function AllReviews({ reviewsByLocation, isLive }: AllReviewsProps) {
     }
     return combined.sort((a, b) => a.daysAgo - b.daysAgo);
   }, [reviewsByLocation]);
+
+  const reviews = useMemo(() => {
+    return allReviews.filter((r) => {
+      if (statusFilter === "open" && r.responded) return false;
+      if (statusFilter === "responded" && !r.responded) return false;
+      if (ratingFilter.size > 0 && !ratingFilter.has(r.rating)) return false;
+      return true;
+    });
+  }, [allReviews, statusFilter, ratingFilter]);
+
+  function updateStatusFilter(next: StatusFilter) {
+    setStatusFilter(next);
+    setShown(PAGE_SIZE);
+  }
+
+  function toggleRating(rating: number) {
+    setRatingFilter((prev) => {
+      const next = new Set(prev);
+      if (next.has(rating)) next.delete(rating);
+      else next.add(rating);
+      return next;
+    });
+    setShown(PAGE_SIZE);
+  }
+
+  const filtersActive = statusFilter !== "all" || ratingFilter.size > 0;
 
   return (
     <div className={styles.wrap}>
@@ -42,16 +73,97 @@ export function AllReviews({ reviewsByLocation, isLive }: AllReviewsProps) {
             deze week.
           </div>
         </div>
-        {reviews.length > 0 && <div className={styles.count}>{reviews.length} totaal</div>}
+        {allReviews.length > 0 && (
+          <div className={styles.count}>
+            {reviews.length === allReviews.length
+              ? `${allReviews.length} totaal`
+              : `${reviews.length} van ${allReviews.length}`}
+          </div>
+        )}
       </div>
+
+      {allReviews.length > 0 && (
+        <div className={styles.filters}>
+          <div className={styles.filterGroup}>
+            <button
+              type="button"
+              className={
+                statusFilter === "all"
+                  ? `${styles.filterPill} ${styles.filterPillActive}`
+                  : styles.filterPill
+              }
+              onClick={() => updateStatusFilter("all")}
+            >
+              Alle
+            </button>
+            <button
+              type="button"
+              className={
+                statusFilter === "open"
+                  ? `${styles.filterPill} ${styles.filterPillActive}`
+                  : styles.filterPill
+              }
+              onClick={() => updateStatusFilter("open")}
+            >
+              Open
+            </button>
+            <button
+              type="button"
+              className={
+                statusFilter === "responded"
+                  ? `${styles.filterPill} ${styles.filterPillActive}`
+                  : styles.filterPill
+              }
+              onClick={() => updateStatusFilter("responded")}
+            >
+              Beantwoord
+            </button>
+          </div>
+
+          <div className={styles.filterDivider} />
+
+          <div className={styles.filterGroup}>
+            {RATINGS.map((rating) => (
+              <button
+                key={rating}
+                type="button"
+                className={
+                  ratingFilter.has(rating)
+                    ? `${styles.filterPill} ${styles.filterPillActive}`
+                    : styles.filterPill
+                }
+                onClick={() => toggleRating(rating)}
+              >
+                {rating}★
+              </button>
+            ))}
+          </div>
+
+          {filtersActive && (
+            <button
+              type="button"
+              className={styles.filterReset}
+              onClick={() => {
+                setStatusFilter("all");
+                setRatingFilter(new Set());
+                setShown(PAGE_SIZE);
+              }}
+            >
+              Filters wissen
+            </button>
+          )}
+        </div>
+      )}
 
       {!isLive ? (
         <div className={styles.empty}>
           Nog niet gekoppeld — er is geen backend-verbinding voor de volledige
           reviewgeschiedenis.
         </div>
-      ) : reviews.length === 0 ? (
+      ) : allReviews.length === 0 ? (
         <div className={styles.empty}>Geen reviews gevonden voor de gekoppelde locaties.</div>
+      ) : reviews.length === 0 ? (
+        <div className={styles.empty}>Geen reviews voor deze filtercombinatie.</div>
       ) : (
         <>
           <div className={styles.list}>
