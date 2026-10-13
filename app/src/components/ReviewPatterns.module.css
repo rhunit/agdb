@@ -29,45 +29,24 @@
   color: var(--ag-muted);
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: var(--sp-sm);
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.card {
-  position: relative;
-  background: var(--ag-surface);
-  border: 1px solid var(--ag-error-border);
-  border-radius: var(--r-xl);
-  padding: var(--sp-sm) var(--sp-md);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+.chip {
+  display: inline-flex;
+  align-items: center;
   gap: 6px;
-}
-
-.card::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 3px;
-  background: linear-gradient(
-    90deg,
-    var(--ag-error) 0%,
-    color-mix(in srgb, var(--ag-error) 20%, transparent) 100%
-  );
-}
-
-.cardHeader {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--sp-xs);
+  background: var(--ag-error-bg);
+  border: 1px solid var(--ag-error-border);
+  border-radius: var(--r-full);
+  padding: 7px 14px;
 }
 
 .label {
-  font: var(--fs-label-md);
+  font: var(--fs-body-sm);
   font-weight: 700;
   color: var(--ag-secondary);
 }
@@ -76,11 +55,4 @@
   font: var(--fs-label-sm);
   letter-spacing: var(--ls-label-sm);
   color: var(--ag-error);
-  white-space: nowrap;
-}
-
-.example {
-  font: var(--fs-body-sm);
-  color: var(--ag-muted);
-  text-wrap: pretty;
 }

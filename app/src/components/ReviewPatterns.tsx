@@ -24,20 +24,11 @@ export function ReviewPatterns({ reviews }: ReviewPatternsProps) {
           Nog geen duidelijk terugkerend patroon gevonden in de 1–3★ reviews.
         </div>
       ) : (
-        <div className={styles.grid}>
+        <div className={styles.chips}>
           {patterns.map((pattern) => (
-            <div key={pattern.label} className={styles.card}>
-              <div className={styles.cardHeader}>
-                <span className={styles.label}>{pattern.label}</span>
-                <span className={styles.count}>
-                  {pattern.count}× genoemd
-                </span>
-              </div>
-              {pattern.examples.map((example, i) => (
-                <div key={i} className={styles.example}>
-                  &ldquo;{example}&rdquo;
-                </div>
-              ))}
+            <div key={pattern.label} className={styles.chip}>
+              <span className={styles.label}>{pattern.label}</span>
+              <span className={styles.count}>{pattern.count}×</span>
             </div>
           ))}
         </div>

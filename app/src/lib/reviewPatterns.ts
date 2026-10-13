@@ -3,7 +3,6 @@ import type { Review } from "../types";
 export interface ReviewPattern {
   label: string;
   count: number;
-  examples: string[];
 }
 
 interface ThemeDefinition {
@@ -114,7 +113,6 @@ const THEMES: ThemeDefinition[] = [
 
 const MIN_COUNT = 2;
 const MAX_THEMES = 6;
-const MAX_EXAMPLES = 2;
 
 /** Surfaces recurring complaint themes across 1-3★ reviews by matching
  * each review's text against a small set of curated keyword groups (see
@@ -127,15 +125,11 @@ export function detectReviewPatterns(reviews: Review[]): ReviewPattern[] {
   const critical = reviews.filter((r) => r.rating <= 3 && r.snippet.trim().length > 0);
 
   const patterns = THEMES.map((theme): ReviewPattern => {
-    const matches = critical.filter((r) => {
+    const count = critical.filter((r) => {
       const text = r.snippet.toLowerCase();
       return theme.keywords.some((kw) => text.includes(kw));
-    });
-    return {
-      label: theme.label,
-      count: matches.length,
-      examples: matches.slice(0, MAX_EXAMPLES).map((r) => r.snippet),
-    };
+    }).length;
+    return { label: theme.label, count };
   });
 
   return patterns
