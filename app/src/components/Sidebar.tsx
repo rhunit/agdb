@@ -13,7 +13,6 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Alle reviews", view: null },
   { label: "Weekly update", view: null },
   { label: "Locaties", view: "locaties" },
-  { label: "Instellingen", view: null },
 ];
 
 interface SidebarProps {

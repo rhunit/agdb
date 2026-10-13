@@ -38,7 +38,10 @@
   --r-sm: 4px;
   --r-md: 8px;
   --r-lg: 12px;
-  --r-xl: 24px;
+  /* Cards are rectangular (0) per the AG house style — --r-xl is used
+     exclusively for the main card containers (BentoGrid, ReviewFeed,
+     WeeklyLog, ...), never for pills/badges/avatars, which keep --r-full. */
+  --r-xl: 0px;
   --r-full: 9999px;
 
   /* Typography — Helvetica Neue throughout (Open Sans dropped per request) */

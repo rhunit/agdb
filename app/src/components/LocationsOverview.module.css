@@ -30,7 +30,7 @@
   flex-direction: column;
   background: var(--ag-surface);
   border: 1px solid var(--ag-border);
-  border-radius: var(--r-md);
+  border-radius: var(--r-xl);
   overflow: hidden;
   padding: 0;
   cursor: pointer;
