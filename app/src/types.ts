@@ -32,6 +32,10 @@ export interface Review {
   /** The owner reply's text, straight from Google — only set when
    * `responded` is true and the review is live. */
   replyText?: string;
+  /** When the owner reply was posted/last edited, straight from Google —
+   * only set when `responded` is true and the review is live. Powers the
+   * "Recent beantwoord" sort on "Alle reviews". */
+  responseTime?: string;
 }
 
 export interface WeeklyLogEntry {

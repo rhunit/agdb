@@ -1,4 +1,5 @@
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { useState } from "react";
+import { useDropdownPanel } from "../hooks/useDropdownPanel";
 import {
   formatRangeLabel,
   PRESET_LABELS,
@@ -32,37 +33,9 @@ export function DateRangeSelector({ value, onChange }: DateRangeSelectorProps) {
   const [open, setOpen] = useState(false);
   const [customStart, setCustomStart] = useState(() => toInputValue(value.start));
   const [customEnd, setCustomEnd] = useState(() => toInputValue(value.end));
-  const [panelStyle, setPanelStyle] = useState<CSSProperties>({});
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    function onClickOutside(e: MouseEvent) {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
-  }, [open]);
-
-  // Positions the panel against the viewport rather than the trigger's own
-  // (often narrow, flex-shrunk) wrapper — a right-aligned offset relative
-  // to that wrapper pushes the panel off-screen on narrow layouts where
-  // the trigger itself sits near the left edge.
-  useLayoutEffect(() => {
-    if (!open || !triggerRef.current || !panelRef.current) return;
-    const triggerRect = triggerRef.current.getBoundingClientRect();
-    const panelWidth = panelRef.current.offsetWidth;
-    const margin = 12;
-    const left = Math.min(
-      Math.max(triggerRect.right - panelWidth, margin),
-      window.innerWidth - panelWidth - margin,
-    );
-    setPanelStyle({ position: "fixed", top: triggerRect.bottom + 6, left });
-  }, [open]);
+  const { wrapRef, triggerRef, panelRef, panelStyle } = useDropdownPanel(open, () =>
+    setOpen(false),
+  );
 
   function pickPreset(preset: DateRangePreset) {
     onChange(rangeForPreset(preset));

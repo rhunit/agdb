@@ -5,9 +5,11 @@ import type { LiveBusinessReview, ReviewEdit } from "../lib/api";
 import { daysAgoLabel, formatReviewTimestamp } from "../lib/format";
 import { businessReviewsFor } from "../lib/reviews";
 import { originalVersionFor } from "../lib/reviewHistory";
-import { reviewMatchesTheme } from "../lib/reviewPatterns";
+import { detectReviewPatterns, reviewMatchesTheme } from "../lib/reviewPatterns";
+import { sortReviews, SORT_OPTIONS, type SortOption } from "../lib/reviewSort";
 import type { LocationId, Review } from "../types";
 import { StarRating } from "./badges";
+import { FilterDropdown, type FilterOption } from "./FilterDropdown";
 import { LoadingState } from "./LoadingState";
 import { ReplyForm } from "./ReplyForm";
 import { ReviewPatterns } from "./ReviewPatterns";
@@ -15,7 +17,14 @@ import styles from "./AllReviews.module.css";
 
 const LOCATION_NAME = new Map(LOCATIONS.map((l) => [l.id, l.name]));
 const PAGE_SIZE = 25;
-const RATINGS = [5, 4, 3, 2, 1] as const;
+const RATING_OPTIONS: FilterOption[] = [
+  { value: "all", label: "Alle sterren" },
+  { value: "5", label: "5 sterren" },
+  { value: "4", label: "4 sterren" },
+  { value: "3", label: "3 sterren" },
+  { value: "2", label: "2 sterren" },
+  { value: "1", label: "1 ster" },
+];
 
 export type StatusFilter = "all" | "open" | "responded";
 
@@ -25,7 +34,7 @@ export type StatusFilter = "all" | "open" | "responded";
  * person may want to re-trigger the jump after changing filters by hand. */
 export interface AllReviewsFilterRequest {
   status: StatusFilter;
-  ratings: number[];
+  rating: number | "all";
 }
 
 interface AllReviewsProps {
@@ -46,8 +55,9 @@ export function AllReviews({
   const [shown, setShown] = useState(PAGE_SIZE);
   const [locationTab, setLocationTab] = useState<LocationId | "all">("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [ratingFilter, setRatingFilter] = useState<Set<number>>(new Set());
+  const [ratingFilter, setRatingFilter] = useState<number | "all">("all");
   const [activeTheme, setActiveTheme] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<SortOption>("recent");
   // Reviews replied to in this session, ahead of the next full refetch —
   // lets the status (and the reply text itself) show immediately after a
   // send succeeds, keyed by review id -> the text that was sent.
@@ -65,7 +75,7 @@ export function AllReviews({
     if (!filterRequest) return;
     setLocationTab("all");
     setStatusFilter(filterRequest.status);
-    setRatingFilter(new Set(filterRequest.ratings));
+    setRatingFilter(filterRequest.rating);
     setActiveTheme(null);
     setShown(PAGE_SIZE);
   }, [filterRequest]);
@@ -85,33 +95,61 @@ export function AllReviews({
     return allReviews.filter((r) => r.location === locationTab);
   }, [allReviews, locationTab]);
 
+  const patterns = useMemo(() => detectReviewPatterns(scopedReviews), [scopedReviews]);
+
   const reviews = useMemo(() => {
-    return scopedReviews.filter((r) => {
+    const filtered = scopedReviews.filter((r) => {
       if (statusFilter === "open" && isResponded(r)) return false;
       if (statusFilter === "responded" && !isResponded(r)) return false;
-      if (ratingFilter.size > 0 && !ratingFilter.has(r.rating)) return false;
+      if (ratingFilter !== "all" && r.rating !== ratingFilter) return false;
       if (activeTheme && !reviewMatchesTheme(r, activeTheme)) return false;
       return true;
     });
-  }, [scopedReviews, statusFilter, ratingFilter, activeTheme, repliedText]);
+    return sortReviews(filtered, sortBy);
+  }, [scopedReviews, statusFilter, ratingFilter, activeTheme, sortBy, repliedText]);
+
+  const statusOptions: FilterOption[] = useMemo(
+    () => [
+      { value: "all", label: "Alle", count: scopedReviews.length },
+      {
+        value: "open",
+        label: "Onbeantwoord",
+        count: scopedReviews.filter((r) => !isResponded(r)).length,
+      },
+      {
+        value: "responded",
+        label: "Beantwoord",
+        count: scopedReviews.filter((r) => isResponded(r)).length,
+      },
+    ],
+    [scopedReviews, repliedText],
+  );
+
+  const themeOptions: FilterOption[] = useMemo(
+    () => [
+      { value: "all", label: "Alle thema's" },
+      ...patterns.map((p) => ({ value: p.label, label: p.label, count: p.count })),
+    ],
+    [patterns],
+  );
 
   function selectLocationTab(next: LocationId | "all") {
     setLocationTab(next);
     setShown(PAGE_SIZE);
   }
 
-  function updateStatusFilter(next: StatusFilter) {
-    setStatusFilter(next);
+  function updateStatusFilter(next: string) {
+    setStatusFilter(next as StatusFilter);
     setShown(PAGE_SIZE);
   }
 
-  function toggleRating(rating: number) {
-    setRatingFilter((prev) => {
-      const next = new Set(prev);
-      if (next.has(rating)) next.delete(rating);
-      else next.add(rating);
-      return next;
-    });
+  function updateRatingFilter(next: string) {
+    setRatingFilter(next === "all" ? "all" : Number(next));
+    setShown(PAGE_SIZE);
+  }
+
+  function updateThemeFilter(next: string) {
+    setActiveTheme(next === "all" ? null : next);
     setShown(PAGE_SIZE);
   }
 
@@ -120,7 +158,8 @@ export function AllReviews({
     setShown(PAGE_SIZE);
   }
 
-  const filtersActive = statusFilter !== "all" || ratingFilter.size > 0 || activeTheme !== null;
+  const filtersActive =
+    statusFilter !== "all" || ratingFilter !== "all" || activeTheme !== null;
 
   return (
     <div className={styles.wrap}>
@@ -186,60 +225,33 @@ export function AllReviews({
 
       {scopedReviews.length > 0 && (
         <div className={styles.filters}>
-          <div className={styles.filterGroup}>
-            <button
-              type="button"
-              className={
-                statusFilter === "all"
-                  ? `${styles.filterPill} ${styles.filterPillActive}`
-                  : styles.filterPill
-              }
-              onClick={() => updateStatusFilter("all")}
-            >
-              Alle
-            </button>
-            <button
-              type="button"
-              className={
-                statusFilter === "open"
-                  ? `${styles.filterPill} ${styles.filterPillActive}`
-                  : styles.filterPill
-              }
-              onClick={() => updateStatusFilter("open")}
-            >
-              Onbeantwoord
-            </button>
-            <button
-              type="button"
-              className={
-                statusFilter === "responded"
-                  ? `${styles.filterPill} ${styles.filterPillActive}`
-                  : styles.filterPill
-              }
-              onClick={() => updateStatusFilter("responded")}
-            >
-              Beantwoord
-            </button>
-          </div>
+          <FilterDropdown
+            label="Status"
+            options={statusOptions}
+            value={statusFilter}
+            onChange={updateStatusFilter}
+          />
+          <FilterDropdown
+            label="Sterren"
+            options={RATING_OPTIONS}
+            value={String(ratingFilter)}
+            onChange={updateRatingFilter}
+          />
+          <FilterDropdown
+            label="Thema"
+            options={themeOptions}
+            value={activeTheme ?? "all"}
+            onChange={updateThemeFilter}
+          />
 
-          <div className={styles.filterDivider} />
+          <div className={styles.filterSpacer} />
 
-          <div className={styles.filterGroup}>
-            {RATINGS.map((rating) => (
-              <button
-                key={rating}
-                type="button"
-                className={
-                  ratingFilter.has(rating)
-                    ? `${styles.filterPill} ${styles.filterPillActive}`
-                    : styles.filterPill
-                }
-                onClick={() => toggleRating(rating)}
-              >
-                {rating}★
-              </button>
-            ))}
-          </div>
+          <FilterDropdown
+            label="Sorteren"
+            options={SORT_OPTIONS}
+            value={sortBy}
+            onChange={(next) => setSortBy(next as SortOption)}
+          />
 
           {filtersActive && (
             <button
@@ -247,7 +259,7 @@ export function AllReviews({
               className={styles.filterReset}
               onClick={() => {
                 setStatusFilter("all");
-                setRatingFilter(new Set());
+                setRatingFilter("all");
                 setActiveTheme(null);
                 setShown(PAGE_SIZE);
               }}

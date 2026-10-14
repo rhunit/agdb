@@ -1,0 +1,80 @@
+.wrap {
+  position: relative;
+}
+
+.trigger {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--ag-border);
+  border-radius: var(--r-full);
+  padding: var(--sp-xs) var(--sp-sm);
+  font: var(--fs-body-sm);
+  font-weight: 600;
+  color: var(--ag-secondary);
+  background: var(--ag-surface);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.trigger:hover {
+  border-color: var(--ag-primary-border);
+}
+
+.chevron {
+  font-size: 10px;
+  color: var(--ag-muted);
+}
+
+.panel {
+  /* position/top/left are set inline (see FilterDropdown.tsx /
+     useDropdownPanel) — fixed to the viewport and clamped so it can't
+     run off-screen on narrow layouts. */
+  z-index: 30;
+  background: var(--ag-surface);
+  border: 1px solid var(--ag-border);
+  border-radius: var(--r-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: var(--sp-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 190px;
+}
+
+.option {
+  appearance: none;
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-sm);
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: var(--r-sm);
+  font: var(--fs-body-md);
+  font-size: 14px;
+  color: var(--ag-on-surface);
+  cursor: pointer;
+}
+
+.option:hover {
+  background: var(--ag-neutral-100);
+}
+
+.optionActive {
+  background: var(--ag-primary-bg);
+  color: var(--ag-primary-strong);
+  font-weight: 700;
+}
+
+.optionCount {
+  font: var(--fs-label-sm);
+  color: var(--ag-muted);
+}
+
+.optionActive .optionCount {
+  color: var(--ag-primary-strong);
+}
