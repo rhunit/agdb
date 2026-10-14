@@ -11,8 +11,8 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", view: "dashboard" },
   { label: "Alle reviews", view: "alle-reviews" },
-  { label: "Locaties", view: "locaties" },
   { label: "Rapportage", view: "rapportage" },
+  { label: "Locaties", view: "locaties" },
 ];
 
 interface SidebarProps {

@@ -198,41 +198,43 @@ export function Rapportage({
         </div>
       ) : (
         <>
-          <div className={styles.card}>
-            <div className={styles.cardTitle}>Alle winkels in één oogopslag</div>
-            <div className={styles.cardSubtitle}>
-              {formatRangeLabel(dateRange)} · alleen de locaties die dit dashboard al volgt.
-            </div>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Winkel</th>
-                  {STAR_COLUMNS.map((n) => (
-                    <th key={n}>{n}★</th>
-                  ))}
-                  <th>Totaal</th>
-                </tr>
-              </thead>
-              <tbody>
-                {perLocationStars.map((loc) => (
-                  <tr key={loc.id}>
-                    <td>{loc.name}</td>
+          {locationTab === "all" && (
+            <div className={styles.card}>
+              <div className={styles.cardTitle}>Alle winkels in één oogopslag</div>
+              <div className={styles.cardSubtitle}>
+                {formatRangeLabel(dateRange)} · alleen de locaties die dit dashboard al volgt.
+              </div>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Winkel</th>
                     {STAR_COLUMNS.map((n) => (
-                      <td key={n}>{loc.counts[n]}</td>
+                      <th key={n}>{n}★</th>
                     ))}
-                    <td className={styles.tableTotal}>{loc.total}</td>
+                    <th>Totaal</th>
                   </tr>
-                ))}
-                <tr className={styles.tableTotalRow}>
-                  <td>Totaal</td>
-                  {STAR_COLUMNS.map((n) => (
-                    <td key={n}>{totalCounts[n]}</td>
+                </thead>
+                <tbody>
+                  {perLocationStars.map((loc) => (
+                    <tr key={loc.id}>
+                      <td>{loc.name}</td>
+                      {STAR_COLUMNS.map((n) => (
+                        <td key={n}>{loc.counts[n]}</td>
+                      ))}
+                      <td className={styles.tableTotal}>{loc.total}</td>
+                    </tr>
                   ))}
-                  <td className={styles.tableTotal}>{totalFromCounts(totalCounts)}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+                  <tr className={styles.tableTotalRow}>
+                    <td>Totaal</td>
+                    {STAR_COLUMNS.map((n) => (
+                      <td key={n}>{totalCounts[n]}</td>
+                    ))}
+                    <td className={styles.tableTotal}>{totalFromCounts(totalCounts)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
 
           {locationsToShow.map((id) => {
             const locReviews = scopedReviews.filter((r) => r.location === id);
