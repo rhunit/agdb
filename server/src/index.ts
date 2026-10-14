@@ -245,12 +245,12 @@ app.get("/api/report-summary-available", (_req, res) => {
 // Generates the narrative part of the Rapportage page (compliments,
 // concerns, closing note) from the reviews the frontend already has
 // loaded for the selected location/period — on demand only, never
-// automatically, since it's a paid OpenAI API call. Grounded strictly in
+// automatically, since it's a paid Claude API call. Grounded strictly in
 // the review text it's given; see reportSummary.ts for the prompt.
 app.post("/api/report-summary", async (req, res) => {
   if (!isReportSummaryAvailable()) {
     res.status(501).json({
-      error: "AI-samenvatting is niet geconfigureerd (OPENAI_API_KEY ontbreekt).",
+      error: "AI-samenvatting is niet geconfigureerd (ANTHROPIC_API_KEY ontbreekt).",
     });
     return;
   }

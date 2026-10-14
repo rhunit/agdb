@@ -309,7 +309,7 @@ export type GenerateReportSummaryResult =
 
 /** Whether the AI-written narrative section on the Rapportage page can be
  * generated at all — the backend only has this configured when
- * OPENAI_API_KEY is set, so the frontend checks first rather than
+ * ANTHROPIC_API_KEY is set, so the frontend checks first rather than
  * letting someone click the button into a guaranteed failure. */
 export async function fetchReportSummaryAvailable(): Promise<boolean> {
   if (!hasLiveBackend()) return false;
@@ -325,7 +325,7 @@ export async function fetchReportSummaryAvailable(): Promise<boolean> {
 
 /** Generates the narrative compliments/concerns/closing text for one
  * location and period — on demand only (never automatic), since this is
- * a paid OpenAI API call. Grounded strictly in the `reviews` passed in. */
+ * a paid Claude API call. Grounded strictly in the `reviews` passed in. */
 export async function generateReportSummary(
   locationName: string,
   periodLabel: string,

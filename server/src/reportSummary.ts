@@ -1,7 +1,7 @@
-import OpenAI from "openai";
+import Anthropic from "@anthropic-ai/sdk";
 
 // Only generated on demand (see the "Genereer samenvatting" button on the
-// Rapportage page) — this calls out to the OpenAI API, which costs money
+// Rapportage page) — this calls out to the Claude API, which costs money
 // and takes a few seconds, so it never runs automatically on page load or
 // on every filter change.
 
@@ -29,27 +29,31 @@ export interface ReportSummaryResult {
 // summary, this isn't a statistical computation.
 const MAX_REVIEWS_IN_PROMPT = 150;
 
-const MODEL = "gpt-4o-mini";
+let client: Anthropic | null = null;
 
-let client: OpenAI | null = null;
-
-function getClient(): OpenAI | null {
-  const apiKey = process.env.OPENAI_API_KEY;
+function getClient(): Anthropic | null {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return null;
-  if (!client) client = new OpenAI({ apiKey });
+  if (!client) client = new Anthropic({ apiKey });
   return client;
 }
 
 export function isReportSummaryAvailable(): boolean {
-  return Boolean(process.env.OPENAI_API_KEY);
+  return Boolean(process.env.ANTHROPIC_API_KEY);
+}
+
+function extractJson(raw: string): string {
+  const trimmed = raw.trim();
+  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+  return fenced ? fenced[1] : trimmed;
 }
 
 export async function generateReportSummary(
   req: ReportSummaryRequest,
 ): Promise<ReportSummaryResult> {
-  const openai = getClient();
-  if (!openai) {
-    throw new Error("OPENAI_API_KEY is niet geconfigureerd.");
+  const anthropic = getClient();
+  if (!anthropic) {
+    throw new Error("ANTHROPIC_API_KEY is niet geconfigureerd.");
   }
 
   const reviews = req.reviews.slice(0, MAX_REVIEWS_IN_PROMPT);
@@ -75,24 +79,23 @@ Antwoord met exact dit JSON-object, geen andere tekst en geen markdown-opmaak er
   "closing": "1-2 zinnen afsluitende duiding voor het management voor de komende periode."
 }`;
 
-  const completion = await openai.chat.completions.create({
-    model: MODEL,
+  const message = await anthropic.messages.create({
+    model: "claude-haiku-5-5",
     max_tokens: 700,
     temperature: 0.4,
-    response_format: { type: "json_object" },
     messages: [{ role: "user", content: prompt }],
   });
 
-  const raw = completion.choices[0]?.message?.content;
-  if (!raw) {
-    throw new Error("Geen tekstantwoord van OpenAI ontvangen.");
+  const textBlock = message.content.find((block) => block.type === "text");
+  if (!textBlock || textBlock.type !== "text") {
+    throw new Error("Geen tekstantwoord van Claude ontvangen.");
   }
 
   let parsed: Partial<ReportSummaryResult>;
   try {
-    parsed = JSON.parse(raw);
+    parsed = JSON.parse(extractJson(textBlock.text));
   } catch {
-    throw new Error("Kon het antwoord van OpenAI niet verwerken.");
+    throw new Error("Kon het antwoord van Claude niet verwerken.");
   }
 
   return {

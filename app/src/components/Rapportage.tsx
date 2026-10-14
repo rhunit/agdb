@@ -364,7 +364,7 @@ export function Rapportage({
               </div>
             ) : !summaryAvailable ? (
               <div className={styles.cardFootnote} data-print-hide>
-                Niet beschikbaar: OPENAI_API_KEY is niet geconfigureerd op de server.
+                Niet beschikbaar: ANTHROPIC_API_KEY is niet geconfigureerd op de server.
               </div>
             ) : summaryResult ? (
               <div className={styles.summaryBlocks}>
