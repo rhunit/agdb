@@ -37,6 +37,26 @@
   color: var(--ag-muted);
 }
 
+.countCheck {
+  padding: var(--sp-sm);
+  background: var(--ag-error-bg);
+  border: 1px solid var(--ag-error-border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.countCheckLabel {
+  font: var(--fs-label-sm);
+  letter-spacing: var(--ls-label-sm);
+  color: var(--ag-error);
+}
+
+.countCheckRow {
+  font: var(--fs-body-sm);
+  color: var(--ag-on-surface);
+}
+
 .list {
   display: flex;
   flex-direction: column;

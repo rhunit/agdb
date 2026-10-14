@@ -5,6 +5,7 @@ import { useLiveBusinessReviews } from "../hooks/useLiveBusinessReviews";
 import { useLivePlacesReviewGrowth } from "../hooks/useLivePlacesReviewGrowth";
 import { useLivePlacesSummary } from "../hooks/useLivePlacesSummary";
 import { useRemovedReviews } from "../hooks/useRemovedReviews";
+import { useReviewCountChecks } from "../hooks/useReviewCountChecks";
 import { useReviewEdits } from "../hooks/useReviewEdits";
 import { useWeeklyLog } from "../hooks/useWeeklyLog";
 import { rangeForPreset, type DateRange } from "../lib/dateRange";
@@ -50,6 +51,8 @@ export function Dashboard() {
   // from the point that backend first ran.
   const reviewEdits = useReviewEdits(view !== "locaties");
   const removedReviews = useRemovedReviews(view !== "locaties");
+  // Needs no history of its own — see lib/api.ts's ReviewCountCheck.
+  const reviewCountChecks = useReviewCountChecks(view !== "locaties");
   const dashboardLoading =
     livePlaces.loading || businessReviews.loading || reviewGrowth.loading || weeklyLog.loading;
   const data = useDashboardData(
@@ -66,6 +69,11 @@ export function Dashboard() {
     const locationSet = new Set(data.locations);
     return (removedReviews.removed ?? []).filter((r) => locationSet.has(r.location));
   }, [removedReviews.removed, data.locations]);
+
+  const countChecksForFilter = useMemo(() => {
+    const locationSet = new Set(data.locations);
+    return (reviewCountChecks.checks ?? []).filter((c) => locationSet.has(c.location));
+  }, [reviewCountChecks.checks, data.locations]);
 
   return (
     <>
@@ -150,6 +158,7 @@ export function Dashboard() {
                     <RemovedReviewsCard
                       removed={removedForFilter}
                       loading={removedReviews.loading}
+                      countChecks={countChecksForFilter}
                     />
 
                     {(SHOW_REVIEW_GROWTH_CHART || SHOW_TREND_CONTEXT) && (

@@ -23,7 +23,9 @@ import { getWeeklyReviewGrowth, recordSnapshot } from "./placesHistoryStore.js";
 import {
   diffAndRecordReviews,
   listRemovedReviews,
+  listReviewCountChecks,
   listReviewEdits,
+  recordReviewCounts,
 } from "./reviewHistoryStore.js";
 import { appendWeeklyLogEntry, listWeeklyLog } from "./weeklyLogStore.js";
 
@@ -165,15 +167,20 @@ app.get("/api/business-reviews-all", async (_req, res) => {
   try {
     const auth = getAuthorizedClient();
     const locations = await listLocations(auth);
-    const reviews = await getAllBusinessReviews(auth, locations);
-    for (const [location, list] of Object.entries(reviews)) {
+    const { reviewsByLocation, countsByLocation } = await getAllBusinessReviews(auth, locations);
+    for (const [location, list] of Object.entries(reviewsByLocation)) {
       try {
         diffAndRecordReviews(location as InternalLocationId, list ?? []);
       } catch (err) {
         console.error(`diffAndRecordReviews failed for ${location}:`, err);
       }
     }
-    res.json(reviews);
+    try {
+      recordReviewCounts(countsByLocation);
+    } catch (err) {
+      console.error("recordReviewCounts failed:", err);
+    }
+    res.json(reviewsByLocation);
   } catch (err) {
     console.error(err);
     res.status(503).json({ error: (err as Error).message });
@@ -192,6 +199,18 @@ app.get("/api/review-edits", (_req, res) => {
 // reviewer, or anything else), so this only ever reports "gone", not why.
 app.get("/api/review-removals", (_req, res) => {
   res.json(listRemovedReviews(Array.from(LOCATION_IDS) as InternalLocationId[]));
+});
+
+// Diagnostic: Google's own reported review total per location vs how
+// many review objects we actually got back after full pagination, from
+// the most recent /api/business-reviews-all fetch. A positive
+// discrepancy is a removal Google's own count still reflects but the
+// review list itself no longer does — unlike /api/review-removals, this
+// needs no history of ours, so it can reveal a removal that already
+// happened before this backend ever started watching. Unverified against
+// real review data as of writing (see googleBusinessReviews.ts).
+app.get("/api/review-count-check", (_req, res) => {
+  res.json(listReviewCountChecks(Array.from(LOCATION_IDS) as InternalLocationId[]));
 });
 
 // Posts (or edits) the owner reply on one review. This writes straight to
@@ -258,12 +277,18 @@ app.get("/api/business-reviews-test", async (req, res) => {
       });
       return;
     }
-    const reviews = await listBusinessReviews(
+    const { reviews, totalReviewCount } = await listBusinessReviews(
       auth,
       match.accountName,
       match.googleLocationId,
     );
-    res.json({ location: match, reviewCount: reviews.length, reviews });
+    res.json({
+      location: match,
+      reviewCount: reviews.length,
+      totalReviewCount,
+      discrepancy: totalReviewCount != null ? totalReviewCount - reviews.length : null,
+      reviews,
+    });
   } catch (err) {
     console.error(err);
     res.status(503).json({ error: (err as Error).message });

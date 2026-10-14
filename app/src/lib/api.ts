@@ -221,6 +221,32 @@ export async function fetchRemovedReviews(): Promise<RemovedReview[] | null> {
   }
 }
 
+/** Google's own reported review total for a location vs how many review
+ * objects we actually got back after full pagination. Unlike ReviewEdit/
+ * RemovedReview (which need our own history to notice anything), a
+ * positive discrepancy here needs no history at all — it can reveal a
+ * removal that already happened before this backend ever started
+ * watching, since Google's own count and the actual list can only drift
+ * apart if something it still counts is no longer being handed back. */
+export interface ReviewCountCheck {
+  location: LocationId;
+  totalReviewCount: number | null;
+  actualReviewCount: number;
+  discrepancy: number | null;
+  checkedAt: string;
+}
+
+export async function fetchReviewCountChecks(): Promise<ReviewCountCheck[] | null> {
+  if (!hasLiveBackend()) return null;
+  try {
+    const res = await fetch(`${API_BASE}/api/review-count-check`);
+    if (!res.ok) return null;
+    return (await res.json()) as ReviewCountCheck[];
+  } catch {
+    return null;
+  }
+}
+
 export interface NewWeeklyLogEntry {
   location: LocationId;
   type: LogType;

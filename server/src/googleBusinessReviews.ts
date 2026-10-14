@@ -52,6 +52,19 @@ export interface BusinessReview {
   replyText: string | null;
 }
 
+export interface BusinessReviewsResult {
+  reviews: BusinessReview[];
+  /** Google's own reported total for this location (the same number
+   * behind the public "X reviews" count) — captured alongside the actual
+   * review list so the two can be compared. If Google's aggregate count
+   * doesn't match how many review objects we actually got back, that's a
+   * removal signal that needs no history of our own: the gap must be
+   * reviews Google still counts but no longer returns. Unverified against
+   * real data as of writing — this field existed in the API response but
+   * was never read until a counting mismatch was reported in Localo. */
+  totalReviewCount: number | null;
+}
+
 /** Lists reviews for one location, newest-updated first. `maxPages` bounds
  * how far pagination goes — unbounded (the default) walks the complete
  * history, which is fine for a one-off diagnostic call but wasteful for
@@ -61,11 +74,12 @@ export async function listBusinessReviews(
   accountName: string,
   googleLocationId: string,
   maxPages = Infinity,
-): Promise<BusinessReview[]> {
+): Promise<BusinessReviewsResult> {
   const { token } = await auth.getAccessToken();
   if (!token) throw new Error("No access token available");
 
   const reviews: BusinessReview[] = [];
+  let totalReviewCount: number | null = null;
   let pageToken: string | undefined;
   let pages = 0;
 
@@ -87,6 +101,9 @@ export async function listBusinessReviews(
     }
     const data = (await res.json()) as GbpReviewsListResponse;
     pages++;
+    if (typeof data.totalReviewCount === "number") {
+      totalReviewCount = data.totalReviewCount;
+    }
 
     for (const r of data.reviews ?? []) {
       reviews.push({
@@ -104,7 +121,7 @@ export async function listBusinessReviews(
     pageToken = data.nextPageToken ?? undefined;
   } while (pageToken && pages < maxPages);
 
-  return reviews;
+  return { reviews, totalReviewCount };
 }
 
 /** Reviews from the last `withinDays` for every location we have a
@@ -142,7 +159,7 @@ export async function getRecentBusinessReviews(
     locations
       .filter((loc) => loc.internalId)
       .map(async (loc) => {
-        const all = await listBusinessReviews(
+        const { reviews: all } = await listBusinessReviews(
           auth,
           loc.accountName,
           loc.googleLocationId,
@@ -204,6 +221,11 @@ export async function replyToReview(
   return { comment: data.comment ?? comment, updateTime: data.updateTime ?? null };
 }
 
+export interface LocationReviewCounts {
+  totalReviewCount: number | null;
+  actualReviewCount: number;
+}
+
 /** The complete review history (not just a recent window) for every
  * location we have a matched internal id for — backs the "Alle reviews"
  * page, which is explicitly meant to be the full list rather than a
@@ -212,35 +234,44 @@ export async function replyToReview(
  * sits at a few hundred); it's a safety bound against pagination running
  * away, not an expected ceiling.
  *
+ * Also the only place that captures Google's own totalReviewCount
+ * alongside the actual list — see reviewHistoryStore.ts's
+ * recordReviewCounts for what a mismatch between the two would mean.
+ *
  * Same per-location fault isolation as getRecentBusinessReviews — one
  * location erroring must not blank out the others. */
 export async function getAllBusinessReviews(
   auth: OAuth2Client,
   locations: DiscoveredLocation[],
   maxPagesPerLocation = 10,
-): Promise<Partial<Record<InternalLocationId, BusinessReview[]>>> {
+): Promise<{
+  reviewsByLocation: Partial<Record<InternalLocationId, BusinessReview[]>>;
+  countsByLocation: Partial<Record<InternalLocationId, LocationReviewCounts>>;
+}> {
   const settled = await Promise.allSettled(
     locations
       .filter((loc) => loc.internalId)
       .map(async (loc) => {
-        const all = await listBusinessReviews(
+        const { reviews, totalReviewCount } = await listBusinessReviews(
           auth,
           loc.accountName,
           loc.googleLocationId,
           maxPagesPerLocation,
         );
-        return [loc.internalId as InternalLocationId, all] as const;
+        return [loc.internalId as InternalLocationId, reviews, totalReviewCount] as const;
       }),
   );
 
-  const out: Partial<Record<InternalLocationId, BusinessReview[]>> = {};
+  const reviewsByLocation: Partial<Record<InternalLocationId, BusinessReview[]>> = {};
+  const countsByLocation: Partial<Record<InternalLocationId, LocationReviewCounts>> = {};
   for (const result of settled) {
     if (result.status === "fulfilled") {
-      const [id, all] = result.value;
-      out[id] = all;
+      const [id, reviews, totalReviewCount] = result.value;
+      reviewsByLocation[id] = reviews;
+      countsByLocation[id] = { totalReviewCount, actualReviewCount: reviews.length };
     } else {
       console.error("getAllBusinessReviews: one location failed:", result.reason);
     }
   }
-  return out;
+  return { reviewsByLocation, countsByLocation };
 }

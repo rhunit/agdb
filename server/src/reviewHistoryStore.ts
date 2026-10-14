@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { BusinessReview } from "./googleBusinessReviews.js";
+import type { BusinessReview, LocationReviewCounts } from "./googleBusinessReviews.js";
 import type { InternalLocationId } from "./googleBusinessProfile.js";
 
 // Google's review API has no edit-history or deletion-log endpoint — it
@@ -55,18 +55,44 @@ export interface RemovedReviewEvent {
   detectedAt: string;
 }
 
+export interface ReviewCountCheck {
+  location: InternalLocationId;
+  /** Google's own reported total for the location, captured on the same
+   * fetch as actualReviewCount — null if Google didn't send one. */
+  totalReviewCount: number | null;
+  /** How many review objects we actually received after full pagination. */
+  actualReviewCount: number;
+  /** totalReviewCount - actualReviewCount. Positive means Google's own
+   * count is higher than what it actually hands back — the gap is
+   * reviews Google still counts but no longer returns, which is a
+   * removal signal that needs no history of ours to notice (unlike
+   * edits/removals tracked via snapshots, this can reveal something that
+   * was already gone before we ever looked). Zero (or null
+   * totalReviewCount) means no such signal either way — not proof
+   * nothing was removed, just nothing this check can see. */
+  discrepancy: number | null;
+  checkedAt: string;
+}
+
 interface Store {
   snapshots: ReviewSnapshot[];
   edits: ReviewEditEvent[];
   removals: RemovedReviewEvent[];
+  countChecks: ReviewCountCheck[];
 }
 
 function load(): Store {
-  if (!existsSync(HISTORY_FILE)) return { snapshots: [], edits: [], removals: [] };
+  if (!existsSync(HISTORY_FILE)) return { snapshots: [], edits: [], removals: [], countChecks: [] };
   try {
-    return JSON.parse(readFileSync(HISTORY_FILE, "utf-8")) as Store;
+    const parsed = JSON.parse(readFileSync(HISTORY_FILE, "utf-8")) as Partial<Store>;
+    return {
+      snapshots: parsed.snapshots ?? [],
+      edits: parsed.edits ?? [],
+      removals: parsed.removals ?? [],
+      countChecks: parsed.countChecks ?? [],
+    };
   } catch {
-    return { snapshots: [], edits: [], removals: [] };
+    return { snapshots: [], edits: [], removals: [], countChecks: [] };
   }
 }
 
@@ -166,4 +192,34 @@ export function listRemovedReviews(locations: InternalLocationId[]): RemovedRevi
   return store.removals
     .filter((r) => set.has(r.location))
     .sort((a, b) => (a.detectedAt < b.detectedAt ? 1 : -1));
+}
+
+/** Records the latest Google-total-vs-actual-count comparison per
+ * location (see ReviewCountCheck above) — one entry per location, each
+ * fetch overwrites the previous check rather than accumulating a log,
+ * since only the current gap matters. */
+export function recordReviewCounts(
+  counts: Partial<Record<InternalLocationId, LocationReviewCounts>>,
+): void {
+  const store = load();
+  const now = new Date().toISOString();
+
+  for (const [location, c] of Object.entries(counts)) {
+    if (!c) continue;
+    store.countChecks = store.countChecks.filter((x) => x.location !== location);
+    store.countChecks.push({
+      location: location as InternalLocationId,
+      totalReviewCount: c.totalReviewCount,
+      actualReviewCount: c.actualReviewCount,
+      discrepancy: c.totalReviewCount != null ? c.totalReviewCount - c.actualReviewCount : null,
+      checkedAt: now,
+    });
+  }
+  save(store);
+}
+
+export function listReviewCountChecks(locations: InternalLocationId[]): ReviewCountCheck[] {
+  const store = load();
+  const set = new Set(locations);
+  return store.countChecks.filter((c) => set.has(c.location));
 }
