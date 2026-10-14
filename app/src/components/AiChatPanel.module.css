@@ -1,0 +1,184 @@
+.wrap {
+  position: fixed;
+  right: var(--sp-md);
+  bottom: var(--sp-md);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--sp-sm);
+}
+
+.fab {
+  appearance: none;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--r-full);
+  border: none;
+  background: var(--ag-primary);
+  color: var(--ag-neutral);
+  font: var(--fs-label-md);
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+}
+
+.fab:hover {
+  background: var(--ag-primary-strong);
+}
+
+.panel {
+  width: min(340px, calc(100vw - 2 * var(--sp-md)));
+  height: min(460px, calc(100vh - 140px));
+  background: var(--ag-surface);
+  border: 1px solid var(--ag-border);
+  border-radius: var(--r-xl);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-sm);
+  padding: var(--sp-sm) var(--sp-md);
+  border-bottom: 1px solid var(--ag-border);
+  flex: 0 0 auto;
+}
+
+.headerTitle {
+  font: var(--fs-label-lg);
+  color: var(--ag-secondary);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px var(--sp-xs);
+  min-width: 0;
+}
+
+.headerTitleText {
+  white-space: nowrap;
+}
+
+.comingSoonBadge {
+  font: var(--fs-label-sm);
+  letter-spacing: var(--ls-label-sm);
+  font-weight: 700;
+  color: var(--ag-muted);
+  background: var(--ag-neutral-100);
+  border: 1px solid var(--ag-border);
+  padding: 1px 8px;
+  border-radius: var(--r-full);
+}
+
+.closeButton {
+  appearance: none;
+  background: none;
+  border: none;
+  color: var(--ag-muted);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+
+.closeButton:hover {
+  color: var(--ag-secondary);
+}
+
+.messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--sp-sm) var(--sp-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-xs);
+}
+
+.statusText {
+  font: var(--fs-body-sm);
+  color: var(--ag-muted);
+}
+
+.errorText {
+  font: var(--fs-body-sm);
+  color: var(--ag-error);
+}
+
+.bubbleUser {
+  align-self: flex-end;
+  max-width: 85%;
+  background: var(--ag-primary);
+  color: var(--ag-neutral);
+  padding: 8px 12px;
+  border-radius: var(--r-md);
+  font: var(--fs-body-sm);
+  text-wrap: pretty;
+  white-space: pre-wrap;
+}
+
+.bubbleAssistant {
+  align-self: flex-start;
+  max-width: 85%;
+  background: var(--ag-neutral-100);
+  color: var(--ag-on-surface);
+  padding: 8px 12px;
+  border-radius: var(--r-md);
+  font: var(--fs-body-sm);
+  text-wrap: pretty;
+  white-space: pre-wrap;
+}
+
+.inputRow {
+  flex: 0 0 auto;
+  display: flex;
+  gap: var(--sp-xs);
+  padding: var(--sp-sm) var(--sp-md);
+  border-top: 1px solid var(--ag-border);
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  resize: none;
+  border: 1px solid var(--ag-border);
+  border-radius: var(--r-sm);
+  padding: 8px 10px;
+  font: var(--fs-body-sm);
+  font-family: inherit;
+  color: var(--ag-on-surface);
+  background: var(--ag-surface);
+}
+
+.sendButton {
+  appearance: none;
+  align-self: flex-end;
+  border: none;
+  border-radius: var(--r-full);
+  padding: 8px 14px;
+  font: var(--fs-label-md);
+  font-weight: 600;
+  color: var(--ag-neutral);
+  background: var(--ag-primary);
+  cursor: pointer;
+}
+
+.sendButton:hover:not(:disabled) {
+  background: var(--ag-primary-strong);
+}
+
+.sendButton:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+@media (max-width: 480px) {
+  .wrap {
+    right: var(--sp-sm);
+    bottom: var(--sp-sm);
+  }
+}

@@ -349,3 +349,49 @@ export async function generateReportSummary(
     return { ok: false, error: "Kon de server niet bereiken." };
   }
 }
+
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export type SendChatMessageResult = { ok: true; reply: string } | { ok: false; error: string };
+
+/** Whether the floating AI chat panel can be used at all — same
+ * OPENAI_API_KEY as the Rapportage summary. */
+export async function fetchAiChatAvailable(): Promise<boolean> {
+  if (!hasLiveBackend()) return false;
+  try {
+    const res = await fetch(`${API_BASE}/api/ai-chat-available`);
+    if (!res.ok) return false;
+    const body = (await res.json()) as { available: boolean };
+    return body.available;
+  } catch {
+    return false;
+  }
+}
+
+/** Sends the whole conversation so far and gets the next assistant turn
+ * back — nothing is persisted server-side, so the full history has to be
+ * resent each time. Not grounded in any review data, just a general
+ * assistant someone can keep open while working. */
+export async function sendChatMessage(messages: ChatMessage[]): Promise<SendChatMessageResult> {
+  if (!hasLiveBackend()) {
+    return { ok: false, error: "Geen backend geconfigureerd." };
+  }
+  try {
+    const res = await fetch(`${API_BASE}/api/ai-chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages }),
+    });
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+      return { ok: false, error: body?.error ?? `Versturen mislukt (${res.status}).` };
+    }
+    const data = (await res.json()) as { reply: string };
+    return { ok: true, reply: data.reply };
+  } catch {
+    return { ok: false, error: "Kon de server niet bereiken." };
+  }
+}

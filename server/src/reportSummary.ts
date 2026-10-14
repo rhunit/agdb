@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import { getOpenAiClient, isOpenAiConfigured } from "./openaiClient.js";
 
 // Only generated on demand (see the "Genereer samenvatting" button on the
 // Rapportage page) — this calls out to the OpenAI API, which costs money
@@ -31,23 +31,14 @@ const MAX_REVIEWS_IN_PROMPT = 150;
 
 const MODEL = "gpt-4o-mini";
 
-let client: OpenAI | null = null;
-
-function getClient(): OpenAI | null {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) return null;
-  if (!client) client = new OpenAI({ apiKey });
-  return client;
-}
-
 export function isReportSummaryAvailable(): boolean {
-  return Boolean(process.env.OPENAI_API_KEY);
+  return isOpenAiConfigured();
 }
 
 export async function generateReportSummary(
   req: ReportSummaryRequest,
 ): Promise<ReportSummaryResult> {
-  const openai = getClient();
+  const openai = getOpenAiClient();
   if (!openai) {
     throw new Error("OPENAI_API_KEY is niet geconfigureerd.");
   }

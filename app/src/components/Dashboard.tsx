@@ -9,6 +9,7 @@ import { useReviewEdits } from "../hooks/useReviewEdits";
 import { useWeeklyLog } from "../hooks/useWeeklyLog";
 import { rangeForPreset, type DateRange } from "../lib/dateRange";
 import { formatUpdatedAt } from "../lib/format";
+import { AiChatPanel } from "./AiChatPanel";
 import { AllReviews } from "./AllReviews";
 import { BentoGrid } from "./BentoGrid";
 import { CriticalReviewFeed } from "./CriticalReviewFeed";
@@ -208,6 +209,7 @@ export function Dashboard() {
           )}
         </div>
       </div>
+      <AiChatPanel />
     </>
   );
 }

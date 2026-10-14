@@ -26,6 +26,7 @@ import {
   listReviewEdits,
 } from "./reviewHistoryStore.js";
 import { generateReportSummary, isReportSummaryAvailable } from "./reportSummary.js";
+import { generateChatReply, isAiChatAvailable, type ChatMessage } from "./aiChat.js";
 import { appendWeeklyLogEntry, listWeeklyLog } from "./weeklyLogStore.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -266,6 +267,45 @@ app.post("/api/report-summary", async (req, res) => {
   try {
     const result = await generateReportSummary({ locationName, periodLabel, reviews });
     res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(503).json({ error: (err as Error).message });
+  }
+});
+
+// Whether the floating AI chat panel can be used at all — same
+// OPENAI_API_KEY as the Rapportage summary.
+app.get("/api/ai-chat-available", (_req, res) => {
+  res.json({ available: isAiChatAvailable() });
+});
+
+// A general-purpose chat turn for the floating AI panel — not grounded in
+// any review data, just a plain assistant someone can keep open while
+// working. The frontend sends the whole conversation each time (nothing
+// is persisted server-side), capped and trimmed in aiChat.ts.
+app.post("/api/ai-chat", async (req, res) => {
+  if (!isAiChatAvailable()) {
+    res.status(501).json({ error: "AI-chat is niet geconfigureerd (OPENAI_API_KEY ontbreekt)." });
+    return;
+  }
+  const { messages } = req.body ?? {};
+  if (
+    !Array.isArray(messages) ||
+    messages.length === 0 ||
+    !messages.every(
+      (m: unknown) =>
+        typeof m === "object" &&
+        m !== null &&
+        ((m as ChatMessage).role === "user" || (m as ChatMessage).role === "assistant") &&
+        typeof (m as ChatMessage).content === "string",
+    )
+  ) {
+    res.status(400).json({ error: "Vereist: messages[] met role en content." });
+    return;
+  }
+  try {
+    const reply = await generateChatReply(messages as ChatMessage[]);
+    res.json({ reply });
   } catch (err) {
     console.error(err);
     res.status(503).json({ error: (err as Error).message });
