@@ -83,6 +83,20 @@
 .cardTitle {
   font: var(--fs-label-lg);
   color: var(--ag-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+}
+
+.comingSoonBadge {
+  font: var(--fs-label-sm);
+  letter-spacing: var(--ls-label-sm);
+  font-weight: 700;
+  color: var(--ag-muted);
+  background: var(--ag-neutral-100);
+  border: 1px solid var(--ag-border);
+  padding: 1px 8px;
+  border-radius: var(--r-full);
 }
 
 .cardSubtitle {

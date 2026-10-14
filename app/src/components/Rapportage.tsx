@@ -355,16 +355,21 @@ export function Rapportage({
             )}
           </div>
 
-          <div className={styles.card}>
-            <div className={styles.cardTitle}>AI-samenvatting</div>
-            {locationTab === "all" ? (
+          <div className={styles.card} data-print-hide={!summaryAvailable || undefined}>
+            <div className={styles.cardTitle}>
+              AI-samenvatting
+              {!summaryAvailable && (
+                <span className={styles.comingSoonBadge}>Binnenkort beschikbaar</span>
+              )}
+            </div>
+            {!summaryAvailable ? (
+              <div className={styles.cardFootnote} data-print-hide>
+                Deze functie werkt nog niet — we zijn hier nog aan het werken.
+              </div>
+            ) : locationTab === "all" ? (
               <div className={styles.cardFootnote} data-print-hide>
                 Kies hierboven een specifieke locatie om een samenvatting te genereren — net als
                 in de weekrapportage is dit per locatie geschreven.
-              </div>
-            ) : !summaryAvailable ? (
-              <div className={styles.cardFootnote} data-print-hide>
-                Niet beschikbaar: OPENAI_API_KEY is niet geconfigureerd op de server.
               </div>
             ) : summaryResult ? (
               <div className={styles.summaryBlocks}>
