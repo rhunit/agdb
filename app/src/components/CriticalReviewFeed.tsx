@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { LOCATIONS } from "../data/mockData";
+import type { ReviewEdit } from "../lib/api";
 import { daysAgoLabel, formatReviewTimestamp } from "../lib/format";
+import { originalVersionFor } from "../lib/reviewHistory";
 import type { Review } from "../types";
 import { StarRating } from "./badges";
 import { ReplyForm } from "./ReplyForm";
@@ -11,15 +13,19 @@ const LOCATION_NAME = new Map(LOCATIONS.map((l) => [l.id, l.name]));
 interface CriticalReviewFeedProps {
   reviews: Review[];
   showLocation: boolean;
+  edits: ReviewEdit[] | null;
 }
 
 /** Dedicated panel for 1–2★ reviews — separate from the general feed so a
  * critical review never has to compete for attention with 4★/5★ ones.
  * Same "show the latest available, don't hide real data behind a strict
- * weekly cutoff" rule as ReviewFeed. */
+ * weekly cutoff" rule as ReviewFeed. Also exactly where a review edited
+ * down from 5★ to 1★ matters most, so the "originally X★" note (see
+ * lib/reviewHistory.ts) lives here too, not just on "Alle reviews". */
 export function CriticalReviewFeed({
   reviews,
   showLocation,
+  edits,
 }: CriticalReviewFeedProps) {
   // Reviews replied to in this session, ahead of the next full refetch —
   // lets the status (and the reply text itself) show immediately after a
@@ -44,7 +50,11 @@ export function CriticalReviewFeed({
       {reviews.length === 0 ? (
         <div className={styles.empty}>Geen 1–2★ reviews op dit moment.</div>
       ) : (
-        reviews.map((review) => (
+        reviews.map((review) => {
+          const original = review.googleReviewId
+            ? originalVersionFor(review.googleReviewId, edits)
+            : undefined;
+          return (
           <div key={review.id} className={styles.item}>
             <div className={styles.initials}>{review.initials}</div>
             <div className={styles.body}>
@@ -58,6 +68,14 @@ export function CriticalReviewFeed({
                 )}
               </div>
               <div className={styles.snippet}>&ldquo;{review.snippet}&rdquo;</div>
+              {original && (
+                <div className={styles.editNotice}>
+                  <div className={styles.editLabel}>
+                    Bewerkt · oorspronkelijk {original.rating}★
+                  </div>
+                  <div className={styles.editText}>&ldquo;{original.text}&rdquo;</div>
+                </div>
+              )}
               {isResponded(review) && replyTextFor(review) && (
                 <div className={styles.reply}>
                   <div className={styles.replyLabel}>Jullie antwoord</div>
@@ -92,7 +110,8 @@ export function CriticalReviewFeed({
               </span>
             </div>
           </div>
-        ))
+          );
+        })
       )}
     </div>
   );

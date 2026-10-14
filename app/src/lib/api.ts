@@ -164,6 +164,63 @@ export async function fetchLiveWeeklyLog(): Promise<WeeklyLogEntry[] | null> {
   }
 }
 
+/** A review we'd previously fetched with different text/rating, now seen
+ * with a moved updateTime — detected server-side by diffing against our
+ * own snapshots (see server/src/reviewHistoryStore.ts). Google's API has
+ * no edit-history endpoint, so this only ever covers edits that happened
+ * after the backend started watching, never anything from before. */
+export interface ReviewEdit {
+  id: string;
+  reviewId: string;
+  location: LocationId;
+  reviewer: string;
+  previousRating: number;
+  previousText: string;
+  previousUpdateTime: string | null;
+  newRating: number;
+  newText: string;
+  newUpdateTime: string | null;
+  detectedAt: string;
+}
+
+/** A review we'd previously fetched that's simply gone from a later full
+ * fetch — Google gives no reason or deletion log, so this can't say
+ * whether Google removed it or the reviewer withdrew it, only that it's
+ * gone, and only from the point the backend started watching onward. */
+export interface RemovedReview {
+  id: string;
+  reviewId: string;
+  location: LocationId;
+  reviewer: string;
+  rating: number;
+  text: string;
+  createTime: string | null;
+  lastSeenUpdateTime: string | null;
+  detectedAt: string;
+}
+
+export async function fetchReviewEdits(): Promise<ReviewEdit[] | null> {
+  if (!hasLiveBackend()) return null;
+  try {
+    const res = await fetch(`${API_BASE}/api/review-edits`);
+    if (!res.ok) return null;
+    return (await res.json()) as ReviewEdit[];
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchRemovedReviews(): Promise<RemovedReview[] | null> {
+  if (!hasLiveBackend()) return null;
+  try {
+    const res = await fetch(`${API_BASE}/api/review-removals`);
+    if (!res.ok) return null;
+    return (await res.json()) as RemovedReview[];
+  } catch {
+    return null;
+  }
+}
+
 export interface NewWeeklyLogEntry {
   location: LocationId;
   type: LogType;

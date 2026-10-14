@@ -123,6 +123,26 @@
   text-wrap: pretty;
 }
 
+.editNotice {
+  margin-top: var(--sp-xs);
+  padding: var(--sp-xs) var(--sp-sm);
+  border-left: 2px solid var(--ag-error-border);
+  background: var(--ag-error-bg);
+}
+
+.editLabel {
+  font: var(--fs-label-sm);
+  letter-spacing: var(--ls-label-sm);
+  color: var(--ag-error);
+}
+
+.editText {
+  font: var(--fs-body-sm);
+  color: var(--ag-on-surface);
+  margin-top: 2px;
+  text-wrap: pretty;
+}
+
 .aside {
   flex: 0 0 110px;
   display: flex;

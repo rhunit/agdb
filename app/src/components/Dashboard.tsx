@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useDashboardData, type LocationFilter } from "../hooks/useDashboardData";
 import { useLiveAllBusinessReviews } from "../hooks/useLiveAllBusinessReviews";
 import { useLiveBusinessReviews } from "../hooks/useLiveBusinessReviews";
 import { useLivePlacesReviewGrowth } from "../hooks/useLivePlacesReviewGrowth";
 import { useLivePlacesSummary } from "../hooks/useLivePlacesSummary";
+import { useRemovedReviews } from "../hooks/useRemovedReviews";
+import { useReviewEdits } from "../hooks/useReviewEdits";
 import { useWeeklyLog } from "../hooks/useWeeklyLog";
 import { rangeForPreset, type DateRange } from "../lib/dateRange";
 import { formatUpdatedAt } from "../lib/format";
@@ -13,6 +15,7 @@ import { CriticalReviewFeed } from "./CriticalReviewFeed";
 import { LoadingState } from "./LoadingState";
 import { LocationsOverview } from "./LocationsOverview";
 import { RatingBreakdown } from "./RatingBreakdown";
+import { RemovedReviewsCard } from "./RemovedReviewsCard";
 import { ReviewFeed } from "./ReviewFeed";
 import { Sidebar, type SidebarView } from "./Sidebar";
 import { Topbar } from "./Topbar";
@@ -42,6 +45,11 @@ export function Dashboard() {
   // the "Alle reviews" page — so it's needed whenever that page or the
   // dashboard itself is showing, just not for "Locaties".
   const allBusinessReviews = useLiveAllBusinessReviews(view !== "locaties");
+  // Both detected server-side by diffing against our own snapshots — see
+  // server/src/reviewHistoryStore.ts for why this can only ever start
+  // from the point that backend first ran.
+  const reviewEdits = useReviewEdits(view !== "locaties");
+  const removedReviews = useRemovedReviews(view !== "locaties");
   const dashboardLoading =
     livePlaces.loading || businessReviews.loading || reviewGrowth.loading || weeklyLog.loading;
   const data = useDashboardData(
@@ -53,6 +61,11 @@ export function Dashboard() {
     businessReviews.data,
     allBusinessReviews.data,
   );
+
+  const removedForFilter = useMemo(() => {
+    const locationSet = new Set(data.locations);
+    return (removedReviews.removed ?? []).filter((r) => locationSet.has(r.location));
+  }, [removedReviews.removed, data.locations]);
 
   return (
     <>
@@ -74,6 +87,7 @@ export function Dashboard() {
                 reviewsByLocation={allBusinessReviews.data}
                 isLive={allBusinessReviews.isLive}
                 loading={allBusinessReviews.loading}
+                edits={reviewEdits.edits}
               />
             </div>
           ) : (
@@ -129,8 +143,14 @@ export function Dashboard() {
                       <CriticalReviewFeed
                         reviews={data.criticalFeedReviews}
                         showLocation={filter === "all"}
+                        edits={reviewEdits.edits}
                       />
                     </div>
+
+                    <RemovedReviewsCard
+                      removed={removedForFilter}
+                      loading={removedReviews.loading}
+                    />
 
                     {(SHOW_REVIEW_GROWTH_CHART || SHOW_TREND_CONTEXT) && (
                       <div className={styles.split}>

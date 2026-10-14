@@ -10,6 +10,7 @@ import {
   getAuthorizedClient,
   isConnected,
 } from "./googleAuth.js";
+import type { InternalLocationId } from "./googleBusinessProfile.js";
 import { getWeeklySearchViews, listLocations } from "./googleBusinessProfile.js";
 import {
   getAllBusinessReviews,
@@ -19,6 +20,11 @@ import {
 } from "./googleBusinessReviews.js";
 import { ACTIVE_LOCATIONS, getAllPlacesSummaries } from "./googlePlaces.js";
 import { getWeeklyReviewGrowth, recordSnapshot } from "./placesHistoryStore.js";
+import {
+  diffAndRecordReviews,
+  listRemovedReviews,
+  listReviewEdits,
+} from "./reviewHistoryStore.js";
 import { appendWeeklyLogEntry, listWeeklyLog } from "./weeklyLogStore.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -150,17 +156,42 @@ app.get("/api/business-reviews", async (_req, res) => {
 
 // Backs the "Alle reviews" page — the complete review history per
 // location, not just the recent window /api/business-reviews uses for
-// the dashboard's weekly stats and feed.
+// the dashboard's weekly stats and feed. Also the only point that ever
+// sees a location's *complete* review set in one go, which is why edit/
+// removal detection (see reviewHistoryStore.ts) piggybacks on it rather
+// than the recent-window endpoint — a review missing from a 14-day
+// window just means it's old, not removed.
 app.get("/api/business-reviews-all", async (_req, res) => {
   try {
     const auth = getAuthorizedClient();
     const locations = await listLocations(auth);
     const reviews = await getAllBusinessReviews(auth, locations);
+    for (const [location, list] of Object.entries(reviews)) {
+      try {
+        diffAndRecordReviews(location as InternalLocationId, list ?? []);
+      } catch (err) {
+        console.error(`diffAndRecordReviews failed for ${location}:`, err);
+      }
+    }
     res.json(reviews);
   } catch (err) {
     console.error(err);
     res.status(503).json({ error: (err as Error).message });
   }
+});
+
+// Reviews we previously saw with different text/rating and a moved
+// updateTime — see reviewHistoryStore.ts for why this can only ever
+// start from the first time this ran, never recover edits from before.
+app.get("/api/review-edits", (_req, res) => {
+  res.json(listReviewEdits(Array.from(LOCATION_IDS) as InternalLocationId[]));
+});
+
+// Reviews we previously saw that are simply gone from a later full
+// fetch — Google gives no reason (removed by Google, withdrawn by the
+// reviewer, or anything else), so this only ever reports "gone", not why.
+app.get("/api/review-removals", (_req, res) => {
+  res.json(listRemovedReviews(Array.from(LOCATION_IDS) as InternalLocationId[]));
 });
 
 // Posts (or edits) the owner reply on one review. This writes straight to

@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { LOCATION_TAB_LABEL, VISIBLE_LOCATION_IDS } from "../config";
 import { LOCATIONS } from "../data/mockData";
-import type { LiveBusinessReview } from "../lib/api";
+import type { LiveBusinessReview, ReviewEdit } from "../lib/api";
 import { daysAgoLabel, formatReviewTimestamp } from "../lib/format";
 import { businessReviewsFor } from "../lib/reviews";
+import { originalVersionFor } from "../lib/reviewHistory";
 import { reviewMatchesTheme } from "../lib/reviewPatterns";
 import type { LocationId, Review } from "../types";
 import { StarRating } from "./badges";
@@ -32,6 +33,7 @@ interface AllReviewsProps {
   isLive: boolean;
   loading: boolean;
   filterRequest?: AllReviewsFilterRequest | null;
+  edits: ReviewEdit[] | null;
 }
 
 export function AllReviews({
@@ -39,6 +41,7 @@ export function AllReviews({
   isLive,
   loading,
   filterRequest,
+  edits,
 }: AllReviewsProps) {
   const [shown, setShown] = useState(PAGE_SIZE);
   const [locationTab, setLocationTab] = useState<LocationId | "all">("all");
@@ -271,55 +274,68 @@ export function AllReviews({
       ) : (
         <>
           <div className={styles.list}>
-            {reviews.slice(0, shown).map((review) => (
-              <div key={review.id} className={styles.item}>
-                <div className={styles.initials}>{review.initials}</div>
-                <div className={styles.body}>
-                  <div className={styles.meta}>
-                    <span className={styles.reviewer}>{review.reviewer}</span>
-                    <StarRating rating={review.rating} />
-                    {locationTab === "all" && (
-                      <span className={styles.locationName}>
-                        · {LOCATION_NAME.get(review.location)}
-                      </span>
+            {reviews.slice(0, shown).map((review) => {
+              const original = review.googleReviewId
+                ? originalVersionFor(review.googleReviewId, edits)
+                : undefined;
+              return (
+                <div key={review.id} className={styles.item}>
+                  <div className={styles.initials}>{review.initials}</div>
+                  <div className={styles.body}>
+                    <div className={styles.meta}>
+                      <span className={styles.reviewer}>{review.reviewer}</span>
+                      <StarRating rating={review.rating} />
+                      {locationTab === "all" && (
+                        <span className={styles.locationName}>
+                          · {LOCATION_NAME.get(review.location)}
+                        </span>
+                      )}
+                    </div>
+                    <div className={styles.snippet}>&ldquo;{review.snippet}&rdquo;</div>
+                    {original && (
+                      <div className={styles.editNotice}>
+                        <div className={styles.editLabel}>
+                          Bewerkt · oorspronkelijk {original.rating}★
+                        </div>
+                        <div className={styles.editText}>&ldquo;{original.text}&rdquo;</div>
+                      </div>
+                    )}
+                    {isResponded(review) && replyTextFor(review) && (
+                      <div className={styles.reply}>
+                        <div className={styles.replyLabel}>Jullie antwoord</div>
+                        <div className={styles.replyText}>{replyTextFor(review)}</div>
+                      </div>
+                    )}
+                    {!isResponded(review) && review.googleReviewId && (
+                      <ReplyForm
+                        location={review.location}
+                        googleReviewId={review.googleReviewId}
+                        onSent={(text) =>
+                          setRepliedText((prev) => new Map(prev).set(review.id, text))
+                        }
+                      />
                     )}
                   </div>
-                  <div className={styles.snippet}>&ldquo;{review.snippet}&rdquo;</div>
-                  {isResponded(review) && replyTextFor(review) && (
-                    <div className={styles.reply}>
-                      <div className={styles.replyLabel}>Jullie antwoord</div>
-                      <div className={styles.replyText}>{replyTextFor(review)}</div>
-                    </div>
-                  )}
-                  {!isResponded(review) && review.googleReviewId && (
-                    <ReplyForm
-                      location={review.location}
-                      googleReviewId={review.googleReviewId}
-                      onSent={(text) =>
-                        setRepliedText((prev) => new Map(prev).set(review.id, text))
+                  <div className={styles.aside}>
+                    <span
+                      className={
+                        isResponded(review) ? styles.statusResponded : styles.statusOpen
                       }
-                    />
-                  )}
+                    >
+                      {isResponded(review) ? "Beantwoord" : "Onbeantwoord"}
+                    </span>
+                    <span className={styles.time}>
+                      {daysAgoLabel(review.daysAgo)}
+                      {review.publishedAt && (
+                        <span className={styles.timestamp}>
+                          {formatReviewTimestamp(review.publishedAt)}
+                        </span>
+                      )}
+                    </span>
+                  </div>
                 </div>
-                <div className={styles.aside}>
-                  <span
-                    className={
-                      isResponded(review) ? styles.statusResponded : styles.statusOpen
-                    }
-                  >
-                    {isResponded(review) ? "Beantwoord" : "Onbeantwoord"}
-                  </span>
-                  <span className={styles.time}>
-                    {daysAgoLabel(review.daysAgo)}
-                    {review.publishedAt && (
-                      <span className={styles.timestamp}>
-                        {formatReviewTimestamp(review.publishedAt)}
-                      </span>
-                    )}
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           {shown < reviews.length && (
             <button
