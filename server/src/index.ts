@@ -279,16 +279,17 @@ app.get("/api/ai-chat-available", (_req, res) => {
   res.json({ available: isAiChatAvailable() });
 });
 
-// A general-purpose chat turn for the floating AI panel — not grounded in
-// any review data, just a plain assistant someone can keep open while
-// working. The frontend sends the whole conversation each time (nothing
-// is persisted server-side), capped and trimmed in aiChat.ts.
+// A general-purpose chat turn for the floating AI panel. The frontend
+// sends the whole conversation each time (nothing is persisted
+// server-side), capped and trimmed in aiChat.ts, plus an optional
+// `context` string — the aggregate dashboard stats currently on screen
+// (see app/src/lib/aiChatContext.ts), never individual review text.
 app.post("/api/ai-chat", async (req, res) => {
   if (!isAiChatAvailable()) {
     res.status(501).json({ error: "AI-chat is niet geconfigureerd (OPENAI_API_KEY ontbreekt)." });
     return;
   }
-  const { messages } = req.body ?? {};
+  const { messages, context } = req.body ?? {};
   if (
     !Array.isArray(messages) ||
     messages.length === 0 ||
@@ -298,13 +299,14 @@ app.post("/api/ai-chat", async (req, res) => {
         m !== null &&
         ((m as ChatMessage).role === "user" || (m as ChatMessage).role === "assistant") &&
         typeof (m as ChatMessage).content === "string",
-    )
+    ) ||
+    (context !== undefined && typeof context !== "string")
   ) {
-    res.status(400).json({ error: "Vereist: messages[] met role en content." });
+    res.status(400).json({ error: "Vereist: messages[] met role en content; optioneel context." });
     return;
   }
   try {
-    const reply = await generateChatReply(messages as ChatMessage[]);
+    const reply = await generateChatReply(messages as ChatMessage[], context);
     res.json({ reply });
   } catch (err) {
     console.error(err);

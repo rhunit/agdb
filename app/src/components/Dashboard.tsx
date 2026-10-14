@@ -7,6 +7,7 @@ import { useLivePlacesSummary } from "../hooks/useLivePlacesSummary";
 import { useRemovedReviews } from "../hooks/useRemovedReviews";
 import { useReviewEdits } from "../hooks/useReviewEdits";
 import { useWeeklyLog } from "../hooks/useWeeklyLog";
+import { buildDashboardContext } from "../lib/aiChatContext";
 import { rangeForPreset, type DateRange } from "../lib/dateRange";
 import { formatUpdatedAt } from "../lib/format";
 import { AiChatPanel } from "./AiChatPanel";
@@ -69,6 +70,28 @@ export function Dashboard() {
     const locationSet = new Set(data.locations);
     return (removedReviews.removed ?? []).filter((r) => locationSet.has(r.location));
   }, [removedReviews.removed, data.locations]);
+
+  // What the AI chat panel is told about — the same aggregate numbers
+  // already on screen (WeekSummary/BentoGrid), not individual review
+  // text, so it can answer "hoeveel reviews kwamen er binnen" accurately
+  // without us sending customer review content to a third-party API on
+  // every chat turn.
+  const aiChatContext = useMemo(
+    () =>
+      buildDashboardContext(filter, dateRange, {
+        reviewCount: data.reviewCount,
+        reviewCountDelta: data.reviewCountDelta,
+        avgScore: data.avgScore,
+        avgScoreDelta: data.avgScoreDelta,
+        avgScoreIsLive: data.avgScoreIsLive,
+        topRatedCount: data.topRatedCount,
+        topRatedCountDelta: data.topRatedCountDelta,
+        criticalCount: data.criticalCount,
+        criticalCountDelta: data.criticalCountDelta,
+        openCriticalCount: data.openCriticalReviews.length,
+      }),
+    [filter, dateRange, data],
+  );
 
   return (
     <>
@@ -209,7 +232,7 @@ export function Dashboard() {
           )}
         </div>
       </div>
-      <AiChatPanel />
+      <AiChatPanel contextSummary={aiChatContext.summary} contextLabel={aiChatContext.label} />
     </>
   );
 }

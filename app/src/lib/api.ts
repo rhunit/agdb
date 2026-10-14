@@ -373,9 +373,13 @@ export async function fetchAiChatAvailable(): Promise<boolean> {
 
 /** Sends the whole conversation so far and gets the next assistant turn
  * back — nothing is persisted server-side, so the full history has to be
- * resent each time. Not grounded in any review data, just a general
- * assistant someone can keep open while working. */
-export async function sendChatMessage(messages: ChatMessage[]): Promise<SendChatMessageResult> {
+ * resent each time. `context` is an optional plain-text snapshot of the
+ * aggregate dashboard stats currently on screen (see
+ * ../lib/aiChatContext.ts) — never individual review text. */
+export async function sendChatMessage(
+  messages: ChatMessage[],
+  context?: string,
+): Promise<SendChatMessageResult> {
   if (!hasLiveBackend()) {
     return { ok: false, error: "Geen backend geconfigureerd." };
   }
@@ -383,7 +387,7 @@ export async function sendChatMessage(messages: ChatMessage[]): Promise<SendChat
     const res = await fetch(`${API_BASE}/api/ai-chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages }),
+      body: JSON.stringify({ messages, context }),
     });
     if (!res.ok) {
       const body = (await res.json().catch(() => null)) as { error?: string } | null;

@@ -2,15 +2,26 @@ import { useEffect, useRef, useState } from "react";
 import { fetchAiChatAvailable, sendChatMessage, type ChatMessage } from "../lib/api";
 import styles from "./AiChatPanel.module.css";
 
+interface AiChatPanelProps {
+  /** Plain-text snapshot of the current dashboard stats, sent along with
+   * every chat message so the assistant can answer things like "hoeveel
+   * reviews zijn binnengekomen" — see ../lib/aiChatContext.ts. */
+  contextSummary: string;
+  /** Short "period · location" label shown in the panel so it's clear
+   * what the assistant currently can and can't see. */
+  contextLabel: string;
+}
+
 /** Floating "AI"-knop, rechtsonder, die een in-/uitklapbaar chatpaneel
  * toont — bedoeld als vervanger voor een los ChatGPT-tabblad, zodat
  * iemand dit open kan laten staan terwijl ze in het dashboard werken.
- * Niet gekoppeld aan reviewdata: een los, algemeen hulpmiddel op
- * dezelfde OPENAI_API_KEY als de Rapportage-samenvatting. Embedding van
- * chatgpt.com zelf is niet mogelijk (OpenAI blokkeert dat met
- * X-Frame-Options/CSP, net als vrijwel elke site met een login), dus dit
- * praat rechtstreeks met de OpenAI API in plaats van hun site te tonen. */
-export function AiChatPanel() {
+ * Ziet de actuele dashboardcijfers (zie contextSummary), niet de losse
+ * reviewteksten. Draait op dezelfde OPENAI_API_KEY als de
+ * Rapportage-samenvatting. Embedding van chatgpt.com zelf is niet
+ * mogelijk (OpenAI blokkeert dat met X-Frame-Options/CSP, net als
+ * vrijwel elke site met een login), dus dit praat rechtstreeks met de
+ * OpenAI API in plaats van hun site te tonen. */
+export function AiChatPanel({ contextSummary, contextLabel }: AiChatPanelProps) {
   const [open, setOpen] = useState(false);
   const [available, setAvailable] = useState<boolean | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -35,7 +46,7 @@ export function AiChatPanel() {
     setInput("");
     setSending(true);
     setError(null);
-    const result = await sendChatMessage(next);
+    const result = await sendChatMessage(next, contextSummary);
     setSending(false);
     if (result.ok) {
       setMessages((prev) => [...prev, { role: "assistant", content: result.reply }]);
@@ -73,11 +84,12 @@ export function AiChatPanel() {
             </div>
           ) : (
             <>
+              <div className={styles.contextBar}>Ziet: {contextLabel}</div>
               <div className={styles.messages} ref={listRef}>
                 {messages.length === 0 && (
                   <div className={styles.statusText}>
-                    Stel een vraag — dit is een los hulpmiddel, niet gekoppeld aan je
-                    reviewdata.
+                    Stel een vraag — ik zie de huidige dashboardcijfers hierboven, maar geen
+                    losse reviewteksten.
                   </div>
                 )}
                 {messages.map((m, i) => (
