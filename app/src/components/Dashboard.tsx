@@ -32,6 +32,7 @@ import styles from "./Dashboard.module.css";
 const SHOW_REVIEW_GROWTH_CHART = false;
 const SHOW_TREND_CONTEXT = false;
 const SHOW_WEEKLY_UPDATE_FORM = false;
+const SHOW_WEEKLY_LOG = false;
 
 export function Dashboard() {
   const [view, setView] = useState<SidebarView>("dashboard");
@@ -182,10 +183,12 @@ export function Dashboard() {
                       />
                     )}
 
-                    <WeeklyLog
-                      entries={data.logEntries}
-                      weekCount={data.logWeekCount}
-                    />
+                    {SHOW_WEEKLY_LOG && (
+                      <WeeklyLog
+                        entries={data.logEntries}
+                        weekCount={data.logWeekCount}
+                      />
+                    )}
                   </>
                 )}
               </div>
