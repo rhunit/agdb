@@ -204,6 +204,7 @@ export function AllReviews({
                 : `${reviews.length} van ${activeBase.length}`}
             </div>
           )}
+          <DateRangeSelector value={dateRange} onChange={setDateRange} />
           <ExportPdfButton />
         </div>
       </div>
@@ -244,8 +245,6 @@ export function AllReviews({
 
       {allReviews.length > 0 && (
         <div className={styles.filters}>
-          <DateRangeSelector value={dateRange} onChange={setDateRange} />
-
           <FilterDropdown
             label="Status"
             options={statusOptions}
