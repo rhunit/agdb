@@ -25,6 +25,7 @@ import {
   listRemovedReviews,
   listReviewEdits,
 } from "./reviewHistoryStore.js";
+import { generateReportSummary, isReportSummaryAvailable } from "./reportSummary.js";
 import { appendWeeklyLogEntry, listWeeklyLog } from "./weeklyLogStore.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -228,6 +229,43 @@ app.post("/api/business-reviews/:location/:reviewId/reply", async (req, res) => 
       comment.trim(),
     );
     res.json(reply);
+  } catch (err) {
+    console.error(err);
+    res.status(503).json({ error: (err as Error).message });
+  }
+});
+
+// Whether an AI-written narrative summary can be generated at all — lets
+// the frontend hide/disable the "Genereer samenvatting" button instead of
+// letting someone click it and then hit a 501.
+app.get("/api/report-summary-available", (_req, res) => {
+  res.json({ available: isReportSummaryAvailable() });
+});
+
+// Generates the narrative part of the Rapportage page (compliments,
+// concerns, closing note) from the reviews the frontend already has
+// loaded for the selected location/period — on demand only, never
+// automatically, since it's a paid Claude API call. Grounded strictly in
+// the review text it's given; see reportSummary.ts for the prompt.
+app.post("/api/report-summary", async (req, res) => {
+  if (!isReportSummaryAvailable()) {
+    res.status(501).json({
+      error: "AI-samenvatting is niet geconfigureerd (ANTHROPIC_API_KEY ontbreekt).",
+    });
+    return;
+  }
+  const { locationName, periodLabel, reviews } = req.body ?? {};
+  if (
+    typeof locationName !== "string" ||
+    typeof periodLabel !== "string" ||
+    !Array.isArray(reviews)
+  ) {
+    res.status(400).json({ error: "Vereist: locationName, periodLabel, reviews[]." });
+    return;
+  }
+  try {
+    const result = await generateReportSummary({ locationName, periodLabel, reviews });
+    res.json(result);
   } catch (err) {
     console.error(err);
     res.status(503).json({ error: (err as Error).message });

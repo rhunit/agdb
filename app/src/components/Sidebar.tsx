@@ -1,7 +1,7 @@
 import { ThemeToggle } from "./ThemeToggle";
 import styles from "./Sidebar.module.css";
 
-export type SidebarView = "dashboard" | "alle-reviews" | "locaties";
+export type SidebarView = "dashboard" | "alle-reviews" | "locaties" | "rapportage";
 
 interface NavItem {
   label: string;
@@ -12,6 +12,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", view: "dashboard" },
   { label: "Alle reviews", view: "alle-reviews" },
   { label: "Locaties", view: "locaties" },
+  { label: "Rapportage", view: "rapportage" },
 ];
 
 interface SidebarProps {

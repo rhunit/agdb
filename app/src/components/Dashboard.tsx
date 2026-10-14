@@ -14,6 +14,7 @@ import { BentoGrid } from "./BentoGrid";
 import { CriticalReviewFeed } from "./CriticalReviewFeed";
 import { LoadingState } from "./LoadingState";
 import { LocationsOverview } from "./LocationsOverview";
+import { Rapportage } from "./Rapportage";
 import { RatingBreakdown } from "./RatingBreakdown";
 import { RemovedReviewsCard } from "./RemovedReviewsCard";
 import { ReviewFeed } from "./ReviewFeed";
@@ -85,6 +86,16 @@ export function Dashboard() {
           ) : view === "alle-reviews" ? (
             <div className={styles.content}>
               <AllReviews
+                reviewsByLocation={allBusinessReviews.data}
+                isLive={allBusinessReviews.isLive}
+                loading={allBusinessReviews.loading}
+                edits={reviewEdits.edits}
+                removed={removedReviews.removed}
+              />
+            </div>
+          ) : view === "rapportage" ? (
+            <div className={styles.content}>
+              <Rapportage
                 reviewsByLocation={allBusinessReviews.data}
                 isLive={allBusinessReviews.isLive}
                 loading={allBusinessReviews.loading}

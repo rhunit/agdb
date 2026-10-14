@@ -289,3 +289,63 @@ export async function submitWeeklyLogEntry(
     return { ok: false, error: "Kon de server niet bereiken." };
   }
 }
+
+export interface ReportSummaryReviewInput {
+  reviewer: string;
+  rating: number;
+  text: string;
+  createTime: string | null;
+}
+
+export interface ReportSummaryResult {
+  compliments: string;
+  concerns: string;
+  closing: string;
+}
+
+export type GenerateReportSummaryResult =
+  | { ok: true; summary: ReportSummaryResult }
+  | { ok: false; error: string };
+
+/** Whether the AI-written narrative section on the Rapportage page can be
+ * generated at all — the backend only has this configured when
+ * ANTHROPIC_API_KEY is set, so the frontend checks first rather than
+ * letting someone click the button into a guaranteed failure. */
+export async function fetchReportSummaryAvailable(): Promise<boolean> {
+  if (!hasLiveBackend()) return false;
+  try {
+    const res = await fetch(`${API_BASE}/api/report-summary-available`);
+    if (!res.ok) return false;
+    const body = (await res.json()) as { available: boolean };
+    return body.available;
+  } catch {
+    return false;
+  }
+}
+
+/** Generates the narrative compliments/concerns/closing text for one
+ * location and period — on demand only (never automatic), since this is
+ * a paid Claude API call. Grounded strictly in the `reviews` passed in. */
+export async function generateReportSummary(
+  locationName: string,
+  periodLabel: string,
+  reviews: ReportSummaryReviewInput[],
+): Promise<GenerateReportSummaryResult> {
+  if (!hasLiveBackend()) {
+    return { ok: false, error: "Geen backend geconfigureerd." };
+  }
+  try {
+    const res = await fetch(`${API_BASE}/api/report-summary`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ locationName, periodLabel, reviews }),
+    });
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+      return { ok: false, error: body?.error ?? `Genereren mislukt (${res.status}).` };
+    }
+    return { ok: true, summary: (await res.json()) as ReportSummaryResult };
+  } catch {
+    return { ok: false, error: "Kon de server niet bereiken." };
+  }
+}

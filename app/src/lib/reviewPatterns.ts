@@ -145,3 +145,47 @@ export function detectReviewPatterns(reviews: Review[]): ReviewPattern[] {
     .sort((a, b) => b.count - a.count)
     .slice(0, MAX_THEMES);
 }
+
+export interface ThemeStarBreakdown {
+  theme: string;
+  counts: Record<1 | 2 | 3, number>;
+  total: number;
+}
+
+/** The "Negatieve reviews per locatie" table from the reference reports:
+ * every theme (no MIN_COUNT floor here, unlike detectReviewPatterns — a
+ * report should show a theme's true zero, not hide it) broken down by
+ * star rating, plus an "Overig / onbekend" row for critical reviews that
+ * match none of them. A review matching more than one theme is counted
+ * in each (same rule the reference report itself states), so the rows'
+ * totals can add up to more than `uniqueCriticalCount`. */
+export function buildThemeStarBreakdown(reviews: Review[]): {
+  rows: ThemeStarBreakdown[];
+  uniqueCriticalCount: number;
+} {
+  const critical = reviews.filter(isCritical);
+
+  const rows: ThemeStarBreakdown[] = THEMES.map((theme) => {
+    const counts: Record<1 | 2 | 3, number> = { 1: 0, 2: 0, 3: 0 };
+    for (const r of critical) {
+      const text = r.snippet.toLowerCase();
+      if (theme.keywords.some((kw) => text.includes(kw))) {
+        counts[r.rating as 1 | 2 | 3]++;
+      }
+    }
+    return { theme: theme.label, counts, total: counts[1] + counts[2] + counts[3] };
+  });
+
+  const unmatched = critical.filter(
+    (r) => !THEMES.some((t) => t.keywords.some((kw) => r.snippet.toLowerCase().includes(kw))),
+  );
+  const overigCounts: Record<1 | 2 | 3, number> = { 1: 0, 2: 0, 3: 0 };
+  for (const r of unmatched) overigCounts[r.rating as 1 | 2 | 3]++;
+  rows.push({
+    theme: "Overig / onbekend",
+    counts: overigCounts,
+    total: unmatched.length,
+  });
+
+  return { rows, uniqueCriticalCount: critical.length };
+}
