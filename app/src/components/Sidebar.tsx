@@ -77,7 +77,7 @@ export function Sidebar({ active, onNavigate }: SidebarProps) {
         <div>
           Professor Harvest:
           <br />
-          &ldquo;Get smart, before you get growing.&rdquo;
+          &ldquo;Get smart, before you grow.&rdquo;
         </div>
       </div>
     </aside>
