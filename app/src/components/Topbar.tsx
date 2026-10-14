@@ -2,6 +2,7 @@ import { LOCATION_TAB_LABEL, VISIBLE_LOCATION_IDS } from "../config";
 import type { LocationFilter } from "../hooks/useDashboardData";
 import type { DateRange } from "../lib/dateRange";
 import { DateRangeSelector } from "./DateRangeSelector";
+import { ExportPdfButton } from "./ExportPdfButton";
 import styles from "./Topbar.module.css";
 
 // Only these profile tabs are live for now (see ../config) — the rest of
@@ -35,6 +36,7 @@ export function Topbar({
         <div className={styles.updated}>bijgewerkt {updatedAt}</div>
         <div className={styles.rightControls}>
           <DateRangeSelector value={dateRange} onChange={onDateRangeChange} />
+          <ExportPdfButton />
         </div>
       </div>
       <div className={styles.tabs} role="tablist" aria-label="Profiel">

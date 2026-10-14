@@ -5,6 +5,11 @@
 }
 
 .header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-md);
+  flex-wrap: wrap;
   padding-top: var(--sp-xs);
 }
 

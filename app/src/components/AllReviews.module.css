@@ -27,6 +27,12 @@
   margin-top: 2px;
 }
 
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+}
+
 .count {
   font: var(--fs-body-sm);
   color: var(--ag-muted);
@@ -109,10 +115,24 @@
   gap: var(--sp-sm);
   padding: var(--sp-sm) 0;
   border-bottom: 1px solid var(--ag-border);
+  break-inside: avoid;
 }
 
 .item:last-child {
   border-bottom: none;
+}
+
+/* Kept in the DOM (not removed) past the "Toon meer" page size so a PDF
+   export can include everything that matches the current filters, not
+   just what's been paged into view on screen. */
+.itemBeyondPage {
+  display: none;
+}
+
+@media print {
+  .itemBeyondPage {
+    display: flex;
+  }
 }
 
 .initials {

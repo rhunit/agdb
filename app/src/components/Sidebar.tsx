@@ -21,7 +21,7 @@ interface SidebarProps {
 
 export function Sidebar({ active, onNavigate }: SidebarProps) {
   return (
-    <aside className={styles.sidebar}>
+    <aside className={styles.sidebar} data-print-hide>
       <div className={styles.stickyTop}>
         <div className={styles.brand}>
           <img className={styles.mark} src="/favicon.svg" alt="Amsterdam Genetics" />

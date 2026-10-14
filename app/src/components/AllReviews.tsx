@@ -2,17 +2,19 @@ import { useEffect, useMemo, useState } from "react";
 import { LOCATION_TAB_LABEL, VISIBLE_LOCATION_IDS } from "../config";
 import { LOCATIONS } from "../data/mockData";
 import type { LiveBusinessReview, ReviewEdit } from "../lib/api";
+import { isWithinRange, rangeForPreset, type DateRange } from "../lib/dateRange";
 import { daysAgoLabel, formatReviewTimestamp } from "../lib/format";
-import { businessReviewsFor } from "../lib/reviews";
+import { businessReviewsFor, dateFromReview } from "../lib/reviews";
 import { originalVersionFor } from "../lib/reviewHistory";
 import { detectReviewPatterns, reviewMatchesTheme } from "../lib/reviewPatterns";
 import { sortReviews, SORT_OPTIONS, type SortOption } from "../lib/reviewSort";
 import type { LocationId, Review } from "../types";
 import { StarRating } from "./badges";
+import { DateRangeSelector } from "./DateRangeSelector";
+import { ExportPdfButton } from "./ExportPdfButton";
 import { FilterDropdown, type FilterOption } from "./FilterDropdown";
 import { LoadingState } from "./LoadingState";
 import { ReplyForm } from "./ReplyForm";
-import { ReviewPatterns } from "./ReviewPatterns";
 import styles from "./AllReviews.module.css";
 
 const LOCATION_NAME = new Map(LOCATIONS.map((l) => [l.id, l.name]));
@@ -54,6 +56,10 @@ export function AllReviews({
 }: AllReviewsProps) {
   const [shown, setShown] = useState(PAGE_SIZE);
   const [locationTab, setLocationTab] = useState<LocationId | "all">("all");
+  // Defaults to the full history — "Alle reviews" is explicitly meant to
+  // be the complete list, not scoped to a week by default like the
+  // dashboard — but can be narrowed down from here too.
+  const [dateRange, setDateRange] = useState<DateRange>(() => rangeForPreset("all-time"));
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [ratingFilter, setRatingFilter] = useState<number | "all">("all");
   const [activeTheme, setActiveTheme] = useState<string | null>(null);
@@ -91,9 +97,10 @@ export function AllReviews({
   }, [reviewsByLocation]);
 
   const scopedReviews = useMemo(() => {
-    if (locationTab === "all") return allReviews;
-    return allReviews.filter((r) => r.location === locationTab);
-  }, [allReviews, locationTab]);
+    const byLocation =
+      locationTab === "all" ? allReviews : allReviews.filter((r) => r.location === locationTab);
+    return byLocation.filter((r) => isWithinRange(dateFromReview(r), dateRange));
+  }, [allReviews, locationTab, dateRange]);
 
   const patterns = useMemo(() => detectReviewPatterns(scopedReviews), [scopedReviews]);
 
@@ -153,11 +160,6 @@ export function AllReviews({
     setShown(PAGE_SIZE);
   }
 
-  function selectTheme(label: string) {
-    setActiveTheme((prev) => (prev === label ? null : label));
-    setShown(PAGE_SIZE);
-  }
-
   const filtersActive =
     statusFilter !== "all" || ratingFilter !== "all" || activeTheme !== null;
 
@@ -168,17 +170,20 @@ export function AllReviews({
           <div className={styles.title}>Alle reviews</div>
           <div className={styles.subtitle}>
             {locationTab === "all"
-              ? "Volledige, ongefilterde lijst over alle gekoppelde locaties — niet beperkt tot deze week."
-              : `Volledige, ongefilterde lijst voor ${LOCATION_TAB_LABEL[locationTab]} — niet beperkt tot deze week.`}
+              ? "Volledige lijst over alle gekoppelde locaties, te filteren op periode."
+              : `Volledige lijst voor ${LOCATION_TAB_LABEL[locationTab]}, te filteren op periode.`}
           </div>
         </div>
-        {scopedReviews.length > 0 && (
-          <div className={styles.count}>
-            {reviews.length === scopedReviews.length
-              ? `${scopedReviews.length} totaal`
-              : `${reviews.length} van ${scopedReviews.length}`}
-          </div>
-        )}
+        <div className={styles.headerRight}>
+          {scopedReviews.length > 0 && (
+            <div className={styles.count}>
+              {reviews.length === scopedReviews.length
+                ? `${scopedReviews.length} totaal`
+                : `${reviews.length} van ${scopedReviews.length}`}
+            </div>
+          )}
+          <ExportPdfButton />
+        </div>
       </div>
 
       {allReviews.length > 0 && (
@@ -215,16 +220,10 @@ export function AllReviews({
         </div>
       )}
 
-      {!loading && scopedReviews.length > 0 && (
-        <ReviewPatterns
-          reviews={scopedReviews}
-          activeTheme={activeTheme}
-          onSelectTheme={selectTheme}
-        />
-      )}
-
-      {scopedReviews.length > 0 && (
+      {allReviews.length > 0 && (
         <div className={styles.filters}>
+          <DateRangeSelector value={dateRange} onChange={setDateRange} />
+
           <FilterDropdown
             label="Status"
             options={statusOptions}
@@ -257,6 +256,7 @@ export function AllReviews({
             <button
               type="button"
               className={styles.filterReset}
+              data-print-hide
               onClick={() => {
                 setStatusFilter("all");
                 setRatingFilter("all");
@@ -286,12 +286,20 @@ export function AllReviews({
       ) : (
         <>
           <div className={styles.list}>
-            {reviews.slice(0, shown).map((review) => {
+            {reviews.map((review, index) => {
               const original = review.googleReviewId
                 ? originalVersionFor(review.googleReviewId, edits)
                 : undefined;
+              // Reviews beyond the current page are kept in the DOM (not
+              // sliced out) so a PDF export can reveal all of them via
+              // print CSS — "load meer" is just a screen-space concern,
+              // not a real filter the export should respect.
+              const beyondPage = index >= shown;
               return (
-                <div key={review.id} className={styles.item}>
+                <div
+                  key={review.id}
+                  className={beyondPage ? `${styles.item} ${styles.itemBeyondPage}` : styles.item}
+                >
                   <div className={styles.initials}>{review.initials}</div>
                   <div className={styles.body}>
                     <div className={styles.meta}>
@@ -353,6 +361,7 @@ export function AllReviews({
             <button
               type="button"
               className={styles.loadMore}
+              data-print-hide
               onClick={() => setShown((n) => n + PAGE_SIZE)}
             >
               Toon meer ({reviews.length - shown} resterend)

@@ -4,7 +4,13 @@ export type DateRangePreset =
   | "last-month"
   | "this-year"
   | "last-year"
+  | "all-time"
   | "custom";
+
+// Used as "all-time"'s start — far enough back that it can never exclude
+// a real review, without resorting to an actual MIN_DATE/epoch value
+// that would need special-casing everywhere a range's length is used.
+const ALL_TIME_START = new Date(2000, 0, 1);
 
 export interface DateRange {
   preset: DateRangePreset;
@@ -99,6 +105,8 @@ export function rangeForPreset(
       const lastYear = new Date(now.getFullYear() - 1, 0, 1);
       return { preset, start: startOfYear(lastYear), end: endOfYear(lastYear) };
     }
+    case "all-time":
+      return { preset, start: ALL_TIME_START, end: endOfDay(now) };
     case "custom":
       return {
         preset,
@@ -135,6 +143,11 @@ export function previousRange(range: DateRange): DateRange {
       const prevStart = new Date(prevEnd.getTime() - lengthMs);
       return { preset: range.preset, start: startOfDay(prevStart), end: endOfDay(prevEnd) };
     }
+    // "Vorige alle tijd" isn't a real concept — there's nothing before
+    // the start of all time to compare against, so this is a no-op.
+    // Nothing currently computes a delta while "all-time" is selected.
+    case "all-time":
+      return range;
   }
 }
 
@@ -153,6 +166,9 @@ export function formatRangeLabel(range: DateRange): string {
   }
   if (range.preset === "this-year" || range.preset === "last-year") {
     return `${start.getFullYear()}`;
+  }
+  if (range.preset === "all-time") {
+    return "Alle tijd";
   }
 
   const startMonth = DUTCH_MONTHS_SHORT[start.getMonth()];
@@ -177,4 +193,5 @@ export const PRESET_LABELS: Record<Exclude<DateRangePreset, "custom">, string> =
   "last-month": "Vorige maand",
   "this-year": "Dit jaar",
   "last-year": "Vorig jaar",
+  "all-time": "Alle tijd",
 };

@@ -15,6 +15,7 @@ const PRESETS: Exclude<DateRangePreset, "custom">[] = [
   "last-month",
   "this-year",
   "last-year",
+  "all-time",
 ];
 
 function toInputValue(d: Date): string {
@@ -61,13 +62,19 @@ export function DateRangeSelector({ value, onChange }: DateRangeSelectorProps) {
         aria-expanded={open}
       >
         {formatRangeLabel(value)}
-        <span className={styles.chevron} aria-hidden="true">
+        <span className={styles.chevron} aria-hidden="true" data-print-hide>
           ▾
         </span>
       </button>
 
       {open && (
-        <div className={styles.panel} style={panelStyle} ref={panelRef} role="menu">
+        <div
+          className={styles.panel}
+          style={panelStyle}
+          ref={panelRef}
+          role="menu"
+          data-print-hide
+        >
           {PRESETS.map((preset) => (
             <button
               key={preset}

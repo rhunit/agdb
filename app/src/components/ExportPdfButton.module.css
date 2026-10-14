@@ -1,0 +1,20 @@
+.button {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--ag-border);
+  border-radius: var(--r-full);
+  padding: var(--sp-xs) var(--sp-sm);
+  font: var(--fs-label-md);
+  font-weight: 600;
+  color: var(--ag-secondary);
+  background: var(--ag-surface);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.button:hover {
+  border-color: var(--ag-primary-border);
+  color: var(--ag-primary-strong);
+}

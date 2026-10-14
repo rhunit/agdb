@@ -134,3 +134,25 @@ a:hover {
 button {
   font-family: inherit;
 }
+
+/* PDF export (per-tab "Exporteer naar PDF" button, see ExportPdfButton.tsx)
+   goes through the browser's native print-to-PDF rather than a client- or
+   server-side rendering library — strip the interactive chrome here and
+   keep the data, so the export matches whatever's currently on screen
+   (filters, date range, sort order). Elements opt in to being stripped
+   via [data-print-hide] rather than hiding whole page sections by class,
+   since those are component-scoped CSS module names. */
+@media print {
+  [data-print-hide] {
+    display: none !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body {
+    background: #fff;
+  }
+}

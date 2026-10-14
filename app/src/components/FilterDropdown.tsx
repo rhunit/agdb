@@ -42,13 +42,19 @@ export function FilterDropdown({ label, options, value, onChange }: FilterDropdo
         {selected
           ? `${selected.label}${selected.count != null ? ` (${selected.count})` : ""}`
           : label}
-        <span className={styles.chevron} aria-hidden="true">
+        <span className={styles.chevron} aria-hidden="true" data-print-hide>
           ▾
         </span>
       </button>
 
       {open && (
-        <div className={styles.panel} style={panelStyle} ref={panelRef} role="menu">
+        <div
+          className={styles.panel}
+          style={panelStyle}
+          ref={panelRef}
+          role="menu"
+          data-print-hide
+        >
           {options.map((opt) => (
             <button
               key={opt.value}

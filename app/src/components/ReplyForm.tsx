@@ -44,14 +44,19 @@ export function ReplyForm({ location, googleReviewId, onSent }: ReplyFormProps) 
 
   if (stage === "closed") {
     return (
-      <button type="button" className={styles.toggle} onClick={() => setStage("editing")}>
+      <button
+        type="button"
+        className={styles.toggle}
+        data-print-hide
+        onClick={() => setStage("editing")}
+      >
         Beantwoorden
       </button>
     );
   }
 
   return (
-    <div className={styles.form}>
+    <div className={styles.form} data-print-hide>
       <textarea
         className={styles.textarea}
         value={text}

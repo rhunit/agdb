@@ -27,10 +27,11 @@
 }
 
 .panel {
-  /* position/top/left are set inline (see DateRangeSelector.tsx) — fixed
-     to the viewport and clamped so it can't run off-screen on narrow
-     layouts, which a plain `right: 0` relative to the trigger's own
-     (flex-shrunk) wrapper could do. */
+  /* position/top/left are set inline (see useDropdownPanel) — absolute,
+     right under the trigger, so it scrolls with the page; the
+     horizontal offset is still clamped so it can't run off-screen on
+     narrow layouts, which a plain `right: 0` relative to the trigger's
+     own (flex-shrunk) wrapper could do. */
   z-index: 30;
   background: var(--ag-surface);
   border: 1px solid var(--ag-border);

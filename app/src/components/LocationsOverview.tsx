@@ -1,4 +1,5 @@
 import { LOCATION_COLOR } from "./TrendChart";
+import { ExportPdfButton } from "./ExportPdfButton";
 import { LoadingState } from "./LoadingState";
 import { VISIBLE_LOCATION_IDS } from "../config";
 import { useLocationSummaries } from "../hooks/useLocationSummaries";
@@ -20,10 +21,12 @@ export function LocationsOverview({ onSelect }: LocationsOverviewProps) {
     return (
       <div className={styles.wrap}>
         <div className={styles.header}>
-          <div className={styles.title}>Locaties</div>
-          <div className={styles.subtitle}>
-            Kies een locatie om het reviewoverzicht van die vestiging te
-            bekijken.
+          <div>
+            <div className={styles.title}>Locaties</div>
+            <div className={styles.subtitle}>
+              Kies een locatie om het reviewoverzicht van die vestiging te
+              bekijken.
+            </div>
           </div>
         </div>
         <LoadingState />
@@ -34,11 +37,14 @@ export function LocationsOverview({ onSelect }: LocationsOverviewProps) {
   return (
     <div className={styles.wrap}>
       <div className={styles.header}>
-        <div className={styles.title}>Locaties</div>
-        <div className={styles.subtitle}>
-          Kies een locatie om het reviewoverzicht van die vestiging te
-          bekijken.
+        <div>
+          <div className={styles.title}>Locaties</div>
+          <div className={styles.subtitle}>
+            Kies een locatie om het reviewoverzicht van die vestiging te
+            bekijken.
+          </div>
         </div>
+        <ExportPdfButton />
       </div>
 
       <div className={styles.grid}>

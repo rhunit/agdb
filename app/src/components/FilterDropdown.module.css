@@ -29,7 +29,8 @@
 
 .panel {
   /* position/top/left are set inline (see FilterDropdown.tsx /
-     useDropdownPanel) — fixed to the viewport and clamped so it can't
+     useDropdownPanel) — absolute, right under the trigger, so it scrolls
+     with the page; the horizontal offset is still clamped so it can't
      run off-screen on narrow layouts. */
   z-index: 30;
   background: var(--ag-surface);
