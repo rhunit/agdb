@@ -36,6 +36,12 @@ export interface Review {
    * only set when `responded` is true and the review is live. Powers the
    * "Recent beantwoord" sort on "Alle reviews". */
   responseTime?: string;
+  /** Set only for a review reconstructed from a detected removal (see
+   * RemovedReview / reviewHistoryStore) — the moment our own snapshot
+   * diffing noticed it was gone, not something Google reports directly.
+   * When set, the review no longer exists on Google: no reply is
+   * possible and `responded` is meaningless. */
+  removedAt?: string;
 }
 
 export interface WeeklyLogEntry {

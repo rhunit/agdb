@@ -248,6 +248,17 @@
   border-radius: var(--r-full);
 }
 
+.statusRemoved {
+  font: var(--fs-label-sm);
+  letter-spacing: var(--ls-label-sm);
+  font-weight: 700;
+  color: var(--ag-error);
+  background: var(--ag-error-bg);
+  border: 1px solid var(--ag-error-border);
+  padding: 1px 8px;
+  border-radius: var(--r-full);
+}
+
 .time {
   font: var(--fs-body-sm);
   color: var(--ag-muted);

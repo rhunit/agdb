@@ -1,4 +1,4 @@
-import type { LiveBusinessReview } from "./api";
+import type { LiveBusinessReview, RemovedReview } from "./api";
 import type { LocationId, Review } from "../types";
 
 export function initialsFrom(name: string): string {
@@ -48,5 +48,26 @@ export function businessReviewsFor(
     googleReviewId: r.id,
     replyText: r.replyText ?? undefined,
     responseTime: r.responseTime ?? undefined,
+  }));
+}
+
+/** Converts detected removals into the same Review shape so they can
+ * share "Alle reviews"' filtering, sorting and rendering — gated behind
+ * the "Verwijderd" status filter rather than mixed into the normal list,
+ * since they no longer exist on Google (see RemovedReview). */
+export function reviewsFromRemoved(removed: RemovedReview[]): Review[] {
+  return removed.map((r) => ({
+    id: `removed-${r.id}`,
+    location: r.location,
+    reviewer: r.reviewer,
+    initials: initialsFrom(r.reviewer),
+    rating: Math.min(5, Math.max(1, Math.round(r.rating))) as Review["rating"],
+    snippet: r.text,
+    source: "onbekend",
+    confidence: "onbekend",
+    daysAgo: daysAgoFrom(r.createTime),
+    publishedAt: r.createTime ?? undefined,
+    responded: false,
+    removedAt: r.detectedAt,
   }));
 }

@@ -89,6 +89,7 @@ export function Dashboard() {
                 isLive={allBusinessReviews.isLive}
                 loading={allBusinessReviews.loading}
                 edits={reviewEdits.edits}
+                removed={removedReviews.removed}
               />
             </div>
           ) : (

@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { LOCATION_TAB_LABEL, VISIBLE_LOCATION_IDS } from "../config";
 import { LOCATIONS } from "../data/mockData";
-import type { LiveBusinessReview, ReviewEdit } from "../lib/api";
+import type { LiveBusinessReview, RemovedReview, ReviewEdit } from "../lib/api";
 import { isWithinRange, rangeForPreset, type DateRange } from "../lib/dateRange";
 import { daysAgoLabel, formatReviewTimestamp } from "../lib/format";
-import { businessReviewsFor, dateFromReview } from "../lib/reviews";
+import { businessReviewsFor, dateFromReview, reviewsFromRemoved } from "../lib/reviews";
 import { originalVersionFor } from "../lib/reviewHistory";
 import { detectReviewPatterns, reviewMatchesTheme } from "../lib/reviewPatterns";
 import { sortReviews, SORT_OPTIONS, type SortOption } from "../lib/reviewSort";
@@ -28,7 +28,7 @@ const RATING_OPTIONS: FilterOption[] = [
   { value: "1", label: "1 ster" },
 ];
 
-export type StatusFilter = "all" | "open" | "responded";
+export type StatusFilter = "all" | "open" | "responded" | "removed";
 
 /** A request to jump straight into a specific filter combination (e.g.
  * from the status strip's "view the critical reviews" link). Passing a
@@ -45,6 +45,7 @@ interface AllReviewsProps {
   loading: boolean;
   filterRequest?: AllReviewsFilterRequest | null;
   edits: ReviewEdit[] | null;
+  removed: RemovedReview[] | null;
 }
 
 export function AllReviews({
@@ -53,6 +54,7 @@ export function AllReviews({
   loading,
   filterRequest,
   edits,
+  removed,
 }: AllReviewsProps) {
   const [shown, setShown] = useState(PAGE_SIZE);
   const [locationTab, setLocationTab] = useState<LocationId | "all">("all");
@@ -104,8 +106,22 @@ export function AllReviews({
 
   const patterns = useMemo(() => detectReviewPatterns(scopedReviews), [scopedReviews]);
 
+  // Reviews Google no longer serves at all — kept out of the normal list
+  // (and its "Alle"/"Onbeantwoord"/"Beantwoord" counts) and only shown
+  // once "Verwijderd" is explicitly selected, same split as Localo's
+  // status filter. Scoped by location only, not by date range — the
+  // meaningful date here (when it was detected gone) isn't what the
+  // period selector filters on.
+  const removedScoped = useMemo(() => {
+    const asReviews = reviewsFromRemoved(removed ?? []);
+    return locationTab === "all"
+      ? asReviews
+      : asReviews.filter((r) => r.location === locationTab);
+  }, [removed, locationTab]);
+
   const reviews = useMemo(() => {
-    const filtered = scopedReviews.filter((r) => {
+    const base = statusFilter === "removed" ? removedScoped : scopedReviews;
+    const filtered = base.filter((r) => {
       if (statusFilter === "open" && isResponded(r)) return false;
       if (statusFilter === "responded" && !isResponded(r)) return false;
       if (ratingFilter !== "all" && r.rating !== ratingFilter) return false;
@@ -113,7 +129,7 @@ export function AllReviews({
       return true;
     });
     return sortReviews(filtered, sortBy);
-  }, [scopedReviews, statusFilter, ratingFilter, activeTheme, sortBy, repliedText]);
+  }, [scopedReviews, removedScoped, statusFilter, ratingFilter, activeTheme, sortBy, repliedText]);
 
   const statusOptions: FilterOption[] = useMemo(
     () => [
@@ -128,8 +144,9 @@ export function AllReviews({
         label: "Beantwoord",
         count: scopedReviews.filter((r) => isResponded(r)).length,
       },
+      { value: "removed", label: "Verwijderd", count: removedScoped.length },
     ],
-    [scopedReviews, repliedText],
+    [scopedReviews, removedScoped, repliedText],
   );
 
   const themeOptions: FilterOption[] = useMemo(
@@ -163,6 +180,11 @@ export function AllReviews({
   const filtersActive =
     statusFilter !== "all" || ratingFilter !== "all" || activeTheme !== null;
 
+  // Whichever pool "reviews" was built from — live reviews normally, the
+  // detected-removed pool once that status is selected — used for the
+  // header count and the "nothing here" empty states below.
+  const activeBase = statusFilter === "removed" ? removedScoped : scopedReviews;
+
   return (
     <div className={styles.wrap}>
       <div className={styles.header}>
@@ -175,11 +197,11 @@ export function AllReviews({
           </div>
         </div>
         <div className={styles.headerRight}>
-          {scopedReviews.length > 0 && (
+          {activeBase.length > 0 && (
             <div className={styles.count}>
-              {reviews.length === scopedReviews.length
-                ? `${scopedReviews.length} totaal`
-                : `${reviews.length} van ${scopedReviews.length}`}
+              {reviews.length === activeBase.length
+                ? `${activeBase.length} totaal`
+                : `${reviews.length} van ${activeBase.length}`}
             </div>
           )}
           <ExportPdfButton />
@@ -279,8 +301,12 @@ export function AllReviews({
         </div>
       ) : allReviews.length === 0 ? (
         <div className={styles.empty}>Geen reviews gevonden voor de gekoppelde locaties.</div>
-      ) : scopedReviews.length === 0 ? (
-        <div className={styles.empty}>Geen reviews voor deze locatie.</div>
+      ) : activeBase.length === 0 ? (
+        <div className={styles.empty}>
+          {statusFilter === "removed"
+            ? "Nog geen verwijderingen gedetecteerd voor deze locatie."
+            : "Geen reviews voor deze locatie."}
+        </div>
       ) : reviews.length === 0 ? (
         <div className={styles.empty}>Geen reviews voor deze filtercombinatie.</div>
       ) : (
@@ -337,19 +363,31 @@ export function AllReviews({
                     )}
                   </div>
                   <div className={styles.aside}>
-                    <span
-                      className={
-                        isResponded(review) ? styles.statusResponded : styles.statusOpen
-                      }
-                    >
-                      {isResponded(review) ? "Beantwoord" : "Onbeantwoord"}
-                    </span>
+                    {review.removedAt ? (
+                      <span className={styles.statusRemoved}>Verwijderd</span>
+                    ) : (
+                      <span
+                        className={
+                          isResponded(review) ? styles.statusResponded : styles.statusOpen
+                        }
+                      >
+                        {isResponded(review) ? "Beantwoord" : "Onbeantwoord"}
+                      </span>
+                    )}
                     <span className={styles.time}>
-                      {daysAgoLabel(review.daysAgo)}
-                      {review.publishedAt && (
+                      {review.removedAt ? (
                         <span className={styles.timestamp}>
-                          {formatReviewTimestamp(review.publishedAt)}
+                          Gedetecteerd {formatReviewTimestamp(review.removedAt)}
                         </span>
+                      ) : (
+                        <>
+                          {daysAgoLabel(review.daysAgo)}
+                          {review.publishedAt && (
+                            <span className={styles.timestamp}>
+                              {formatReviewTimestamp(review.publishedAt)}
+                            </span>
+                          )}
+                        </>
                       )}
                     </span>
                   </div>
