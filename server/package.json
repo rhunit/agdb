@@ -10,11 +10,11 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.133.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
-    "googleapis": "^144.0.0"
+    "googleapis": "^144.0.0",
+    "openai": "^7.33.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
