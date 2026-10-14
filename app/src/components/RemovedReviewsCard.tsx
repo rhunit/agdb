@@ -1,5 +1,5 @@
 import { LOCATIONS } from "../data/mockData";
-import type { RemovedReview, ReviewCountCheck } from "../lib/api";
+import type { RemovedReview } from "../lib/api";
 import { formatDutchInt, formatReviewTimestamp } from "../lib/format";
 import { StarRating } from "./badges";
 import { LoadingState } from "./LoadingState";
@@ -10,14 +10,13 @@ const LOCATION_NAME = new Map(LOCATIONS.map((l) => [l.id, l.name]));
 interface RemovedReviewsCardProps {
   removed: RemovedReview[];
   loading: boolean;
-  countChecks: ReviewCountCheck[] | null;
 }
 
 /** Reviews we'd previously fetched that are simply gone from a later
  * fetch — Google gives no reason or deletion log, so this can only ever
  * report "gone", never why, and only from the moment the backend first
  * started watching (see server/src/reviewHistoryStore.ts). */
-export function RemovedReviewsCard({ removed, loading, countChecks }: RemovedReviewsCardProps) {
+export function RemovedReviewsCard({ removed, loading }: RemovedReviewsCardProps) {
   if (loading) {
     return (
       <div className={styles.card}>
@@ -25,8 +24,6 @@ export function RemovedReviewsCard({ removed, loading, countChecks }: RemovedRev
       </div>
     );
   }
-
-  const discrepancies = (countChecks ?? []).filter((c) => (c.discrepancy ?? 0) > 0);
 
   return (
     <div className={styles.card}>
@@ -40,22 +37,6 @@ export function RemovedReviewsCard({ removed, loading, countChecks }: RemovedRev
         Google niet door. Alleen zichtbaar vanaf het moment dat dit is gaan bijhouden, dus geen
         volledige historie van daarvoor.
       </div>
-
-      {discrepancies.length > 0 && (
-        <div className={styles.countCheck}>
-          <div className={styles.countCheckLabel}>
-            Extra signaal — Google's eigen telling wijkt af van wat we terugkrijgen (dit kan ook
-            wijzen op reviews die al weg waren vóórdat dit is gaan bijhouden):
-          </div>
-          {discrepancies.map((c) => (
-            <div key={c.location} className={styles.countCheckRow}>
-              {LOCATION_NAME.get(c.location)}: Google telt {formatDutchInt(c.totalReviewCount ?? 0)}
-              , wij ontvingen {formatDutchInt(c.actualReviewCount)} (verschil:{" "}
-              {formatDutchInt(c.discrepancy ?? 0)})
-            </div>
-          ))}
-        </div>
-      )}
 
       {removed.length === 0 ? (
         <div className={styles.empty}>Nog geen verwijderingen gedetecteerd.</div>
