@@ -17,6 +17,9 @@ export interface LocationSummary {
 interface LocationSummariesState {
   summaries: LocationSummary[];
   loading: boolean;
+  /** The review counts couldn't be fetched — show an error rather than
+   * the mock fallback, which would look like real numbers. */
+  failed: boolean;
 }
 
 /** One row per location for the "Locaties" overview cards — average score
@@ -56,5 +59,9 @@ export function useLocationSummaries(): LocationSummariesState {
     });
   }, [livePlaces.data, liveBusinessReviews.data]);
 
-  return { summaries, loading: livePlaces.loading || liveBusinessReviews.loading };
+  return {
+    summaries,
+    loading: livePlaces.loading || liveBusinessReviews.loading,
+    failed: liveBusinessReviews.failed,
+  };
 }

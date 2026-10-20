@@ -1,0 +1,4 @@
+.title {
+  font: var(--fs-label-lg);
+  color: var(--ag-error);
+}

@@ -12,6 +12,9 @@ interface LiveBusinessReviewsState {
   data: BusinessReviewsMap | null;
   isLive: boolean;
   loading: boolean;
+  /** True once the fetch finished without data — the request failed
+   * (see ../lib/apiFailures for why), as opposed to still loading. */
+  failed: boolean;
 }
 
 /** Fetches the last two weeks of reviews per location via the legacy v4
@@ -20,18 +23,26 @@ interface LiveBusinessReviewsState {
  * null (caller uses Places data or mock) with zero config, no Google
  * connection yet, or on any failure. */
 export function useLiveBusinessReviews(): LiveBusinessReviewsState {
+  const [settled, setSettled] = useState(false);
   const [data, setData] = useState<BusinessReviewsMap | null>(null);
 
   useEffect(() => {
     if (!hasLiveBackend()) return;
     let cancelled = false;
     fetchLiveBusinessReviews().then((result) => {
-      if (!cancelled) setData(result);
+      if (cancelled) return;
+      setData(result);
+      setSettled(true);
     });
     return () => {
       cancelled = true;
     };
   }, []);
 
-  return { data, isLive: data !== null, loading: hasLiveBackend() && data === null };
+  return {
+    data,
+    isLive: data !== null,
+    loading: hasLiveBackend() && !settled,
+    failed: settled && data === null,
+  };
 }

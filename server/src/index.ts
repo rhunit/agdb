@@ -6,6 +6,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   buildConsentUrl,
+  checkGoogleConnection,
   exchangeCodeForRefreshToken,
   getAuthorizedClient,
   isConnected,
@@ -61,8 +62,16 @@ app.use(requireBetaAuth);
 app.use(cors({ origin: process.env.FRONTEND_ORIGIN ?? "http://localhost:5173" }));
 app.use(express.json());
 
-app.get("/health", (_req, res) => {
-  res.json({ ok: true, googleConnected: isConnected() });
+// Always 200 while the server itself is up (so a platform health check
+// doesn't restart it over a Google problem it can't fix) — googleConnected
+// reflects a real token check, with Google's error when it fails.
+app.get("/health", async (_req, res) => {
+  const google = await checkGoogleConnection();
+  res.json({
+    ok: true,
+    googleConnected: google.ok,
+    ...(google.ok ? {} : { googleError: google.error }),
+  });
 });
 
 // One-time admin flow: open this in a browser, log in as an account that
@@ -405,4 +414,11 @@ app.listen(PORT, () => {
       ? "Google Business Profile: connected"
       : `Google Business Profile: not connected — visit http://localhost:${PORT}/auth/google`,
   );
+  // A stored token can still be rejected (expired, revoked, wrong client)
+  // — say so in the startup log rather than only on the first API call.
+  if (isConnected()) {
+    void checkGoogleConnection().then((google) => {
+      if (!google.ok) console.error(`Google token rejected: ${google.error}`);
+    });
+  }
 });

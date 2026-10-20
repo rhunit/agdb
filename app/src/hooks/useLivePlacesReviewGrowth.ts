@@ -6,6 +6,9 @@ interface LiveReviewGrowthState {
   data: ReviewGrowthWeek[] | null;
   isLive: boolean;
   loading: boolean;
+  /** True once the fetch finished without data — the request failed
+   * (see ../lib/apiFailures for why), as opposed to still loading. */
+  failed: boolean;
 }
 
 /** Fetches real week-over-week review-growth data from the backend when
@@ -13,13 +16,16 @@ interface LiveReviewGrowthState {
  * mock data) if no backend is configured, unreachable, or too few weeks
  * of history have been recorded yet. */
 export function useLivePlacesReviewGrowth(): LiveReviewGrowthState {
+  const [settled, setSettled] = useState(false);
   const [data, setData] = useState<ReviewGrowthWeek[] | null>(null);
 
   useEffect(() => {
     if (!hasLiveBackend()) return;
     let cancelled = false;
     fetchLiveReviewGrowth().then((result) => {
-      if (!cancelled) setData(result);
+      if (cancelled) return;
+      setData(result);
+      setSettled(true);
     });
     return () => {
       cancelled = true;
@@ -29,6 +35,7 @@ export function useLivePlacesReviewGrowth(): LiveReviewGrowthState {
   return {
     data,
     isLive: data !== null && data.length > 0,
-    loading: hasLiveBackend() && data === null,
+    loading: hasLiveBackend() && !settled,
+    failed: settled && data === null,
   };
 }

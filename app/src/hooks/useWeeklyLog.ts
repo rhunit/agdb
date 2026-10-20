@@ -11,6 +11,9 @@ interface UseWeeklyLogResult {
   entries: WeeklyLogEntry[] | null;
   isLive: boolean;
   loading: boolean;
+  /** True once the fetch finished without data — the request failed
+   * (see ../lib/apiFailures for why), as opposed to still loading. */
+  failed: boolean;
   submitting: boolean;
   submitError: string | null;
   submit: (input: NewWeeklyLogEntry) => Promise<boolean>;
@@ -20,13 +23,17 @@ interface UseWeeklyLogResult {
  * and lets the form append to it. Falls back to null (caller uses mock,
  * read-only) with zero config or on any failure. */
 export function useWeeklyLog(): UseWeeklyLogResult {
+  const [settled, setSettled] = useState(false);
   const [entries, setEntries] = useState<WeeklyLogEntry[] | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const load = useCallback(() => {
     if (!hasLiveBackend()) return;
-    fetchLiveWeeklyLog().then(setEntries);
+    fetchLiveWeeklyLog().then((result) => {
+      setEntries(result);
+      setSettled(true);
+    });
   }, []);
 
   useEffect(() => {
@@ -52,7 +59,8 @@ export function useWeeklyLog(): UseWeeklyLogResult {
   return {
     entries,
     isLive: entries !== null,
-    loading: hasLiveBackend() && entries === null,
+    loading: hasLiveBackend() && !settled,
+    failed: settled && entries === null,
     submitting,
     submitError,
     submit,

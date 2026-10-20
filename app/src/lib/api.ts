@@ -5,6 +5,7 @@ import type {
   SearchViewsWeek,
   WeeklyLogEntry,
 } from "../types";
+import { classifyServerError, clearApiFailure, recordApiFailure } from "./apiFailures";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string | undefined;
 
@@ -48,15 +49,40 @@ export function hasLiveBackend(): boolean {
   return API_BASE !== undefined;
 }
 
-export async function fetchLiveLocations(): Promise<LiveLocation[] | null> {
-  if (!hasLiveBackend()) return null;
+// Long enough for the full-history fetch on a small instance, short
+// enough that a hung backend turns into a visible error instead of a
+// spinner that never stops.
+const DEFAULT_TIMEOUT_MS = 60_000;
+
+/** GET + JSON parse with a timeout. Never throws: returns null on any
+ * failure (callers keep their existing null fallback) but records why in
+ * ./apiFailures, which is what the error banner and error states read. */
+async function getJson<T>(path: string, timeoutMs = DEFAULT_TIMEOUT_MS): Promise<T | null> {
   try {
-    const res = await fetch(`${API_BASE}/api/locations`);
-    if (!res.ok) return null;
-    return (await res.json()) as LiveLocation[];
-  } catch {
+    const res = await fetch(`${API_BASE}${path}`, { signal: AbortSignal.timeout(timeoutMs) });
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+      const message = body?.error ?? `HTTP ${res.status}`;
+      recordApiFailure(path, classifyServerError(res.status, message), message);
+      return null;
+    }
+    const data = (await res.json()) as T;
+    clearApiFailure(path);
+    return data;
+  } catch (err) {
+    const timedOut = err instanceof DOMException && err.name === "TimeoutError";
+    recordApiFailure(
+      path,
+      timedOut ? "timeout" : "network",
+      timedOut ? `Geen antwoord binnen ${timeoutMs / 1000} s` : String(err),
+    );
     return null;
   }
+}
+
+export async function fetchLiveLocations(): Promise<LiveLocation[] | null> {
+  if (!hasLiveBackend()) return null;
+  return getJson<LiveLocation[]>("/api/locations");
 }
 
 function weekSortKey(week: string): number {
@@ -65,32 +91,18 @@ function weekSortKey(week: string): number {
 
 export async function fetchLiveSearchViews(): Promise<SearchViewsWeek[] | null> {
   if (!hasLiveBackend()) return null;
-  try {
-    const res = await fetch(`${API_BASE}/api/search-views`);
-    if (!res.ok) return null;
-    const raw = (await res.json()) as Record<
-      string,
-      Record<LocationId, number>
-    >;
-    return Object.entries(raw)
-      .map(([week, byLocation]) => ({ week, ...byLocation }))
-      .sort((a, b) => weekSortKey(a.week) - weekSortKey(b.week));
-  } catch {
-    return null;
-  }
+  const raw = await getJson<Record<string, Record<LocationId, number>>>("/api/search-views");
+  if (!raw) return null;
+  return Object.entries(raw)
+    .map(([week, byLocation]) => ({ week, ...byLocation }))
+    .sort((a, b) => weekSortKey(a.week) - weekSortKey(b.week));
 }
 
 export async function fetchLivePlacesSummary(): Promise<Partial<
   Record<LocationId, LivePlaceSummary>
 > | null> {
   if (!hasLiveBackend()) return null;
-  try {
-    const res = await fetch(`${API_BASE}/api/places-summary`);
-    if (!res.ok) return null;
-    return (await res.json()) as Partial<Record<LocationId, LivePlaceSummary>>;
-  } catch {
-    return null;
-  }
+  return getJson<Partial<Record<LocationId, LivePlaceSummary>>>("/api/places-summary");
 }
 
 /** Week-over-week new-review counts, derived server-side from weekly
@@ -100,26 +112,20 @@ export async function fetchLivePlacesSummary(): Promise<Partial<
  * across enough weeks to build up history. */
 export async function fetchLiveReviewGrowth(): Promise<ReviewGrowthWeek[] | null> {
   if (!hasLiveBackend()) return null;
-  try {
-    const res = await fetch(`${API_BASE}/api/places-review-growth`);
-    if (!res.ok) return null;
-    const raw = (await res.json()) as Record<
-      string,
-      Partial<Record<LocationId, number>>
-    >;
-    return Object.entries(raw)
-      .map(([week, byLocation]) => ({
-        week,
-        centrum: byLocation.centrum ?? 0,
-        oost: byLocation.oost ?? 0,
-        depijp: byLocation.depijp ?? 0,
-        boerejongens: byLocation.boerejongens ?? 0,
-        almere: byLocation.almere ?? 0,
-      }))
-      .sort((a, b) => weekSortKey(a.week) - weekSortKey(b.week));
-  } catch {
-    return null;
-  }
+  const raw = await getJson<Record<string, Partial<Record<LocationId, number>>>>(
+    "/api/places-review-growth",
+  );
+  if (!raw) return null;
+  return Object.entries(raw)
+    .map(([week, byLocation]) => ({
+      week,
+      centrum: byLocation.centrum ?? 0,
+      oost: byLocation.oost ?? 0,
+      depijp: byLocation.depijp ?? 0,
+      boerejongens: byLocation.boerejongens ?? 0,
+      almere: byLocation.almere ?? 0,
+    }))
+    .sort((a, b) => weekSortKey(a.week) - weekSortKey(b.week));
 }
 
 /** Reviews from the last two weeks per location via the legacy v4
@@ -130,13 +136,7 @@ export async function fetchLiveBusinessReviews(): Promise<Partial<
   Record<LocationId, LiveBusinessReview[]>
 > | null> {
   if (!hasLiveBackend()) return null;
-  try {
-    const res = await fetch(`${API_BASE}/api/business-reviews`);
-    if (!res.ok) return null;
-    return (await res.json()) as Partial<Record<LocationId, LiveBusinessReview[]>>;
-  } catch {
-    return null;
-  }
+  return getJson<Partial<Record<LocationId, LiveBusinessReview[]>>>("/api/business-reviews");
 }
 
 /** The complete review history per location (not just the recent window
@@ -145,24 +145,17 @@ export async function fetchLiveAllBusinessReviews(): Promise<Partial<
   Record<LocationId, LiveBusinessReview[]>
 > | null> {
   if (!hasLiveBackend()) return null;
-  try {
-    const res = await fetch(`${API_BASE}/api/business-reviews-all`);
-    if (!res.ok) return null;
-    return (await res.json()) as Partial<Record<LocationId, LiveBusinessReview[]>>;
-  } catch {
-    return null;
-  }
+  // Pulls every review for every location — noticeably slower than the
+  // other calls, so it gets a longer timeout before counting as hung.
+  return getJson<Partial<Record<LocationId, LiveBusinessReview[]>>>(
+    "/api/business-reviews-all",
+    120_000,
+  );
 }
 
 export async function fetchLiveWeeklyLog(): Promise<WeeklyLogEntry[] | null> {
   if (!hasLiveBackend()) return null;
-  try {
-    const res = await fetch(`${API_BASE}/api/weekly-log`);
-    if (!res.ok) return null;
-    return (await res.json()) as WeeklyLogEntry[];
-  } catch {
-    return null;
-  }
+  return getJson<WeeklyLogEntry[]>("/api/weekly-log");
 }
 
 /** A review we'd previously fetched with different text/rating, now seen
@@ -202,24 +195,12 @@ export interface RemovedReview {
 
 export async function fetchReviewEdits(): Promise<ReviewEdit[] | null> {
   if (!hasLiveBackend()) return null;
-  try {
-    const res = await fetch(`${API_BASE}/api/review-edits`);
-    if (!res.ok) return null;
-    return (await res.json()) as ReviewEdit[];
-  } catch {
-    return null;
-  }
+  return getJson<ReviewEdit[]>("/api/review-edits");
 }
 
 export async function fetchRemovedReviews(): Promise<RemovedReview[] | null> {
   if (!hasLiveBackend()) return null;
-  try {
-    const res = await fetch(`${API_BASE}/api/review-removals`);
-    if (!res.ok) return null;
-    return (await res.json()) as RemovedReview[];
-  } catch {
-    return null;
-  }
+  return getJson<RemovedReview[]>("/api/review-removals");
 }
 
 export interface NewWeeklyLogEntry {

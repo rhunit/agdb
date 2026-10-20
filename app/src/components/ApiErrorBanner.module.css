@@ -1,0 +1,82 @@
+.banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-sm);
+  margin: var(--sp-md) var(--sp-lg) 0;
+  padding: var(--sp-sm) var(--sp-md);
+  background: var(--ag-error-bg);
+  border: 1px solid var(--ag-error-border);
+  border-radius: var(--r-xl);
+  color: var(--ag-on-surface);
+}
+
+.icon {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-full);
+  background: var(--ag-error);
+  color: #fff;
+  font: var(--fs-label-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font: var(--fs-label-lg);
+  color: var(--ag-error);
+}
+
+.action {
+  font: var(--fs-body-sm);
+  margin-top: 2px;
+}
+
+.detail {
+  font: var(--fs-body-sm);
+  font-size: 12px;
+  color: var(--ag-muted);
+  margin-top: var(--sp-xs);
+  overflow-wrap: anywhere;
+}
+
+.retry {
+  appearance: none;
+  flex: none;
+  border: 1px solid var(--ag-error-border);
+  border-radius: var(--r-full);
+  padding: var(--sp-xs) var(--sp-sm);
+  font: var(--fs-label-md);
+  font-weight: 600;
+  color: var(--ag-error);
+  background: var(--ag-surface);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.retry:hover {
+  border-color: var(--ag-error);
+}
+
+@media (max-width: 720px) {
+  .banner {
+    flex-wrap: wrap;
+    margin: var(--sp-sm) var(--sp-sm) 0;
+  }
+
+  /* Button on its own row under the text instead of squeezing it. */
+  .body {
+    flex-basis: calc(100% - 24px - var(--sp-sm));
+  }
+
+  .retry {
+    margin-left: calc(24px + var(--sp-sm));
+  }
+}

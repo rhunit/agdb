@@ -1,5 +1,6 @@
 import { LOCATION_COLOR } from "./TrendChart";
 import { ExportPdfButton } from "./ExportPdfButton";
+import { ErrorState } from "./ErrorState";
 import { LoadingState } from "./LoadingState";
 import { VISIBLE_LOCATION_IDS } from "../config";
 import { useLocationSummaries } from "../hooks/useLocationSummaries";
@@ -14,10 +15,10 @@ interface LocationsOverviewProps {
 export function LocationsOverview({ onSelect }: LocationsOverviewProps) {
   // Only locations with a working Topbar tab are clickable here for now —
   // the rest "volgen later" (see Topbar.VISIBLE_TABS).
-  const { summaries: allSummaries, loading } = useLocationSummaries();
+  const { summaries: allSummaries, loading, failed } = useLocationSummaries();
   const summaries = allSummaries.filter((loc) => VISIBLE_LOCATION_IDS.includes(loc.id));
 
-  if (loading) {
+  if (loading || failed) {
     return (
       <div className={styles.wrap}>
         <div className={styles.header}>
@@ -29,7 +30,7 @@ export function LocationsOverview({ onSelect }: LocationsOverviewProps) {
             </div>
           </div>
         </div>
-        <LoadingState />
+        {failed ? <ErrorState /> : <LoadingState />}
       </div>
     );
   }

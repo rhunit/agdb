@@ -12,6 +12,9 @@ interface LiveAllBusinessReviewsState {
   data: BusinessReviewsMap | null;
   isLive: boolean;
   loading: boolean;
+  /** True once the fetch finished without data — the request failed
+   * (see ../lib/apiFailures for why), as opposed to still loading. */
+  failed: boolean;
 }
 
 /** Fetches the complete review history per location (not just the recent
@@ -24,22 +27,26 @@ interface LiveAllBusinessReviewsState {
  * on any failure; the page then shows an honest empty state rather than
  * mock data, since there's no plausible mock for "every review ever". */
 export function useLiveAllBusinessReviews(enabled: boolean): LiveAllBusinessReviewsState {
+  const [settled, setSettled] = useState(false);
   const [data, setData] = useState<BusinessReviewsMap | null>(null);
 
   useEffect(() => {
-    if (!enabled || !hasLiveBackend() || data !== null) return;
+    if (!enabled || !hasLiveBackend() || settled) return;
     let cancelled = false;
     fetchLiveAllBusinessReviews().then((result) => {
-      if (!cancelled) setData(result);
+      if (cancelled) return;
+      setData(result);
+      setSettled(true);
     });
     return () => {
       cancelled = true;
     };
-  }, [enabled, data]);
+  }, [enabled, settled]);
 
   return {
     data,
     isLive: data !== null,
-    loading: enabled && hasLiveBackend() && data === null,
+    loading: enabled && hasLiveBackend() && !settled,
+    failed: settled && data === null,
   };
 }

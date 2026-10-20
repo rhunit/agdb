@@ -11,6 +11,9 @@ interface LivePlacesState {
    * resolved yet — always false in mock-only mode, since there's nothing
    * to wait for there. */
   loading: boolean;
+  /** True once the fetch finished without data — the request failed
+   * (see ../lib/apiFailures for why), as opposed to still loading. */
+  failed: boolean;
 }
 
 /** Interim live data source (average rating, total review count, a few
@@ -18,18 +21,26 @@ interface LivePlacesState {
  * OAuth connection. Falls back to null (caller uses mock) with zero config
  * or on any failure. */
 export function useLivePlacesSummary(): LivePlacesState {
+  const [settled, setSettled] = useState(false);
   const [data, setData] = useState<PlacesSummaryMap | null>(null);
 
   useEffect(() => {
     if (!hasLiveBackend()) return;
     let cancelled = false;
     fetchLivePlacesSummary().then((result) => {
-      if (!cancelled) setData(result);
+      if (cancelled) return;
+      setData(result);
+      setSettled(true);
     });
     return () => {
       cancelled = true;
     };
   }, []);
 
-  return { data, isLive: data !== null, loading: hasLiveBackend() && data === null };
+  return {
+    data,
+    isLive: data !== null,
+    loading: hasLiveBackend() && !settled,
+    failed: settled && data === null,
+  };
 }

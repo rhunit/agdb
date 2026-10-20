@@ -12,8 +12,10 @@ import { rangeForPreset, type DateRange } from "../lib/dateRange";
 import { formatUpdatedAt } from "../lib/format";
 import { AiChatPanel } from "./AiChatPanel";
 import { AllReviews } from "./AllReviews";
+import { ApiErrorBanner } from "./ApiErrorBanner";
 import { BentoGrid } from "./BentoGrid";
 import { CriticalReviewFeed } from "./CriticalReviewFeed";
+import { ErrorState } from "./ErrorState";
 import { LoadingState } from "./LoadingState";
 import { LocationsOverview } from "./LocationsOverview";
 import { Rapportage } from "./Rapportage";
@@ -56,6 +58,9 @@ export function Dashboard() {
   const removedReviews = useRemovedReviews(view !== "locaties");
   const dashboardLoading =
     livePlaces.loading || businessReviews.loading || reviewGrowth.loading || weeklyLog.loading;
+  // Without the review data useDashboardData falls back to mock reviews,
+  // which would look like real numbers — show an error instead.
+  const dashboardFailed = businessReviews.failed || allBusinessReviews.failed;
   const data = useDashboardData(
     filter,
     dateRange,
@@ -98,6 +103,7 @@ export function Dashboard() {
       <div className={styles.shell}>
         <Sidebar active={view} onNavigate={setView} />
         <div className={styles.main}>
+          <ApiErrorBanner />
           {view === "locaties" ? (
             <div className={styles.content}>
               <LocationsOverview
@@ -109,23 +115,31 @@ export function Dashboard() {
             </div>
           ) : view === "alle-reviews" ? (
             <div className={styles.content}>
-              <AllReviews
-                reviewsByLocation={allBusinessReviews.data}
-                isLive={allBusinessReviews.isLive}
-                loading={allBusinessReviews.loading}
-                edits={reviewEdits.edits}
-                removed={removedReviews.removed}
-              />
+              {allBusinessReviews.failed ? (
+                <ErrorState />
+              ) : (
+                <AllReviews
+                  reviewsByLocation={allBusinessReviews.data}
+                  isLive={allBusinessReviews.isLive}
+                  loading={allBusinessReviews.loading}
+                  edits={reviewEdits.edits}
+                  removed={removedReviews.removed}
+                />
+              )}
             </div>
           ) : view === "rapportage" ? (
             <div className={styles.content}>
-              <Rapportage
-                reviewsByLocation={allBusinessReviews.data}
-                isLive={allBusinessReviews.isLive}
-                loading={allBusinessReviews.loading}
-                edits={reviewEdits.edits}
-                removed={removedReviews.removed}
-              />
+              {allBusinessReviews.failed ? (
+                <ErrorState />
+              ) : (
+                <Rapportage
+                  reviewsByLocation={allBusinessReviews.data}
+                  isLive={allBusinessReviews.isLive}
+                  loading={allBusinessReviews.loading}
+                  edits={reviewEdits.edits}
+                  removed={removedReviews.removed}
+                />
+              )}
             </div>
           ) : (
             <>
@@ -137,7 +151,9 @@ export function Dashboard() {
                 onDateRangeChange={setDateRange}
               />
               <div className={styles.content}>
-                {dashboardLoading ? (
+                {dashboardFailed ? (
+                  <ErrorState />
+                ) : dashboardLoading ? (
                   <LoadingState />
                 ) : (
                   <>
