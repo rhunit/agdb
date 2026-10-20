@@ -25,6 +25,7 @@ const SEARCH_QUERIES: Partial<Record<InternalLocationId, string>> = {
   depijp: "Boerejongens West, Baarsjesweg 239, 1058 AA Amsterdam",
   boerejongens: "Boerejongens Coffeeshop, Utrechtsestraat 21, 1017 VH Amsterdam",
   almere: "Boerejongens Almere, Grote Markt 23, 1315 JA Almere",
+  amsterdamgenetics: "Amsterdam Genetics, Humberweg 6, 1043 AC Amsterdam",
 };
 
 /** Only fetch locations we have a verified query for — see note above. */

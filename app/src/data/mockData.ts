@@ -13,8 +13,9 @@ import type {
 // "almere" is a newer location, discovered via the Business Profile
 // (OAuth) connection rather than Places — it has no Places API entry
 // yet (see ACTIVE_LOCATIONS in googlePlaces.ts), so its avgScore tile
-// stays mock/non-live until that's configured with its address. Same for
-// "amsterdamgenetics", added later the same way.
+// stays mock/non-live until that's configured with its address.
+// "amsterdamgenetics" was added later the same way, with its Places query
+// configured from the start.
 export const LOCATIONS: Location[] = [
   { id: "centrum", name: "Coffeeshop BIJ Amsterdam" },
   { id: "oost", name: "Coffeeshop Sloterdijk" },
