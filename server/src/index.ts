@@ -33,7 +33,14 @@ import { appendWeeklyLogEntry, listWeeklyLog } from "./weeklyLogStore.js";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = Number(process.env.PORT ?? 8787);
-const LOCATION_IDS = new Set(["centrum", "oost", "depijp", "boerejongens", "almere"]);
+const LOCATION_IDS = new Set([
+  "centrum",
+  "oost",
+  "depijp",
+  "boerejongens",
+  "almere",
+  "amsterdamgenetics",
+]);
 
 // Gates the whole app behind a single shared username/password when both
 // are set — meant for a beta link handed to a small group, not real
@@ -213,7 +220,7 @@ app.post("/api/business-reviews/:location/:reviewId/reply", async (req, res) => 
   const { comment } = req.body ?? {};
   if (!LOCATION_IDS.has(location)) {
     res.status(400).json({
-      error: "Onbekende locatie. Vereist: centrum|oost|depijp|boerejongens|almere.",
+      error: "Onbekende locatie. Vereist: centrum|oost|depijp|boerejongens|almere|amsterdamgenetics.",
     });
     return;
   }
@@ -332,7 +339,7 @@ app.get("/api/business-reviews-test", async (req, res) => {
   const locationParam = req.query.location;
   if (typeof locationParam !== "string") {
     res.status(400).json({
-      error: "Vereist: ?location=centrum|oost|depijp|boerejongens|almere",
+      error: "Vereist: ?location=centrum|oost|depijp|boerejongens|almere|amsterdamgenetics",
     });
     return;
   }
@@ -381,12 +388,12 @@ app.post("/api/weekly-log", (req, res) => {
   ) {
     res.status(400).json({
       error:
-        "Vereist: location (centrum|oost|depijp|boerejongens|almere), type (smoke|qr), submitter, note.",
+        "Vereist: location (centrum|oost|depijp|boerejongens|almere|amsterdamgenetics), type (smoke|qr), submitter, note.",
     });
     return;
   }
   const entry = appendWeeklyLogEntry({
-    location: location as "centrum" | "oost" | "depijp" | "boerejongens" | "almere",
+    location: location as InternalLocationId,
     type: type as "smoke" | "qr",
     submitter,
     note,

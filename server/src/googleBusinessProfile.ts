@@ -6,7 +6,8 @@ export type InternalLocationId =
   | "oost"
   | "depijp"
   | "boerejongens"
-  | "almere";
+  | "almere"
+  | "amsterdamgenetics";
 
 export interface DiscoveredLocation {
   /** Our internal id, matched by name — see matchInternalId(). */
@@ -33,6 +34,9 @@ function matchInternalId(title: string): InternalLocationId | null {
   if (t.includes("boerejongens") && t.includes("west")) return "depijp";
   if (t.includes("boerejongens") && t.includes("almere")) return "almere";
   if (t.includes("boerejongens")) return "boerejongens";
+  // The brand's own profile — checked last so a store title that merely
+  // mentions the brand still lands on that store.
+  if (t.includes("amsterdam genetics")) return "amsterdamgenetics";
   return null;
 }
 
@@ -157,6 +161,7 @@ export async function getWeeklySearchViews(
             depijp: 0,
             boerejongens: 0,
             almere: 0,
+            amsterdamgenetics: 0,
           };
           weekly[week][loc.internalId] += value;
         }

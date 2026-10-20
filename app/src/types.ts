@@ -1,4 +1,10 @@
-export type LocationId = "centrum" | "oost" | "depijp" | "boerejongens" | "almere";
+export type LocationId =
+  | "centrum"
+  | "oost"
+  | "depijp"
+  | "boerejongens"
+  | "almere"
+  | "amsterdamgenetics";
 
 export type ReviewSource = "organisch" | "qr" | "smoke" | "onbekend";
 export type Confidence = "bevestigd" | "vermoedelijk" | "onbekend";
@@ -61,6 +67,7 @@ export interface SearchViewsWeek {
   depijp: number;
   boerejongens: number;
   almere: number;
+  amsterdamgenetics: number;
 }
 
 /** New reviews per location per week — same shape as SearchViewsWeek, kept
@@ -73,4 +80,5 @@ export interface ReviewGrowthWeek {
   depijp: number;
   boerejongens: number;
   almere: number;
+  amsterdamgenetics: number;
 }
