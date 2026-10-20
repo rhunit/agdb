@@ -99,7 +99,7 @@
 }
 
 .aside {
-  flex: 0 0 140px;
+  flex: 0 0 210px;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -123,6 +123,11 @@
   text-align: right;
 }
 
+.timeLine {
+  display: block;
+  white-space: nowrap;
+}
+
 @media (max-width: 560px) {
   .item {
     flex-wrap: wrap;
@@ -133,6 +138,7 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
     margin-left: calc(38px + var(--sp-sm));
   }
 }

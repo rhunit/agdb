@@ -229,6 +229,16 @@
   gap: 5px;
 }
 
+/* Removed reviews show two full timestamps (posted + noticed), which
+   don't fit the normal column without wrapping mid-date. */
+.asideRemoved {
+  flex-basis: 190px;
+}
+
+.asideRemoved .timestamp {
+  white-space: nowrap;
+}
+
 .statusOpen {
   font: var(--fs-label-sm);
   letter-spacing: var(--ls-label-sm);

@@ -57,7 +57,16 @@ export function RemovedReviewsCard({ removed, loading }: RemovedReviewsCardProps
               </div>
               <div className={styles.aside}>
                 <span className={styles.detectedLabel}>Verwijderd</span>
-                <span className={styles.time}>{formatReviewTimestamp(r.detectedAt)}</span>
+                <span className={styles.time}>
+                  {r.createTime && (
+                    <span className={styles.timeLine}>
+                      Geplaatst {formatReviewTimestamp(r.createTime)}
+                    </span>
+                  )}
+                  <span className={styles.timeLine}>
+                    Opgemerkt {formatReviewTimestamp(r.detectedAt)}
+                  </span>
+                </span>
               </div>
             </div>
           ))}

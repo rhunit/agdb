@@ -335,7 +335,8 @@ export function Rapportage({
                       {r.rating}★ · {LOCATION_TAB_LABEL[r.location]}
                     </span>
                     <span className={styles.changeTime}>
-                      {formatReviewTimestamp(r.detectedAt)}
+                      {r.createTime && <>geplaatst {formatReviewTimestamp(r.createTime)} · </>}
+                      opgemerkt {formatReviewTimestamp(r.detectedAt)}
                     </span>
                   </div>
                 ))}

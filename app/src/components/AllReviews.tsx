@@ -361,7 +361,11 @@ export function AllReviews({
                       />
                     )}
                   </div>
-                  <div className={styles.aside}>
+                  <div
+                    className={
+                      review.removedAt ? `${styles.aside} ${styles.asideRemoved}` : styles.aside
+                    }
+                  >
                     {review.removedAt ? (
                       <span className={styles.statusRemoved}>Verwijderd</span>
                     ) : (
@@ -375,9 +379,16 @@ export function AllReviews({
                     )}
                     <span className={styles.time}>
                       {review.removedAt ? (
-                        <span className={styles.timestamp}>
-                          Gedetecteerd {formatReviewTimestamp(review.removedAt)}
-                        </span>
+                        <>
+                          {review.publishedAt && (
+                            <span className={styles.timestamp}>
+                              Geplaatst {formatReviewTimestamp(review.publishedAt)}
+                            </span>
+                          )}
+                          <span className={styles.timestamp}>
+                            Opgemerkt {formatReviewTimestamp(review.removedAt)}
+                          </span>
+                        </>
                       ) : (
                         <>
                           {daysAgoLabel(review.daysAgo)}
