@@ -40,7 +40,7 @@ export async function generateReportSummary(
 ): Promise<ReportSummaryResult> {
   const openai = getOpenAiClient();
   if (!openai) {
-    throw new Error("OPENAI_API_KEY is niet geconfigureerd.");
+    throw new Error("AI staat uit: OPENAI_API_KEY of AI_ENABLED=true ontbreekt.");
   }
 
   const reviews = req.reviews.slice(0, MAX_REVIEWS_IN_PROMPT);

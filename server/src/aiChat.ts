@@ -36,7 +36,7 @@ export async function generateChatReply(
 ): Promise<string> {
   const openai = getOpenAiClient();
   if (!openai) {
-    throw new Error("OPENAI_API_KEY is niet geconfigureerd.");
+    throw new Error("AI staat uit: OPENAI_API_KEY of AI_ENABLED=true ontbreekt.");
   }
 
   const trimmed = history.slice(-MAX_HISTORY_MESSAGES).map((m) => ({

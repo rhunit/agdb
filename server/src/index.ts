@@ -267,7 +267,7 @@ app.get("/api/report-summary-available", (_req, res) => {
 app.post("/api/report-summary", async (req, res) => {
   if (!isReportSummaryAvailable()) {
     res.status(501).json({
-      error: "AI-samenvatting is niet geconfigureerd (OPENAI_API_KEY ontbreekt).",
+      error: "AI-samenvatting staat uit (OPENAI_API_KEY of AI_ENABLED=true ontbreekt).",
     });
     return;
   }
@@ -302,7 +302,7 @@ app.get("/api/ai-chat-available", (_req, res) => {
 // (see app/src/lib/aiChatContext.ts), never individual review text.
 app.post("/api/ai-chat", async (req, res) => {
   if (!isAiChatAvailable()) {
-    res.status(501).json({ error: "AI-chat is niet geconfigureerd (OPENAI_API_KEY ontbreekt)." });
+    res.status(501).json({ error: "AI-chat staat uit (OPENAI_API_KEY of AI_ENABLED=true ontbreekt)." });
     return;
   }
   const { messages, context } = req.body ?? {};
