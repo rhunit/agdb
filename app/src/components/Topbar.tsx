@@ -3,6 +3,7 @@ import type { LocationFilter } from "../hooks/useDashboardData";
 import type { DateRange } from "../lib/dateRange";
 import { DateRangeSelector } from "./DateRangeSelector";
 import { ExportPdfButton } from "./ExportPdfButton";
+import { RefreshButton } from "./RefreshButton";
 import styles from "./Topbar.module.css";
 
 // Only these profile tabs are live for now (see ../config) — the rest of
@@ -35,6 +36,7 @@ export function Topbar({
         <div className={styles.title}>Overzicht reviews</div>
         <div className={styles.updated}>bijgewerkt {updatedAt}</div>
         <div className={styles.rightControls}>
+          <RefreshButton />
           <DateRangeSelector value={dateRange} onChange={onDateRangeChange} />
           <ExportPdfButton />
         </div>

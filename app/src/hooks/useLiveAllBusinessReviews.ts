@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
 import {
   fetchLiveAllBusinessReviews,
-  hasLiveBackend,
   type LiveBusinessReview,
 } from "../lib/api";
 import type { LocationId } from "../types";
+import { useLiveResource } from "./useLiveResource";
 
 type BusinessReviewsMap = Partial<Record<LocationId, LiveBusinessReview[]>>;
 
@@ -27,26 +26,6 @@ interface LiveAllBusinessReviewsState {
  * on any failure; the page then shows an honest empty state rather than
  * mock data, since there's no plausible mock for "every review ever". */
 export function useLiveAllBusinessReviews(enabled: boolean): LiveAllBusinessReviewsState {
-  const [settled, setSettled] = useState(false);
-  const [data, setData] = useState<BusinessReviewsMap | null>(null);
-
-  useEffect(() => {
-    if (!enabled || !hasLiveBackend() || settled) return;
-    let cancelled = false;
-    fetchLiveAllBusinessReviews().then((result) => {
-      if (cancelled) return;
-      setData(result);
-      setSettled(true);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [enabled, settled]);
-
-  return {
-    data,
-    isLive: data !== null,
-    loading: enabled && hasLiveBackend() && !settled,
-    failed: settled && data === null,
-  };
+  const { data, loading, failed } = useLiveResource(fetchLiveAllBusinessReviews, enabled);
+  return { data, isLive: data !== null, loading, failed };
 }

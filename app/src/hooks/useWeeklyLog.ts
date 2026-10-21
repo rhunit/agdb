@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import {
   fetchLiveWeeklyLog,
-  hasLiveBackend,
   submitWeeklyLogEntry,
   type NewWeeklyLogEntry,
 } from "../lib/api";
 import type { WeeklyLogEntry } from "../types";
+import { useLiveResource } from "./useLiveResource";
 
 interface UseWeeklyLogResult {
   entries: WeeklyLogEntry[] | null;
@@ -23,44 +23,28 @@ interface UseWeeklyLogResult {
  * and lets the form append to it. Falls back to null (caller uses mock,
  * read-only) with zero config or on any failure. */
 export function useWeeklyLog(): UseWeeklyLogResult {
-  const [settled, setSettled] = useState(false);
-  const [entries, setEntries] = useState<WeeklyLogEntry[] | null>(null);
+  const { data: entries, setData: setEntries, loading, failed } = useLiveResource(fetchLiveWeeklyLog);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const load = useCallback(() => {
-    if (!hasLiveBackend()) return;
-    fetchLiveWeeklyLog().then((result) => {
-      setEntries(result);
-      setSettled(true);
-    });
-  }, []);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  const submit = useCallback(
-    async (input: NewWeeklyLogEntry) => {
-      setSubmitting(true);
-      setSubmitError(null);
-      const result = await submitWeeklyLogEntry(input);
-      setSubmitting(false);
-      if (!result.ok) {
-        setSubmitError(result.error);
-        return false;
-      }
-      setEntries((prev) => (prev ? [...prev, result.entry] : [result.entry]));
-      return true;
-    },
-    [],
-  );
+  async function submit(input: NewWeeklyLogEntry) {
+    setSubmitting(true);
+    setSubmitError(null);
+    const result = await submitWeeklyLogEntry(input);
+    setSubmitting(false);
+    if (!result.ok) {
+      setSubmitError(result.error);
+      return false;
+    }
+    setEntries((prev) => (prev ? [...prev, result.entry] : [result.entry]));
+    return true;
+  }
 
   return {
     entries,
     isLive: entries !== null,
-    loading: hasLiveBackend() && !settled,
-    failed: settled && entries === null,
+    loading,
+    failed,
     submitting,
     submitError,
     submit,

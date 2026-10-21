@@ -10,6 +10,7 @@ import { useWeeklyLog } from "../hooks/useWeeklyLog";
 import { buildDashboardContext } from "../lib/aiChatContext";
 import { rangeForPreset, type DateRange } from "../lib/dateRange";
 import { formatUpdatedAt } from "../lib/format";
+import { useRefreshState } from "../lib/refresh";
 import { AiChatPanel } from "./AiChatPanel";
 import { AllReviews } from "./AllReviews";
 import { ApiErrorBanner } from "./ApiErrorBanner";
@@ -44,6 +45,7 @@ export function Dashboard() {
   const [view, setView] = useState<SidebarView>("dashboard");
   const [filter, setFilter] = useState<LocationFilter>("all");
   const [dateRange, setDateRange] = useState<DateRange>(() => rangeForPreset("7d"));
+  const { lastLoadedAt } = useRefreshState();
   const reviewGrowth = useLivePlacesReviewGrowth();
   const livePlaces = useLivePlacesSummary();
   const weeklyLog = useWeeklyLog();
@@ -151,7 +153,7 @@ export function Dashboard() {
               <Topbar
                 selected={filter}
                 onSelect={setFilter}
-                updatedAt={formatUpdatedAt()}
+                updatedAt={formatUpdatedAt(lastLoadedAt)}
                 dateRange={dateRange}
                 onDateRangeChange={setDateRange}
               />

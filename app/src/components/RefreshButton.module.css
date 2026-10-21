@@ -1,0 +1,63 @@
+/* Same pill as the period selector and "Exporteer naar PDF" beside it. */
+.button {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--ag-border);
+  border-radius: var(--r-full);
+  padding: var(--sp-xs) var(--sp-sm);
+  font: var(--fs-label-md);
+  font-weight: 600;
+  color: var(--ag-secondary);
+  background: var(--ag-surface);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.button:not(:disabled):hover {
+  border-color: var(--ag-primary-border);
+  color: var(--ag-primary-strong);
+}
+
+.button:disabled {
+  cursor: default;
+  color: var(--ag-muted);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--ag-primary);
+  outline-offset: 2px;
+}
+
+.icon {
+  flex: none;
+}
+
+.spinning {
+  animation: spin 800ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinning {
+    animation: none;
+  }
+}
+
+/* Phones: icon only, so three controls still fit on one line. The button
+   keeps its accessible name through aria-label. */
+@media (max-width: 480px) {
+  .label {
+    display: none;
+  }
+
+  .button {
+    padding: var(--sp-xs) 10px;
+  }
+}

@@ -23,7 +23,6 @@
   .rightControls {
     margin-left: 0;
     width: 100%;
-    justify-content: space-between;
   }
 }
 
@@ -68,6 +67,7 @@
   margin-left: auto;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--sp-sm);
 }
 
@@ -97,4 +97,12 @@
   font-weight: 700;
   color: var(--ag-primary-strong);
   border-bottom-color: var(--ag-primary);
+}
+
+/* After the base .rightControls rule so it wins: tighter spacing keeps
+   refresh, period and PDF export on one line on a phone. */
+@media (max-width: 640px) {
+  .rightControls {
+    gap: var(--sp-xs);
+  }
 }

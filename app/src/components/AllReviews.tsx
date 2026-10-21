@@ -12,6 +12,7 @@ import type { LocationId, Review } from "../types";
 import { StarRating } from "./badges";
 import { DateRangeSelector } from "./DateRangeSelector";
 import { ExportPdfButton } from "./ExportPdfButton";
+import { RefreshButton } from "./RefreshButton";
 import { FilterDropdown, type FilterOption } from "./FilterDropdown";
 import { LoadingState } from "./LoadingState";
 import { ReplyForm } from "./ReplyForm";
@@ -206,6 +207,7 @@ export function AllReviews({
                 : `${reviews.length} van ${activeBase.length}`}
             </div>
           )}
+          <RefreshButton />
           <DateRangeSelector value={dateRange} onChange={setDateRange} />
           <ExportPdfButton />
         </div>

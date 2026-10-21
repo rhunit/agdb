@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { fetchLivePlacesSummary, hasLiveBackend, type LivePlaceSummary } from "../lib/api";
+import { fetchLivePlacesSummary, type LivePlaceSummary } from "../lib/api";
 import type { LocationId } from "../types";
+import { useLiveResource } from "./useLiveResource";
 
 type PlacesSummaryMap = Partial<Record<LocationId, LivePlaceSummary>>;
 
@@ -21,26 +21,6 @@ interface LivePlacesState {
  * OAuth connection. Falls back to null (caller uses mock) with zero config
  * or on any failure. */
 export function useLivePlacesSummary(): LivePlacesState {
-  const [settled, setSettled] = useState(false);
-  const [data, setData] = useState<PlacesSummaryMap | null>(null);
-
-  useEffect(() => {
-    if (!hasLiveBackend()) return;
-    let cancelled = false;
-    fetchLivePlacesSummary().then((result) => {
-      if (cancelled) return;
-      setData(result);
-      setSettled(true);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  return {
-    data,
-    isLive: data !== null,
-    loading: hasLiveBackend() && !settled,
-    failed: settled && data === null,
-  };
+  const { data, loading, failed } = useLiveResource(fetchLivePlacesSummary);
+  return { data, isLive: data !== null, loading, failed };
 }

@@ -19,6 +19,7 @@ import { buildThemeStarBreakdown } from "../lib/reviewPatterns";
 import type { LocationId, Review } from "../types";
 import { DateRangeSelector } from "./DateRangeSelector";
 import { ExportPdfButton } from "./ExportPdfButton";
+import { RefreshButton } from "./RefreshButton";
 import { LoadingState } from "./LoadingState";
 import styles from "./Rapportage.module.css";
 import { ReviewText } from "./ReviewText";
@@ -156,6 +157,7 @@ export function Rapportage({
           </div>
         </div>
         <div className={styles.headerRight}>
+          <RefreshButton />
           <DateRangeSelector value={dateRange} onChange={setDateRange} />
           <ExportPdfButton />
         </div>

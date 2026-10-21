@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { fetchLiveReviewGrowth, hasLiveBackend } from "../lib/api";
+import { fetchLiveReviewGrowth } from "../lib/api";
 import type { ReviewGrowthWeek } from "../types";
+import { useLiveResource } from "./useLiveResource";
 
 interface LiveReviewGrowthState {
   data: ReviewGrowthWeek[] | null;
@@ -16,26 +16,6 @@ interface LiveReviewGrowthState {
  * mock data) if no backend is configured, unreachable, or too few weeks
  * of history have been recorded yet. */
 export function useLivePlacesReviewGrowth(): LiveReviewGrowthState {
-  const [settled, setSettled] = useState(false);
-  const [data, setData] = useState<ReviewGrowthWeek[] | null>(null);
-
-  useEffect(() => {
-    if (!hasLiveBackend()) return;
-    let cancelled = false;
-    fetchLiveReviewGrowth().then((result) => {
-      if (cancelled) return;
-      setData(result);
-      setSettled(true);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  return {
-    data,
-    isLive: data !== null && data.length > 0,
-    loading: hasLiveBackend() && !settled,
-    failed: settled && data === null,
-  };
+  const { data, loading, failed } = useLiveResource(fetchLiveReviewGrowth);
+  return { data, isLive: data !== null && data.length > 0, loading, failed };
 }

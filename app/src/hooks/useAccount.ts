@@ -28,6 +28,6 @@ export function useAccount(): AccountState {
   return {
     account,
     can: (permission) =>
-      !hasLiveBackend() || (account?.permissions.includes(permission) ?? false),
+      !hasLiveBackend() || (account?.permissions?.includes(permission) ?? false),
   };
 }

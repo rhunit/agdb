@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
 import {
   fetchLiveBusinessReviews,
-  hasLiveBackend,
   type LiveBusinessReview,
 } from "../lib/api";
 import type { LocationId } from "../types";
+import { useLiveResource } from "./useLiveResource";
 
 type BusinessReviewsMap = Partial<Record<LocationId, LiveBusinessReview[]>>;
 
@@ -23,26 +22,6 @@ interface LiveBusinessReviewsState {
  * null (caller uses Places data or mock) with zero config, no Google
  * connection yet, or on any failure. */
 export function useLiveBusinessReviews(): LiveBusinessReviewsState {
-  const [settled, setSettled] = useState(false);
-  const [data, setData] = useState<BusinessReviewsMap | null>(null);
-
-  useEffect(() => {
-    if (!hasLiveBackend()) return;
-    let cancelled = false;
-    fetchLiveBusinessReviews().then((result) => {
-      if (cancelled) return;
-      setData(result);
-      setSettled(true);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  return {
-    data,
-    isLive: data !== null,
-    loading: hasLiveBackend() && !settled,
-    failed: settled && data === null,
-  };
+  const { data, loading, failed } = useLiveResource(fetchLiveBusinessReviews);
+  return { data, isLive: data !== null, loading, failed };
 }
