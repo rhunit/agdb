@@ -1,0 +1,26 @@
+.empty {
+  font-style: italic;
+  color: var(--ag-muted);
+}
+
+/* Secondary to the original above it: smaller, muted, set off by a rule. */
+.translation {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-top: 6px;
+  padding-left: 10px;
+  border-left: 2px solid var(--ag-border);
+}
+
+.translationLabel {
+  font: var(--fs-label-sm);
+  letter-spacing: var(--ls-label-sm);
+  color: var(--ag-muted);
+}
+
+.translationText {
+  font: var(--fs-body-sm);
+  color: var(--ag-muted);
+  white-space: pre-wrap;
+}

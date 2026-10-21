@@ -21,6 +21,7 @@ import { DateRangeSelector } from "./DateRangeSelector";
 import { ExportPdfButton } from "./ExportPdfButton";
 import { LoadingState } from "./LoadingState";
 import styles from "./Rapportage.module.css";
+import { ReviewText } from "./ReviewText";
 
 const LOCATION_NAME = new Map(LOCATIONS.map((l) => [l.id, l.name]));
 const STAR_COLUMNS = [5, 4, 3, 2, 1] as const;
@@ -358,15 +359,11 @@ export function Rapportage({
                     <div className={styles.changeTexts}>
                       <div>
                         <div className={styles.changeTextLabel}>Eerst ({e.previousRating}★)</div>
-                        <div className={styles.changeText}>
-                          {e.previousText.trim() ? e.previousText : <em>geen tekst</em>}
-                        </div>
+                        <ReviewText text={e.previousText} className={styles.changeText} />
                       </div>
                       <div>
                         <div className={styles.changeTextLabel}>Nu ({e.newRating}★)</div>
-                        <div className={styles.changeText}>
-                          {e.newText.trim() ? e.newText : <em>geen tekst</em>}
-                        </div>
+                        <ReviewText text={e.newText} className={styles.changeText} />
                       </div>
                     </div>
                   </details>

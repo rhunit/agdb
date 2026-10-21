@@ -4,6 +4,7 @@ import { formatDutchInt, formatReviewTimestamp } from "../lib/format";
 import { StarRating } from "./badges";
 import { LoadingState } from "./LoadingState";
 import styles from "./RemovedReviewsCard.module.css";
+import { ReviewText } from "./ReviewText";
 
 const LOCATION_NAME = new Map(LOCATIONS.map((l) => [l.id, l.name]));
 
@@ -53,7 +54,7 @@ export function RemovedReviewsCard({ removed, loading }: RemovedReviewsCardProps
                   <StarRating rating={r.rating} />
                   <span className={styles.locationName}>· {LOCATION_NAME.get(r.location)}</span>
                 </div>
-                <div className={styles.snippet}>&ldquo;{r.text}&rdquo;</div>
+                <ReviewText text={r.text} className={styles.snippet} />
               </div>
               <div className={styles.aside}>
                 <span className={styles.detectedLabel}>Verwijderd</span>

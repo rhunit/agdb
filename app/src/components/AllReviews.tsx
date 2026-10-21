@@ -16,6 +16,7 @@ import { FilterDropdown, type FilterOption } from "./FilterDropdown";
 import { LoadingState } from "./LoadingState";
 import { ReplyForm } from "./ReplyForm";
 import styles from "./AllReviews.module.css";
+import { ReviewText } from "./ReviewText";
 
 const LOCATION_NAME = new Map(LOCATIONS.map((l) => [l.id, l.name]));
 const PAGE_SIZE = 25;
@@ -336,13 +337,13 @@ export function AllReviews({
                         </span>
                       )}
                     </div>
-                    <div className={styles.snippet}>&ldquo;{review.snippet}&rdquo;</div>
+                    <ReviewText text={review.snippet} className={styles.snippet} />
                     {original && (
                       <div className={styles.editNotice}>
                         <div className={styles.editLabel}>
                           Bewerkt · oorspronkelijk {original.rating}★
                         </div>
-                        <div className={styles.editText}>&ldquo;{original.text}&rdquo;</div>
+                        <ReviewText text={original.text} className={styles.editText} />
                       </div>
                     )}
                     {isResponded(review) && replyTextFor(review) && (

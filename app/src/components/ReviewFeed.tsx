@@ -3,6 +3,7 @@ import { daysAgoLabel, formatReviewTimestamp } from "../lib/format";
 import type { Review } from "../types";
 import { StarRating } from "./badges";
 import styles from "./ReviewFeed.module.css";
+import { ReviewText } from "./ReviewText";
 
 const LOCATION_NAME = new Map(LOCATIONS.map((l) => [l.id, l.name]));
 
@@ -38,7 +39,7 @@ export function ReviewFeed({ reviews, showLocation }: ReviewFeedProps) {
                   </span>
                 )}
               </div>
-              <div className={styles.snippet}>&ldquo;{review.snippet}&rdquo;</div>
+              <ReviewText text={review.snippet} className={styles.snippet} />
             </div>
             <div className={styles.aside}>
               <span className={styles.time}>
