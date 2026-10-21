@@ -215,8 +215,22 @@ export type SubmitWeeklyLogResult =
   | { ok: true; entry: WeeklyLogEntry }
   | { ok: false; error: string };
 
+/** Who sent a reply through the dashboard, and when — see
+ * server/src/replyLogStore.ts. */
+export interface ReplyLogEntry {
+  reviewId: string;
+  location: LocationId;
+  username: string;
+  repliedAt: string;
+}
+
+export async function fetchReplyLog(): Promise<ReplyLogEntry[] | null> {
+  if (!hasLiveBackend()) return null;
+  return getJson<ReplyLogEntry[]>("/api/reply-log");
+}
+
 export type SubmitReviewReplyResult =
-  | { ok: true }
+  | { ok: true; logged: ReplyLogEntry | null }
   | { ok: false; error: string };
 
 /** Posts the owner reply to one review — this goes straight to the public
@@ -244,7 +258,8 @@ export async function submitReviewReply(
       const body = (await res.json().catch(() => null)) as { error?: string } | null;
       return { ok: false, error: body?.error ?? `Versturen mislukt (${res.status}).` };
     }
-    return { ok: true };
+    const body = (await res.json().catch(() => null)) as { logged?: ReplyLogEntry | null } | null;
+    return { ok: true, logged: body?.logged ?? null };
   } catch {
     return { ok: false, error: "Kon de server niet bereiken." };
   }

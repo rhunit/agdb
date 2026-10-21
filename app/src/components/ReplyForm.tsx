@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAccount } from "../hooks/useAccount";
 import { generateReplyDraft, submitReviewReply } from "../lib/api";
+import { addReplyLogEntry } from "../lib/replyLog";
 import type { LocationId } from "../types";
 import styles from "./ReplyForm.module.css";
 
@@ -65,6 +66,7 @@ export function ReplyForm({
     const sentText = text.trim();
     const result = await submitReviewReply(location, googleReviewId, sentText);
     if (result.ok) {
+      if (result.logged) addReplyLogEntry(result.logged);
       onSent(sentText);
       close();
     } else {

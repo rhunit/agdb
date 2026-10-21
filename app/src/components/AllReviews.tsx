@@ -17,6 +17,7 @@ import { LoadingState } from "./LoadingState";
 import { ReplyForm } from "./ReplyForm";
 import styles from "./AllReviews.module.css";
 import { ReviewText } from "./ReviewText";
+import { ReplyMeta } from "./ReplyMeta";
 
 const LOCATION_NAME = new Map(LOCATIONS.map((l) => [l.id, l.name]));
 const PAGE_SIZE = 25;
@@ -350,6 +351,10 @@ export function AllReviews({
                       <div className={styles.reply}>
                         <div className={styles.replyLabel}>Jullie antwoord</div>
                         <div className={styles.replyText}>{replyTextFor(review)}</div>
+                        <ReplyMeta
+                          googleReviewId={review.googleReviewId}
+                          responseTime={review.responseTime}
+                        />
                       </div>
                     )}
                     {!isResponded(review) && review.googleReviewId && (

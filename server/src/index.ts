@@ -48,6 +48,7 @@ import {
   SESSION_MAX_AGE_MS,
 } from "./sessions.js";
 import { generateReplyDraft, isReplyDraftAvailable } from "./replyDraft.js";
+import { listReplyLog, recordReply } from "./replyLogStore.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -319,6 +320,11 @@ app.get("/api/review-removals", (_req, res) => {
   res.json(listRemovedReviews(Array.from(LOCATION_IDS) as InternalLocationId[]));
 });
 
+// Who replied to which review through the dashboard, and when.
+app.get("/api/reply-log", (_req, res) => {
+  res.json(listReplyLog());
+});
+
 // Posts (or edits) the owner reply on one review. This writes straight to
 // the public Google listing the moment it succeeds — any "are you sure"
 // step belongs on the frontend before this is ever called.
@@ -352,7 +358,19 @@ app.post("/api/business-reviews/:location/:reviewId/reply", requirePermission("r
       reviewId,
       comment.trim(),
     );
-    res.json(reply);
+    // Google has now accepted the reply; record who sent it. A failure to
+    // write the log must not turn a reply that's already public into an error.
+    let logged = null;
+    try {
+      logged = recordReply({
+        reviewId,
+        location: location as InternalLocationId,
+        username: (res.locals.account as Account).username,
+      });
+    } catch (err) {
+      console.error("recordReply failed:", err);
+    }
+    res.json({ ...reply, logged });
   } catch (err) {
     console.error(err);
     res.status(503).json({ error: (err as Error).message });
