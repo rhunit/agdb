@@ -1,4 +1,5 @@
 export type DateRangePreset =
+  | "today"
   | "7d"
   | "this-month"
   | "last-month"
@@ -88,6 +89,8 @@ export function rangeForPreset(
   customEnd?: Date,
 ): DateRange {
   switch (preset) {
+    case "today":
+      return { preset, start: startOfDay(now), end: endOfDay(now) };
     case "7d": {
       const start = startOfDay(new Date(now));
       start.setDate(start.getDate() - 6);
@@ -136,6 +139,8 @@ export function previousRange(range: DateRange): DateRange {
       const prevYear = new Date(range.start.getFullYear() - 1, 0, 1);
       return { preset: "last-year", start: startOfYear(prevYear), end: endOfYear(prevYear) };
     }
+    // "today" compares against yesterday: same length, right before it.
+    case "today":
     case "7d":
     case "custom": {
       const lengthMs = range.end.getTime() - range.start.getTime();
@@ -170,6 +175,9 @@ export function formatRangeLabel(range: DateRange): string {
   if (range.preset === "all-time") {
     return "Alle tijd";
   }
+  if (range.preset === "today") {
+    return "Vandaag";
+  }
 
   const startMonth = DUTCH_MONTHS_SHORT[start.getMonth()];
   const endMonth = DUTCH_MONTHS_SHORT[end.getMonth()];
@@ -188,6 +196,7 @@ export function formatRangeLabel(range: DateRange): string {
 }
 
 export const PRESET_LABELS: Record<Exclude<DateRangePreset, "custom">, string> = {
+  today: "Vandaag",
   "7d": "Laatste 7 dagen",
   "this-month": "Deze maand",
   "last-month": "Vorige maand",
