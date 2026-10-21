@@ -26,6 +26,7 @@ import { Sidebar, type SidebarView } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { TrendChart } from "./TrendChart";
 import { TrendContext } from "./TrendContext";
+import { UsersPage } from "./UsersPage";
 import { WeeklyLog } from "./WeeklyLog";
 import { WeeklyUpdateForm } from "./WeeklyUpdateForm";
 import { WeekSummary } from "./WeekSummary";
@@ -104,7 +105,11 @@ export function Dashboard() {
         <Sidebar active={view} onNavigate={setView} />
         <div className={styles.main}>
           <ApiErrorBanner />
-          {view === "locaties" ? (
+          {view === "gebruikers" ? (
+            <div className={styles.content}>
+              <UsersPage />
+            </div>
+          ) : view === "locaties" ? (
             <div className={styles.content}>
               <LocationsOverview
                 onSelect={(id) => {

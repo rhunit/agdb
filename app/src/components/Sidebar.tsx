@@ -3,7 +3,7 @@ import { logout } from "../lib/api";
 import { ThemeToggle } from "./ThemeToggle";
 import styles from "./Sidebar.module.css";
 
-export type SidebarView = "dashboard" | "alle-reviews" | "locaties" | "rapportage";
+export type SidebarView = "dashboard" | "alle-reviews" | "locaties" | "rapportage" | "gebruikers";
 
 interface NavItem {
   label: string;
@@ -23,7 +23,11 @@ interface SidebarProps {
 }
 
 export function Sidebar({ active, onNavigate }: SidebarProps) {
-  const { account } = useAccount();
+  const { account, can } = useAccount();
+  // "Gebruikers" only for accounts that may manage logins.
+  const navItems = can("admin") && account
+    ? [...NAV_ITEMS, { label: "Gebruikers", view: "gebruikers" as const }]
+    : NAV_ITEMS;
   return (
     <aside className={styles.sidebar} data-print-hide>
       <div className={styles.stickyTop}>
@@ -39,7 +43,7 @@ export function Sidebar({ active, onNavigate }: SidebarProps) {
         </div>
 
         <nav className={styles.nav} aria-label="Hoofdnavigatie">
-          {NAV_ITEMS.map((item) => (
+          {navItems.map((item) => (
             <div
               key={item.label}
               className={

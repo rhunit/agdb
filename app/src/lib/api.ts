@@ -397,7 +397,7 @@ export async function sendChatMessage(
   }
 }
 
-export type Permission = "reply" | "ai";
+export type Permission = "reply" | "ai" | "admin";
 
 /** The logged-in account and what it may do — see server/src/accounts.ts. */
 export interface Me {
@@ -489,4 +489,56 @@ export async function generateReplyDraft(input: {
   } catch {
     return { ok: false, error: "Kon de server niet bereiken." };
   }
+}
+
+// ---- Gebruikers page (admin only) — see server/src/accounts.ts ----
+
+export interface AccountListing {
+  username: string;
+  permissions: Permission[];
+  /** superadmin and shared come from Northflank and can't be edited here. */
+  source: "superadmin" | "shared" | "user";
+  createdAt: string | null;
+  createdBy: string | null;
+}
+
+export type AdminResult<T> = { ok: true; data: T } | { ok: false; error: string };
+
+async function adminRequest<T>(
+  method: "POST" | "PATCH" | "DELETE",
+  path: string,
+  body?: unknown,
+): Promise<AdminResult<T>> {
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      method,
+      headers: body ? { "Content-Type": "application/json" } : undefined,
+      body: body ? JSON.stringify(body) : undefined,
+      signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
+    });
+    const data = (await res.json().catch(() => null)) as (T & { error?: string }) | null;
+    if (!res.ok) return { ok: false, error: data?.error ?? `Opslaan mislukt (${res.status}).` };
+    return { ok: true, data: data as T };
+  } catch {
+    return { ok: false, error: "Kon de server niet bereiken." };
+  }
+}
+
+export async function fetchAccounts(): Promise<AccountListing[] | null> {
+  return getJson<AccountListing[]>("/api/admin/users");
+}
+
+export function createAccount(username: string, password: string, permissions: Permission[]) {
+  return adminRequest<AccountListing>("POST", "/api/admin/users", { username, password, permissions });
+}
+
+export function updateAccount(
+  username: string,
+  changes: { permissions?: Permission[]; password?: string },
+) {
+  return adminRequest<AccountListing>("PATCH", `/api/admin/users/${encodeURIComponent(username)}`, changes);
+}
+
+export function deleteAccount(username: string) {
+  return adminRequest<{ ok: true }>("DELETE", `/api/admin/users/${encodeURIComponent(username)}`);
 }

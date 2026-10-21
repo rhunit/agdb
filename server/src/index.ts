@@ -32,7 +32,12 @@ import { appendWeeklyLogEntry, listWeeklyLog } from "./weeklyLogStore.js";
 import {
   authMode,
   checkCredentials,
-  configuredAccountNames,
+  createUser,
+  deleteUser,
+  describeLoginSetup,
+  listAccounts,
+  updateUser,
+  UserError,
   OPEN_ACCOUNT,
   type Account,
   type Permission,
@@ -320,6 +325,50 @@ app.get("/api/review-removals", (_req, res) => {
   res.json(listRemovedReviews(Array.from(LOCATION_IDS) as InternalLocationId[]));
 });
 
+// ---- Gebruikers page: managing logins ("admin" permission only) ----
+
+function sendUserError(res: express.Response, err: unknown) {
+  if (err instanceof UserError) {
+    res.status(400).json({ error: err.message });
+    return;
+  }
+  console.error(err);
+  res.status(500).json({ error: "Opslaan mislukt." });
+}
+
+app.get("/api/admin/users", requirePermission("admin"), (_req, res) => {
+  res.json(listAccounts());
+});
+
+app.post("/api/admin/users", requirePermission("admin"), (req, res) => {
+  const { username, password, permissions } = req.body ?? {};
+  try {
+    res.json(createUser(username, password, permissions, (res.locals.account as Account).username));
+  } catch (err) {
+    sendUserError(res, err);
+  }
+});
+
+app.patch("/api/admin/users/:username", requirePermission("admin"), (req, res) => {
+  const { permissions, password } = req.body ?? {};
+  try {
+    res.json(
+      updateUser(req.params.username, { permissions, password }, (res.locals.account as Account).username),
+    );
+  } catch (err) {
+    sendUserError(res, err);
+  }
+});
+
+app.delete("/api/admin/users/:username", requirePermission("admin"), (req, res) => {
+  try {
+    deleteUser(req.params.username, (res.locals.account as Account).username);
+    res.json({ ok: true });
+  } catch (err) {
+    sendUserError(res, err);
+  }
+});
+
 // Who replied to which review through the dashboard, and when.
 app.get("/api/reply-log", (_req, res) => {
   res.json(listReplyLog());
@@ -576,14 +625,7 @@ if (existsSync(FRONTEND_DIST)) {
 
 app.listen(PORT, () => {
   console.log(`Review Radar server listening on http://localhost:${PORT}`);
-  const mode = authMode();
-  console.log(
-    mode === "accounts"
-      ? `Login: accounts ${configuredAccountNames().join(", ")} (DASHBOARD_USER_*)`
-      : mode === "beta"
-        ? "Login: gedeelde BETA_USER/BETA_PASSWORD (alle rechten)"
-        : "Login: uit (geen DASHBOARD_USER_* of BETA_USER ingesteld)",
-  );
+  console.log(describeLoginSetup());
   console.log(
     isConnected()
       ? "Google Business Profile: connected"
