@@ -27,7 +27,16 @@ interface ReviewSnapshot {
   createTime: string | null;
   updateTime: string | null;
   capturedAt: string;
+  /** Set while a review we knew is missing from complete fetches, but not
+   * yet missing often enough to call it removed (see REMOVAL_CONFIRMATIONS). */
+  missingSince?: string;
+  missingCount?: number;
 }
+
+// A review only counts as removed once it's absent from this many complete
+// fetches in a row: Google sometimes serves an older copy of the list that
+// lacks recent reviews, and a single such fetch must not mark them removed.
+const REMOVAL_CONFIRMATIONS = 2;
 
 export interface ReviewEditEvent {
   id: string;
@@ -113,6 +122,9 @@ function save(store: Store): void {
 export function diffAndRecordReviews(
   location: InternalLocationId,
   current: BusinessReview[],
+  /** False when this fetch may be missing reviews (see
+   * getAllBusinessReviews): then nothing is treated as removed. */
+  complete = true,
 ): { edits: ReviewEditEvent[]; removals: RemovedReviewEvent[] } {
   const store = load();
   const now = new Date().toISOString();
@@ -146,32 +158,62 @@ export function diffAndRecordReviews(
     }
   }
 
-  const newRemovals: RemovedReviewEvent[] = [];
-  for (const prior of priorForLocation) {
-    if (!currentIds.has(prior.id)) {
-      newRemovals.push({
-        id: `removed-${prior.id}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        reviewId: prior.id,
-        location,
-        reviewer: prior.reviewer,
-        rating: prior.rating,
-        text: prior.text,
-        createTime: prior.createTime,
-        lastSeenUpdateTime: prior.updateTime,
-        detectedAt: now,
-      });
-    }
+  // A review recorded as removed that's back in the list was never really
+  // removed (an earlier fetch just lacked it) — drop that removal.
+  const restored = store.removals.filter(
+    (r) => r.location === location && currentIds.has(r.reviewId),
+  );
+  if (restored.length > 0) {
+    const restoredIds = new Set(restored.map((r) => r.reviewId));
+    store.removals = store.removals.filter(
+      (r) => !(r.location === location && restoredIds.has(r.reviewId)),
+    );
+    console.log(
+      `review history: ${restored.length} review(s) for ${location} reappeared — no longer marked removed`,
+    );
   }
 
-  // Replace this location's snapshot set with exactly the current fetch —
-  // drops removed reviews (so they don't get re-reported next time) and
-  // refreshes everything else to its latest known state. A stale copy
-  // (older updateTime than what we already have) never overwrites the
-  // newer snapshot, or the next fresh fetch would look like an edit again.
+  const newRemovals: RemovedReviewEvent[] = [];
+  const stillMissing: ReviewSnapshot[] = [];
+  for (const prior of priorForLocation) {
+    if (currentIds.has(prior.id)) continue;
+    // An incomplete fetch says nothing about the reviews it lacks.
+    if (!complete) {
+      stillMissing.push(prior);
+      continue;
+    }
+    const missingCount = (prior.missingCount ?? 0) + 1;
+    const missingSince = prior.missingSince ?? now;
+    if (missingCount < REMOVAL_CONFIRMATIONS) {
+      stillMissing.push({ ...prior, missingSince, missingCount });
+      continue;
+    }
+    newRemovals.push({
+      id: `removed-${prior.id}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      reviewId: prior.id,
+      location,
+      reviewer: prior.reviewer,
+      rating: prior.rating,
+      text: prior.text,
+      createTime: prior.createTime,
+      lastSeenUpdateTime: prior.updateTime,
+      // When it was first found missing, not when that was confirmed.
+      detectedAt: missingSince,
+    });
+  }
+
+  // Replace this location's snapshot set with the current fetch — drops
+  // confirmed removals (so they don't get re-reported next time), keeps
+  // reviews that are missing but not yet confirmed removed, and refreshes
+  // everything else to its latest known state. A stale copy (older
+  // updateTime than what we already have) never overwrites the newer
+  // snapshot, or the next fresh fetch would look like an edit again.
   const otherLocations = store.snapshots.filter((s) => s.location !== location);
   const refreshed: ReviewSnapshot[] = current.map((r) => {
     const prior = priorById.get(r.id);
-    if (prior && isNewer(prior.updateTime, r.updateTime)) return prior;
+    if (prior && isNewer(prior.updateTime, r.updateTime)) {
+      return { ...prior, missingSince: undefined, missingCount: undefined };
+    }
     return {
       id: r.id,
       location,
@@ -184,7 +226,7 @@ export function diffAndRecordReviews(
     };
   });
 
-  store.snapshots = [...otherLocations, ...refreshed];
+  store.snapshots = [...otherLocations, ...refreshed, ...stillMissing];
   store.edits.push(...newEdits);
   store.removals.push(...newRemovals);
   save(store);

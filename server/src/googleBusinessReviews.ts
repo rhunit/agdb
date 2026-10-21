@@ -62,12 +62,30 @@ export async function listBusinessReviews(
   googleLocationId: string,
   maxPages = Infinity,
 ): Promise<BusinessReview[]> {
+  return (await listBusinessReviewsWithTotal(auth, accountName, googleLocationId, maxPages)).reviews;
+}
+
+export interface ReviewListing {
+  reviews: BusinessReview[];
+  /** Google's own count for the location, when it reports one. */
+  totalReviewCount: number | null;
+  /** Pagination stopped at maxPages with more pages left. */
+  truncated: boolean;
+}
+
+async function listBusinessReviewsWithTotal(
+  auth: OAuth2Client,
+  accountName: string,
+  googleLocationId: string,
+  maxPages: number,
+): Promise<ReviewListing> {
   const { token } = await auth.getAccessToken();
   if (!token) throw new Error("No access token available");
 
   const reviews: BusinessReview[] = [];
   let pageToken: string | undefined;
   let pages = 0;
+  let totalReviewCount: number | null = null;
 
   do {
     const url = new URL(
@@ -87,6 +105,7 @@ export async function listBusinessReviews(
     }
     const data = (await res.json()) as GbpReviewsListResponse;
     pages++;
+    if (typeof data.totalReviewCount === "number") totalReviewCount = data.totalReviewCount;
 
     for (const r of data.reviews ?? []) {
       reviews.push({
@@ -104,7 +123,7 @@ export async function listBusinessReviews(
     pageToken = data.nextPageToken ?? undefined;
   } while (pageToken && pages < maxPages);
 
-  return reviews;
+  return { reviews, totalReviewCount, truncated: Boolean(pageToken) };
 }
 
 /** Reviews from the last `withinDays` for every location we have a
@@ -204,40 +223,59 @@ export async function replyToReview(
   return { comment: data.comment ?? comment, updateTime: data.updateTime ?? null };
 }
 
+export interface AllBusinessReviews {
+  reviews: Partial<Record<InternalLocationId, BusinessReview[]>>;
+  /** Per location: whether this fetch is known to hold the location's
+   * whole list. Google's v4 API sometimes serves an older or partial copy,
+   * so a fetch with fewer reviews than Google's own total — or cut off at
+   * the page limit — must not be read as "the missing ones were removed". */
+  complete: Partial<Record<InternalLocationId, boolean>>;
+}
+
 /** The complete review history (not just a recent window) for every
  * location we have a matched internal id for — backs the "Alle reviews"
  * page, which is explicitly meant to be the full list rather than a
- * recency-capped feed. 10 pages (500 reviews) per location is well above
- * any of these locations' actual review counts (the largest currently
- * sits at a few hundred); it's a safety bound against pagination running
- * away, not an expected ceiling.
+ * recency-capped feed. 40 pages (2,000 reviews) per location is a safety
+ * bound against pagination running away, not an expected ceiling; hitting
+ * it marks the fetch incomplete.
  *
  * Same per-location fault isolation as getRecentBusinessReviews — one
  * location erroring must not blank out the others. */
 export async function getAllBusinessReviews(
   auth: OAuth2Client,
   locations: DiscoveredLocation[],
-  maxPagesPerLocation = 10,
-): Promise<Partial<Record<InternalLocationId, BusinessReview[]>>> {
+  maxPagesPerLocation = 40,
+): Promise<AllBusinessReviews> {
   const settled = await Promise.allSettled(
     locations
       .filter((loc) => loc.internalId)
       .map(async (loc) => {
-        const all = await listBusinessReviews(
+        const listing = await listBusinessReviewsWithTotal(
           auth,
           loc.accountName,
           loc.googleLocationId,
           maxPagesPerLocation,
         );
-        return [loc.internalId as InternalLocationId, all] as const;
+        return [loc.internalId as InternalLocationId, listing] as const;
       }),
   );
 
-  const out: Partial<Record<InternalLocationId, BusinessReview[]>> = {};
+  const out: AllBusinessReviews = { reviews: {}, complete: {} };
   for (const result of settled) {
     if (result.status === "fulfilled") {
-      const [id, all] = result.value;
-      out[id] = all;
+      const [id, listing] = result.value;
+      out.reviews[id] = listing.reviews;
+      const complete =
+        !listing.truncated &&
+        (listing.totalReviewCount === null || listing.reviews.length >= listing.totalReviewCount);
+      out.complete[id] = complete;
+      if (!complete) {
+        console.warn(
+          `getAllBusinessReviews: ${id} incomplete (${listing.reviews.length} of ` +
+            `${listing.totalReviewCount ?? "?"}${listing.truncated ? ", page limit reached" : ""}) — ` +
+            "removal detection skipped for this fetch",
+        );
+      }
     } else {
       console.error("getAllBusinessReviews: one location failed:", result.reason);
     }

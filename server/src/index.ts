@@ -296,10 +296,14 @@ app.get("/api/business-reviews-all", async (_req, res) => {
   try {
     const auth = getAuthorizedClient();
     const locations = await listLocations(auth);
-    const reviews = await getAllBusinessReviews(auth, locations);
+    const { reviews, complete } = await getAllBusinessReviews(auth, locations);
     for (const [location, list] of Object.entries(reviews)) {
       try {
-        diffAndRecordReviews(location as InternalLocationId, list ?? []);
+        diffAndRecordReviews(
+          location as InternalLocationId,
+          list ?? [],
+          complete[location as InternalLocationId] ?? false,
+        );
       } catch (err) {
         console.error(`diffAndRecordReviews failed for ${location}:`, err);
       }
