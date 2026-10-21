@@ -32,7 +32,7 @@ import { appendWeeklyLogEntry, listWeeklyLog } from "./weeklyLogStore.js";
 import {
   authMode,
   checkCredentials,
-  configuredAccountCount,
+  configuredAccountNames,
   OPEN_ACCOUNT,
   type Account,
   type Permission,
@@ -579,10 +579,10 @@ app.listen(PORT, () => {
   const mode = authMode();
   console.log(
     mode === "accounts"
-      ? `Login: ${configuredAccountCount()} account(s) uit DASHBOARD_USERS`
+      ? `Login: accounts ${configuredAccountNames().join(", ")} (DASHBOARD_USER_*)`
       : mode === "beta"
         ? "Login: gedeelde BETA_USER/BETA_PASSWORD (alle rechten)"
-        : "Login: uit (geen DASHBOARD_USERS of BETA_USER ingesteld)",
+        : "Login: uit (geen DASHBOARD_USER_* of BETA_USER ingesteld)",
   );
   console.log(
     isConnected()
