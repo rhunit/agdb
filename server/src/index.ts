@@ -29,6 +29,14 @@ import {
 import { generateReportSummary, isReportSummaryAvailable } from "./reportSummary.js";
 import { generateChatReply, isAiChatAvailable, type ChatMessage } from "./aiChat.js";
 import { appendWeeklyLogEntry, listWeeklyLog } from "./weeklyLogStore.js";
+import {
+  authenticate,
+  authMode,
+  configuredAccountCount,
+  type Account,
+  type Permission,
+} from "./accounts.js";
+import { generateReplyDraft, isReplyDraftAvailable } from "./replyDraft.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -42,22 +50,17 @@ const LOCATION_IDS = new Set([
   "amsterdamgenetics",
 ]);
 
-// Gates the whole app behind a single shared username/password when both
-// are set — meant for a beta link handed to a small group, not real
-// per-user auth. Unset in local dev, so nothing changes there.
-function requireBetaAuth(
+// Every request must log in as one of the configured accounts (see
+// accounts.ts); the account is kept on res.locals for the permission
+// checks below. Open when nothing is configured (local dev).
+function requireLogin(
   req: express.Request,
   res: express.Response,
   next: express.NextFunction,
 ): void {
-  const user = process.env.BETA_USER;
-  const pass = process.env.BETA_PASSWORD;
-  if (!user || !pass) {
-    next();
-    return;
-  }
-  const expected = `Basic ${Buffer.from(`${user}:${pass}`).toString("base64")}`;
-  if (req.headers.authorization === expected) {
+  const account = authenticate(req.headers.authorization);
+  if (account) {
+    res.locals.account = account;
     next();
     return;
   }
@@ -65,13 +68,40 @@ function requireBetaAuth(
   res.status(401).send("Authenticatie vereist.");
 }
 
-app.use(requireBetaAuth);
+/** Blocks a route for accounts without `permission` — enforced here on the
+ * server, so hiding a button in the frontend is never the only guard. */
+function requirePermission(permission: Permission) {
+  return (_req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (hasPermission(res, permission)) {
+      next();
+      return;
+    }
+    res.status(403).json({ error: "Je account heeft hier geen rechten voor." });
+  };
+}
+
+function hasPermission(res: express.Response, permission: Permission): boolean {
+  return (res.locals.account as Account | undefined)?.permissions.includes(permission) ?? false;
+}
+
+app.use(requireLogin);
 app.use(cors({ origin: process.env.FRONTEND_ORIGIN ?? "http://localhost:5173" }));
 app.use(express.json());
 
 // Always 200 while the server itself is up (so a platform health check
 // doesn't restart it over a Google problem it can't fix) — googleConnected
 // reflects a real token check, with Google's error when it fails.
+// Who is logged in and what they may do — the frontend hides what an
+// account can't use (the server still enforces it per route).
+app.get("/api/me", (_req, res) => {
+  const account = res.locals.account as Account;
+  res.json({
+    username: account.username,
+    permissions: account.permissions,
+    replyDraftAvailable: isReplyDraftAvailable(),
+  });
+});
+
 app.get("/health", async (_req, res) => {
   const google = await checkGoogleConnection();
   res.json({
@@ -215,7 +245,7 @@ app.get("/api/review-removals", (_req, res) => {
 // Posts (or edits) the owner reply on one review. This writes straight to
 // the public Google listing the moment it succeeds — any "are you sure"
 // step belongs on the frontend before this is ever called.
-app.post("/api/business-reviews/:location/:reviewId/reply", async (req, res) => {
+app.post("/api/business-reviews/:location/:reviewId/reply", requirePermission("reply"), async (req, res) => {
   const { location, reviewId } = req.params;
   const { comment } = req.body ?? {};
   if (!LOCATION_IDS.has(location)) {
@@ -256,7 +286,7 @@ app.post("/api/business-reviews/:location/:reviewId/reply", async (req, res) => 
 // the frontend hide/disable the "Genereer samenvatting" button instead of
 // letting someone click it and then hit a 501.
 app.get("/api/report-summary-available", (_req, res) => {
-  res.json({ available: isReportSummaryAvailable() });
+  res.json({ available: isReportSummaryAvailable() && hasPermission(res, "ai") });
 });
 
 // Generates the narrative part of the Rapportage page (compliments,
@@ -264,7 +294,7 @@ app.get("/api/report-summary-available", (_req, res) => {
 // loaded for the selected location/period — on demand only, never
 // automatically, since it's a paid OpenAI API call. Grounded strictly in
 // the review text it's given; see reportSummary.ts for the prompt.
-app.post("/api/report-summary", async (req, res) => {
+app.post("/api/report-summary", requirePermission("ai"), async (req, res) => {
   if (!isReportSummaryAvailable()) {
     res.status(501).json({
       error: "AI-samenvatting staat uit (OPENAI_API_KEY of AI_ENABLED=true ontbreekt).",
@@ -289,10 +319,45 @@ app.post("/api/report-summary", async (req, res) => {
   }
 });
 
+// Writes a draft reply for one review following the business's reply
+// rules (replyInstructions.ts). Part of replying, so it needs the "reply"
+// permission; the draft is only ever put in the text field, never posted.
+app.post("/api/reply-draft", requirePermission("reply"), async (req, res) => {
+  if (!isReplyDraftAvailable()) {
+    res.status(501).json({ error: "AI staat uit (OPENAI_API_KEY of AI_ENABLED=true ontbreekt)." });
+    return;
+  }
+  const { location, reviewer, rating, text } = req.body ?? {};
+  if (
+    typeof location !== "string" ||
+    !LOCATION_IDS.has(location) ||
+    typeof reviewer !== "string" ||
+    typeof rating !== "number" ||
+    rating < 1 ||
+    rating > 5 ||
+    typeof text !== "string"
+  ) {
+    res.status(400).json({ error: "Vereist: location, reviewer, rating (1-5), text." });
+    return;
+  }
+  try {
+    const draft = await generateReplyDraft({
+      location: location as InternalLocationId,
+      reviewer,
+      rating,
+      text: text.slice(0, 5000),
+    });
+    res.json({ draft });
+  } catch (err) {
+    console.error(err);
+    res.status(503).json({ error: (err as Error).message });
+  }
+});
+
 // Whether the floating AI chat panel can be used at all — same
 // OPENAI_API_KEY as the Rapportage summary.
 app.get("/api/ai-chat-available", (_req, res) => {
-  res.json({ available: isAiChatAvailable() });
+  res.json({ available: isAiChatAvailable() && hasPermission(res, "ai") });
 });
 
 // A general-purpose chat turn for the floating AI panel. The frontend
@@ -300,7 +365,7 @@ app.get("/api/ai-chat-available", (_req, res) => {
 // server-side), capped and trimmed in aiChat.ts, plus an optional
 // `context` string — the aggregate dashboard stats currently on screen
 // (see app/src/lib/aiChatContext.ts), never individual review text.
-app.post("/api/ai-chat", async (req, res) => {
+app.post("/api/ai-chat", requirePermission("ai"), async (req, res) => {
   if (!isAiChatAvailable()) {
     res.status(501).json({ error: "AI-chat staat uit (OPENAI_API_KEY of AI_ENABLED=true ontbreekt)." });
     return;
@@ -416,6 +481,14 @@ if (existsSync(FRONTEND_DIST)) {
 
 app.listen(PORT, () => {
   console.log(`Review Radar server listening on http://localhost:${PORT}`);
+  const mode = authMode();
+  console.log(
+    mode === "accounts"
+      ? `Login: ${configuredAccountCount()} account(s) uit DASHBOARD_USERS`
+      : mode === "beta"
+        ? "Login: gedeelde BETA_USER/BETA_PASSWORD (alle rechten)"
+        : "Login: uit (geen DASHBOARD_USERS of BETA_USER ingesteld)",
+  );
   console.log(
     isConnected()
       ? "Google Business Profile: connected"

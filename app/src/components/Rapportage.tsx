@@ -11,6 +11,7 @@ import {
 } from "../lib/api";
 import { isWithinRange, formatRangeLabel, rangeForPreset, type DateRange } from "../lib/dateRange";
 import { formatDutchInt, formatReviewTimestamp } from "../lib/format";
+import { useAccount } from "../hooks/useAccount";
 import { describeEditChange } from "../lib/reviewHistory";
 import { computePot, formatEur, starCounts, sumStarCounts, totalFromCounts } from "../lib/reportCalc";
 import { businessReviewsFor, dateFromReview } from "../lib/reviews";
@@ -39,6 +40,7 @@ export function Rapportage({
   edits,
   removed,
 }: RapportageProps) {
+  const { can } = useAccount();
   const [locationTab, setLocationTab] = useState<LocationId | "all">("all");
   const [dateRange, setDateRange] = useState<DateRange>(() => rangeForPreset("7d"));
   const [summaryAvailable, setSummaryAvailable] = useState(false);
@@ -373,68 +375,72 @@ export function Rapportage({
             )}
           </div>
 
-          <div className={styles.card} data-print-hide={!summaryAvailable || undefined}>
-            <div className={styles.cardTitle}>
-              AI-samenvatting
-              {!summaryAvailable && (
-                <span className={styles.comingSoonBadge}>Binnenkort beschikbaar</span>
+          {/* Accounts without the "ai" permission don't see this card at all —
+              "binnenkort beschikbaar" would wrongly suggest it's coming for them. */}
+          {can("ai") && (
+            <div className={styles.card} data-print-hide={!summaryAvailable || undefined}>
+              <div className={styles.cardTitle}>
+                AI-samenvatting
+                {!summaryAvailable && (
+                  <span className={styles.comingSoonBadge}>Binnenkort beschikbaar</span>
+                )}
+              </div>
+              {!summaryAvailable ? (
+                <div className={styles.cardFootnote} data-print-hide>
+                  Deze functie werkt nog niet — we zijn hier nog aan het werken.
+                </div>
+              ) : locationTab === "all" ? (
+                <div className={styles.cardFootnote} data-print-hide>
+                  Kies hierboven een specifieke locatie om een samenvatting te genereren — net als
+                  in de weekrapportage is dit per locatie geschreven.
+                </div>
+              ) : summaryResult ? (
+                <div className={styles.summaryBlocks}>
+                  {summaryResult.compliments && (
+                    <div className={styles.summaryBlock}>
+                      <div className={styles.summaryLabel}>Complimenten</div>
+                      <div className={styles.summaryText}>{summaryResult.compliments}</div>
+                    </div>
+                  )}
+                  {summaryResult.concerns && (
+                    <div className={styles.summaryBlock}>
+                      <div className={styles.summaryLabel}>Aandachtspunten</div>
+                      <div className={styles.summaryText}>{summaryResult.concerns}</div>
+                    </div>
+                  )}
+                  {summaryResult.closing && (
+                    <div className={styles.summaryBlock}>
+                      <div className={styles.summaryLabel}>Afsluiting</div>
+                      <div className={styles.summaryText}>{summaryResult.closing}</div>
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    className={styles.summaryButton}
+                    data-print-hide
+                    onClick={handleGenerateSummary}
+                    disabled={summaryLoading}
+                  >
+                    Opnieuw genereren
+                  </button>
+                </div>
+              ) : (
+                <div data-print-hide>
+                  {summaryError && <div className={styles.summaryError}>{summaryError}</div>}
+                  <button
+                    type="button"
+                    className={styles.summaryButton}
+                    onClick={handleGenerateSummary}
+                    disabled={summaryLoading}
+                  >
+                    {summaryLoading
+                      ? "Samenvatting genereren..."
+                      : `Genereer samenvatting (${formatDutchInt(tabReviews.length)} reviews)`}
+                  </button>
+                </div>
               )}
             </div>
-            {!summaryAvailable ? (
-              <div className={styles.cardFootnote} data-print-hide>
-                Deze functie werkt nog niet — we zijn hier nog aan het werken.
-              </div>
-            ) : locationTab === "all" ? (
-              <div className={styles.cardFootnote} data-print-hide>
-                Kies hierboven een specifieke locatie om een samenvatting te genereren — net als
-                in de weekrapportage is dit per locatie geschreven.
-              </div>
-            ) : summaryResult ? (
-              <div className={styles.summaryBlocks}>
-                {summaryResult.compliments && (
-                  <div className={styles.summaryBlock}>
-                    <div className={styles.summaryLabel}>Complimenten</div>
-                    <div className={styles.summaryText}>{summaryResult.compliments}</div>
-                  </div>
-                )}
-                {summaryResult.concerns && (
-                  <div className={styles.summaryBlock}>
-                    <div className={styles.summaryLabel}>Aandachtspunten</div>
-                    <div className={styles.summaryText}>{summaryResult.concerns}</div>
-                  </div>
-                )}
-                {summaryResult.closing && (
-                  <div className={styles.summaryBlock}>
-                    <div className={styles.summaryLabel}>Afsluiting</div>
-                    <div className={styles.summaryText}>{summaryResult.closing}</div>
-                  </div>
-                )}
-                <button
-                  type="button"
-                  className={styles.summaryButton}
-                  data-print-hide
-                  onClick={handleGenerateSummary}
-                  disabled={summaryLoading}
-                >
-                  Opnieuw genereren
-                </button>
-              </div>
-            ) : (
-              <div data-print-hide>
-                {summaryError && <div className={styles.summaryError}>{summaryError}</div>}
-                <button
-                  type="button"
-                  className={styles.summaryButton}
-                  onClick={handleGenerateSummary}
-                  disabled={summaryLoading}
-                >
-                  {summaryLoading
-                    ? "Samenvatting genereren..."
-                    : `Genereer samenvatting (${formatDutchInt(tabReviews.length)} reviews)`}
-                </button>
-              </div>
-            )}
-          </div>
+          )}
         </>
       )}
     </div>

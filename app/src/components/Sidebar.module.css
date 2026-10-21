@@ -156,6 +156,14 @@
   margin-top: auto;
 }
 
+.account {
+  font: var(--fs-body-sm);
+  font-size: 12px;
+  color: var(--ag-neutral);
+  opacity: 0.9;
+  overflow-wrap: anywhere;
+}
+
 .footer {
   display: flex;
   align-items: center;

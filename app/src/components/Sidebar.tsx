@@ -1,3 +1,4 @@
+import { useAccount } from "../hooks/useAccount";
 import { ThemeToggle } from "./ThemeToggle";
 import styles from "./Sidebar.module.css";
 
@@ -21,6 +22,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ active, onNavigate }: SidebarProps) {
+  const { account } = useAccount();
   return (
     <aside className={styles.sidebar} data-print-hide>
       <div className={styles.stickyTop}>
@@ -62,6 +64,12 @@ export function Sidebar({ active, onNavigate }: SidebarProps) {
           ))}
         </nav>
       </div>
+
+      {account && (
+        <div className={styles.account}>
+          Ingelogd als <strong>{account.username}</strong>
+        </div>
+      )}
 
       <div className={styles.themeRow}>
         <ThemeToggle />

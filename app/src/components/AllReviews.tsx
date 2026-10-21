@@ -355,6 +355,9 @@ export function AllReviews({
                       <ReplyForm
                         location={review.location}
                         googleReviewId={review.googleReviewId}
+                        reviewer={review.reviewer}
+                        rating={review.rating}
+                        reviewText={review.snippet}
                         onSent={(text) =>
                           setRepliedText((prev) => new Map(prev).set(review.id, text))
                         }

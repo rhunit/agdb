@@ -111,3 +111,37 @@
 .secondary:hover {
   background: var(--ag-neutral-200);
 }
+
+/* AI draft button — sits on the left, away from Annuleren/Versturen. */
+.draft {
+  appearance: none;
+  margin-right: auto;
+  background: var(--ag-primary-bg);
+  border: 1px solid var(--ag-primary-border);
+  border-radius: var(--r-full);
+  color: var(--ag-primary-strong);
+  font: var(--fs-button-text);
+  font-size: 13px;
+  padding: 7px 14px;
+  cursor: pointer;
+}
+
+.draft:not(:disabled):hover {
+  border-color: var(--ag-primary);
+}
+
+.draft:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+@media (max-width: 560px) {
+  .actions {
+    flex-wrap: wrap;
+  }
+
+  .draft {
+    flex: 1 1 100%;
+    margin-right: 0;
+  }
+}

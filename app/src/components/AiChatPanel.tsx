@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useAccount } from "../hooks/useAccount";
 import { fetchAiChatAvailable, sendChatMessage, type ChatMessage } from "../lib/api";
 import styles from "./AiChatPanel.module.css";
 
@@ -22,6 +23,7 @@ interface AiChatPanelProps {
  * vrijwel elke site met een login), dus dit praat rechtstreeks met de
  * OpenAI API in plaats van hun site te tonen. */
 export function AiChatPanel({ contextSummary, contextLabel }: AiChatPanelProps) {
+  const { can } = useAccount();
   const [open, setOpen] = useState(false);
   const [available, setAvailable] = useState<boolean | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -54,6 +56,9 @@ export function AiChatPanel({ contextSummary, contextLabel }: AiChatPanelProps) 
       setError(result.error);
     }
   }
+
+  // Accounts without the "ai" permission don't get the button at all.
+  if (!can("ai")) return null;
 
   return (
     <div className={styles.wrap} data-print-hide>

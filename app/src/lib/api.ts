@@ -381,3 +381,48 @@ export async function sendChatMessage(
     return { ok: false, error: "Kon de server niet bereiken." };
   }
 }
+
+export type Permission = "reply" | "ai";
+
+/** The logged-in account and what it may do — see server/src/accounts.ts. */
+export interface Me {
+  username: string;
+  permissions: Permission[];
+  /** Whether the AI reply draft is switched on server-side at all. */
+  replyDraftAvailable: boolean;
+}
+
+export async function fetchMe(): Promise<Me | null> {
+  if (!hasLiveBackend()) return null;
+  return getJson<Me>("/api/me");
+}
+
+export type GenerateReplyDraftResult = { ok: true; draft: string } | { ok: false; error: string };
+
+/** A draft owner reply for one review, written per the business's reply
+ * rules — only ever put in the text field to edit, never posted directly. */
+export async function generateReplyDraft(input: {
+  location: LocationId;
+  reviewer: string;
+  rating: number;
+  text: string;
+}): Promise<GenerateReplyDraftResult> {
+  if (!hasLiveBackend()) {
+    return { ok: false, error: "Geen backend geconfigureerd." };
+  }
+  try {
+    const res = await fetch(`${API_BASE}/api/reply-draft`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+      signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
+    });
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+      return { ok: false, error: body?.error ?? `Genereren mislukt (${res.status}).` };
+    }
+    return { ok: true, draft: ((await res.json()) as { draft: string }).draft };
+  } catch {
+    return { ok: false, error: "Kon de server niet bereiken." };
+  }
+}
