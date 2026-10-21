@@ -50,13 +50,6 @@ export function LoginScreen({ onLoggedIn }: LoginScreenProps) {
           </div>
         </div>
 
-        <div className={styles.pitch}>
-          <h1 className={styles.pitchTitle}>Alle reviews van je shops op één plek.</h1>
-          <p className={styles.pitchText}>
-            Nieuwe reviews, reacties en rapportages voor elke locatie, live uit Google.
-          </p>
-        </div>
-
         <div className={styles.quote}>
           <img
             className={styles.professorImg}

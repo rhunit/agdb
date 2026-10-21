@@ -56,22 +56,6 @@
   opacity: 0.85;
 }
 
-.pitch {
-  max-width: 400px;
-}
-
-.pitchTitle {
-  margin: 0;
-  font: var(--fs-headline-display);
-  text-wrap: balance;
-}
-
-.pitchText {
-  margin: var(--sp-sm) 0 0;
-  font: var(--fs-body-lg);
-  opacity: 0.9;
-}
-
 .quote {
   display: flex;
   align-items: center;
@@ -238,15 +222,6 @@
     max-width: none;
     gap: var(--sp-md);
     padding: var(--sp-md);
-  }
-
-  .pitchTitle {
-    font: var(--fs-headline-sm);
-  }
-
-  .pitchText {
-    font: var(--fs-body-sm);
-    margin-top: 6px;
   }
 
   .quote {
