@@ -11,6 +11,7 @@ import {
 } from "../lib/api";
 import { isWithinRange, formatRangeLabel, rangeForPreset, type DateRange } from "../lib/dateRange";
 import { formatDutchInt, formatReviewTimestamp } from "../lib/format";
+import { describeEditChange } from "../lib/reviewHistory";
 import { computePot, formatEur, starCounts, sumStarCounts, totalFromCounts } from "../lib/reportCalc";
 import { businessReviewsFor, dateFromReview } from "../lib/reviews";
 import { buildThemeStarBreakdown } from "../lib/reviewPatterns";
@@ -341,16 +342,32 @@ export function Rapportage({
                   </div>
                 ))}
                 {editsForPeriod.map((e) => (
-                  <div className={styles.changeRow} key={e.id}>
-                    <span className={styles.changeBadgeEdited}>Bewerkt</span>
-                    <span className={styles.changeReviewer}>{e.reviewer}</span>
-                    <span className={styles.changeDetail}>
-                      {e.previousRating}★ → {e.newRating}★ · {LOCATION_TAB_LABEL[e.location]}
-                    </span>
-                    <span className={styles.changeTime}>
-                      {formatReviewTimestamp(e.detectedAt)}
-                    </span>
-                  </div>
+                  <details className={styles.changeRow} key={e.id}>
+                    <summary className={styles.changeSummary}>
+                      <span className={styles.changeBadgeEdited}>Bewerkt</span>
+                      <span className={styles.changeReviewer}>{e.reviewer}</span>
+                      <span className={styles.changeDetail}>
+                        {describeEditChange(e)} · {LOCATION_TAB_LABEL[e.location]}
+                      </span>
+                      <span className={styles.changeTime}>
+                        {formatReviewTimestamp(e.detectedAt)}
+                      </span>
+                    </summary>
+                    <div className={styles.changeTexts}>
+                      <div>
+                        <div className={styles.changeTextLabel}>Eerst ({e.previousRating}★)</div>
+                        <div className={styles.changeText}>
+                          {e.previousText.trim() ? e.previousText : <em>geen tekst</em>}
+                        </div>
+                      </div>
+                      <div>
+                        <div className={styles.changeTextLabel}>Nu ({e.newRating}★)</div>
+                        <div className={styles.changeText}>
+                          {e.newText.trim() ? e.newText : <em>geen tekst</em>}
+                        </div>
+                      </div>
+                    </div>
+                  </details>
                 ))}
               </div>
             )}

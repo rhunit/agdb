@@ -203,6 +203,56 @@
   white-space: nowrap;
 }
 
+/* An edit row is a <details>: the summary is the one-line row, opening
+   it shows the text before and after. */
+details.changeRow {
+  display: block;
+}
+
+.changeSummary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-xs);
+  cursor: pointer;
+  list-style: none;
+}
+
+.changeSummary::-webkit-details-marker {
+  display: none;
+}
+
+.changeSummary::after {
+  content: "▾";
+  color: var(--ag-muted);
+}
+
+details[open] > .changeSummary::after {
+  content: "▴";
+}
+
+.changeTexts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-sm);
+  margin-top: var(--sp-xs);
+  padding: var(--sp-xs) var(--sp-sm);
+  background: var(--ag-page-bg);
+  border: 1px solid var(--ag-border);
+}
+
+.changeTextLabel {
+  font: var(--fs-label-sm);
+  color: var(--ag-muted);
+  margin-bottom: 2px;
+}
+
+.changeText {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--ag-on-surface);
+}
+
 .summaryBlocks {
   display: flex;
   flex-direction: column;
@@ -261,5 +311,14 @@
   .changeTime {
     margin-left: 0;
     flex: 1 1 100%;
+  }
+
+  .changeTexts {
+    grid-template-columns: 1fr;
+  }
+
+  /* Keep the open/close arrow on the date's line, not on its own. */
+  .changeSummary .changeTime {
+    flex: 1 1 calc(100% - 24px);
   }
 }

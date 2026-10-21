@@ -61,10 +61,38 @@ interface Store {
   removals: RemovedReviewEvent[];
 }
 
+// Google's v4 reviews API is eventually consistent: back-to-back fetches
+// can alternate between a review's current version and an older cached
+// one. Without guarding against that, one real edit showed up as an
+// endless back-and-forth (13:34 → 07:35 → 13:34 ...). A version only
+// counts as newer when its updateTime is strictly later.
+function isNewer(candidate: string | null, than: string | null): boolean {
+  if (!candidate || !than) return candidate !== than;
+  return Date.parse(candidate) > Date.parse(than);
+}
+
+/** Drops edit events recorded before the guard above existed: ones that
+ * went *back* to an older version, and repeats of an edit already seen
+ * (same review, same resulting version) — keeping the first detection. */
+function withoutStaleEdits(edits: ReviewEditEvent[]): ReviewEditEvent[] {
+  const seen = new Set<string>();
+  return [...edits]
+    .sort((a, b) => (a.detectedAt < b.detectedAt ? -1 : 1))
+    .filter((e) => {
+      if (!isNewer(e.newUpdateTime, e.previousUpdateTime)) return false;
+      const key = `${e.reviewId}|${e.newUpdateTime}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
 function load(): Store {
   if (!existsSync(HISTORY_FILE)) return { snapshots: [], edits: [], removals: [] };
   try {
-    return JSON.parse(readFileSync(HISTORY_FILE, "utf-8")) as Store;
+    const store = JSON.parse(readFileSync(HISTORY_FILE, "utf-8")) as Store;
+    store.edits = withoutStaleEdits(store.edits);
+    return store;
   } catch {
     return { snapshots: [], edits: [], removals: [] };
   }
@@ -92,10 +120,16 @@ export function diffAndRecordReviews(
   const priorForLocation = store.snapshots.filter((s) => s.location === location);
   const priorById = new Map(priorForLocation.map((s) => [s.id, s]));
 
+  const alreadyRecorded = new Set(store.edits.map((e) => `${e.reviewId}|${e.newUpdateTime}`));
   const newEdits: ReviewEditEvent[] = [];
   for (const r of current) {
     const prior = priorById.get(r.id);
-    if (prior && prior.updateTime !== r.updateTime && (prior.rating !== r.rating || prior.text !== r.text)) {
+    if (
+      prior &&
+      isNewer(r.updateTime, prior.updateTime) &&
+      (prior.rating !== r.rating || prior.text !== r.text) &&
+      !alreadyRecorded.has(`${r.id}|${r.updateTime}`)
+    ) {
       newEdits.push({
         id: `edit-${r.id}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         reviewId: r.id,
@@ -131,18 +165,24 @@ export function diffAndRecordReviews(
 
   // Replace this location's snapshot set with exactly the current fetch —
   // drops removed reviews (so they don't get re-reported next time) and
-  // refreshes everything else to its latest known state.
+  // refreshes everything else to its latest known state. A stale copy
+  // (older updateTime than what we already have) never overwrites the
+  // newer snapshot, or the next fresh fetch would look like an edit again.
   const otherLocations = store.snapshots.filter((s) => s.location !== location);
-  const refreshed: ReviewSnapshot[] = current.map((r) => ({
-    id: r.id,
-    location,
-    reviewer: r.reviewer,
-    rating: r.rating,
-    text: r.text,
-    createTime: r.createTime,
-    updateTime: r.updateTime,
-    capturedAt: now,
-  }));
+  const refreshed: ReviewSnapshot[] = current.map((r) => {
+    const prior = priorById.get(r.id);
+    if (prior && isNewer(prior.updateTime, r.updateTime)) return prior;
+    return {
+      id: r.id,
+      location,
+      reviewer: r.reviewer,
+      rating: r.rating,
+      text: r.text,
+      createTime: r.createTime,
+      updateTime: r.updateTime,
+      capturedAt: now,
+    };
+  });
 
   store.snapshots = [...otherLocations, ...refreshed];
   store.edits.push(...newEdits);

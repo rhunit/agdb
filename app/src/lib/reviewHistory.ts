@@ -28,3 +28,19 @@ export function originalVersionFor(
     editedAt: latest.detectedAt,
   };
 }
+
+/** What actually changed in one edit, in plain Dutch — so a text-only
+ * edit doesn't read as a meaningless "5★ → 5★". */
+export function describeEditChange(edit: ReviewEdit): string {
+  const parts: string[] = [];
+  if (edit.previousRating !== edit.newRating) {
+    parts.push(`score ${edit.previousRating}★ → ${edit.newRating}★`);
+  }
+  if (edit.previousText !== edit.newText) {
+    if (!edit.previousText.trim()) parts.push("tekst toegevoegd");
+    else if (!edit.newText.trim()) parts.push("tekst verwijderd");
+    else parts.push("tekst aangepast");
+  }
+  const sentence = parts.join(" en ");
+  return sentence.charAt(0).toUpperCase() + sentence.slice(1);
+}
