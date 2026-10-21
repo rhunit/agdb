@@ -17,8 +17,7 @@ import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypt
 // neither set (local dev) the app is open.
 //
 // People log in through the dashboard's own login page, which then keeps
-// them logged in with a session cookie (see sessions.ts); a Basic auth
-// header is still accepted too, for scripts and curl.
+// them logged in with a session cookie (see sessions.ts).
 
 export type Permission = "reply" | "ai";
 export const ALL_PERMISSIONS: Permission[] = ["reply", "ai"];
@@ -89,9 +88,8 @@ export function configuredAccountCount(): number {
 
 export const OPEN_ACCOUNT: Account = { username: "lokaal", permissions: [...ALL_PERMISSIONS] };
 
-// A Basic header arrives with every request a script makes, and scrypt is
-// deliberately slow — so credentials that verified once are remembered by
-// their digest instead of re-hashed each time.
+// scrypt is deliberately slow — credentials that verified once are
+// remembered by their digest instead of re-hashed on every login.
 const verified = new Map<string, Account>();
 
 /** The account a username/password logs in as, or null when they don't
@@ -139,11 +137,3 @@ export function credentialStampFor(username: string): string | null {
   return createHash("sha256").update(secret).digest("base64url").slice(0, 12);
 }
 
-/** The account a Basic auth header logs in as (scripts/curl), or null. */
-export function authenticateBasic(header: string | undefined): Account | null {
-  if (!header?.startsWith("Basic ")) return null;
-  const decoded = Buffer.from(header.slice(6), "base64").toString("utf-8");
-  const sep = decoded.indexOf(":");
-  if (sep < 0) return null;
-  return checkCredentials(decoded.slice(0, sep), decoded.slice(sep + 1));
-}

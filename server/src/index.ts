@@ -30,7 +30,6 @@ import { generateReportSummary, isReportSummaryAvailable } from "./reportSummary
 import { generateChatReply, isAiChatAvailable, type ChatMessage } from "./aiChat.js";
 import { appendWeeklyLogEntry, listWeeklyLog } from "./weeklyLogStore.js";
 import {
-  authenticateBasic,
   authMode,
   checkCredentials,
   configuredAccountCount,
@@ -69,7 +68,9 @@ const LOCATION_IDS = new Set([
 // The page itself (HTML/JS/CSS — no review data) is public so the login
 // screen can load; everything that returns or changes data — /api, the
 // Google connect flow, /health — needs a logged-in account, from the
-// session cookie the login page sets or a Basic header (scripts/curl).
+// session cookie the login page sets. Basic auth is deliberately NOT
+// accepted: browsers that once used the old Basic login keep re-sending
+// those credentials until they're closed, which made "Uitloggen" a no-op.
 // The account is kept on res.locals for the permission checks below.
 // Open when no login is configured (local dev).
 function needsLogin(path: string): boolean {
@@ -89,8 +90,7 @@ function requireLogin(
   const account =
     authMode() === "open"
       ? OPEN_ACCOUNT
-      : (accountFromSessionToken(readCookie(req.headers.cookie, SESSION_COOKIE)) ??
-        authenticateBasic(req.headers.authorization));
+      : accountFromSessionToken(readCookie(req.headers.cookie, SESSION_COOKIE));
   if (account) {
     res.locals.account = account;
     next();
