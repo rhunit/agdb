@@ -15,6 +15,10 @@ import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypt
 // Without DASHBOARD_USERS the older single shared BETA_USER/BETA_PASSWORD
 // login keeps working (with every permission, as before), and with
 // neither set (local dev) the app is open.
+//
+// People log in through the dashboard's own login page, which then keeps
+// them logged in with a session cookie (see sessions.ts); a Basic auth
+// header is still accepted too, for scripts and curl.
 
 export type Permission = "reply" | "ai";
 export const ALL_PERMISSIONS: Permission[] = ["reply", "ai"];
@@ -83,41 +87,63 @@ export function configuredAccountCount(): number {
   return configured.length;
 }
 
-// The browser sends the Basic header with every request (a page load is
-// a dozen API calls), and scrypt is deliberately slow — so a header that
-// verified once is remembered by its digest instead of re-hashed each time.
+export const OPEN_ACCOUNT: Account = { username: "lokaal", permissions: [...ALL_PERMISSIONS] };
+
+// A Basic header arrives with every request a script makes, and scrypt is
+// deliberately slow — so credentials that verified once are remembered by
+// their digest instead of re-hashed each time.
 const verified = new Map<string, Account>();
 
-function credentialsFrom(header: string | undefined): { user: string; pass: string } | null {
+/** The account a username/password logs in as, or null when they don't
+ * match any configured login. */
+export function checkCredentials(username: string, password: string): Account | null {
+  const mode = authMode();
+  if (mode === "open") return OPEN_ACCOUNT;
+  if (mode === "beta") {
+    return username === process.env.BETA_USER && password === process.env.BETA_PASSWORD
+      ? { username, permissions: [...ALL_PERMISSIONS] }
+      : null;
+  }
+
+  const key = createHash("sha256").update(`${username}\0${password}`).digest("hex");
+  const cached = verified.get(key);
+  if (cached) return cached;
+
+  const match = configured.find((a) => a.username === username);
+  if (!match || !verifyPassword(password, match.passwordHash)) return null;
+  const account = { username: match.username, permissions: match.permissions };
+  verified.set(key, account);
+  return account;
+}
+
+/** Current account for a username from a session cookie — looked up fresh
+ * each time, so a changed permission applies at once and a removed
+ * account is logged out. `credentialStamp` is a short fingerprint of the
+ * password the session was created with: changing a password ends every
+ * session made with the old one. */
+export function accountForSession(username: string, credentialStamp: string): Account | null {
+  const mode = authMode();
+  if (mode === "open") return OPEN_ACCOUNT;
+  if (credentialStampFor(username) !== credentialStamp) return null;
+  if (mode === "beta") return { username, permissions: [...ALL_PERMISSIONS] };
+  const match = configured.find((a) => a.username === username);
+  return match ? { username: match.username, permissions: match.permissions } : null;
+}
+
+export function credentialStampFor(username: string): string | null {
+  const mode = authMode();
+  let secret: string | undefined;
+  if (mode === "beta" && username === process.env.BETA_USER) secret = process.env.BETA_PASSWORD;
+  if (mode === "accounts") secret = configured.find((a) => a.username === username)?.passwordHash;
+  if (!secret) return null;
+  return createHash("sha256").update(secret).digest("base64url").slice(0, 12);
+}
+
+/** The account a Basic auth header logs in as (scripts/curl), or null. */
+export function authenticateBasic(header: string | undefined): Account | null {
   if (!header?.startsWith("Basic ")) return null;
   const decoded = Buffer.from(header.slice(6), "base64").toString("utf-8");
   const sep = decoded.indexOf(":");
   if (sep < 0) return null;
-  return { user: decoded.slice(0, sep), pass: decoded.slice(sep + 1) };
-}
-
-/** The account a request's Basic auth header logs in as, or null when it
- * doesn't match any configured login. */
-export function authenticate(header: string | undefined): Account | null {
-  const mode = authMode();
-  if (mode === "open") return { username: "lokaal", permissions: [...ALL_PERMISSIONS] };
-
-  const creds = credentialsFrom(header);
-  if (!creds) return null;
-
-  if (mode === "beta") {
-    return creds.user === process.env.BETA_USER && creds.pass === process.env.BETA_PASSWORD
-      ? { username: creds.user, permissions: [...ALL_PERMISSIONS] }
-      : null;
-  }
-
-  const key = createHash("sha256").update(header!).digest("hex");
-  const cached = verified.get(key);
-  if (cached) return cached;
-
-  const match = configured.find((a) => a.username === creds.user);
-  if (!match || !verifyPassword(creds.pass, match.passwordHash)) return null;
-  const account = { username: match.username, permissions: match.permissions };
-  verified.set(key, account);
-  return account;
+  return checkCredentials(decoded.slice(0, sep), decoded.slice(sep + 1));
 }

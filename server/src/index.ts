@@ -30,16 +30,32 @@ import { generateReportSummary, isReportSummaryAvailable } from "./reportSummary
 import { generateChatReply, isAiChatAvailable, type ChatMessage } from "./aiChat.js";
 import { appendWeeklyLogEntry, listWeeklyLog } from "./weeklyLogStore.js";
 import {
-  authenticate,
+  authenticateBasic,
   authMode,
+  checkCredentials,
   configuredAccountCount,
+  OPEN_ACCOUNT,
   type Account,
   type Permission,
 } from "./accounts.js";
+import {
+  accountFromSessionToken,
+  clearLoginFailures,
+  createSessionToken,
+  isLoginBlocked,
+  readCookie,
+  recordLoginFailure,
+  SESSION_COOKIE,
+  SESSION_MAX_AGE_MS,
+} from "./sessions.js";
 import { generateReplyDraft, isReplyDraftAvailable } from "./replyDraft.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
+// Northflank terminates HTTPS in front of the app; trusting its proxy
+// makes req.secure / req.ip reflect the real visitor (secure cookies,
+// per-address login throttling).
+app.set("trust proxy", 1);
 const PORT = Number(process.env.PORT ?? 8787);
 const LOCATION_IDS = new Set([
   "centrum",
@@ -50,22 +66,51 @@ const LOCATION_IDS = new Set([
   "amsterdamgenetics",
 ]);
 
-// Every request must log in as one of the configured accounts (see
-// accounts.ts); the account is kept on res.locals for the permission
-// checks below. Open when nothing is configured (local dev).
+// The page itself (HTML/JS/CSS — no review data) is public so the login
+// screen can load; everything that returns or changes data — /api, the
+// Google connect flow, /health — needs a logged-in account, from the
+// session cookie the login page sets or a Basic header (scripts/curl).
+// The account is kept on res.locals for the permission checks below.
+// Open when no login is configured (local dev).
+function needsLogin(path: string): boolean {
+  if (path === "/api/login" || path === "/api/logout") return false;
+  return path.startsWith("/api/") || path.startsWith("/auth/") || path === "/health";
+}
+
 function requireLogin(
   req: express.Request,
   res: express.Response,
   next: express.NextFunction,
 ): void {
-  const account = authenticate(req.headers.authorization);
+  if (!needsLogin(req.path)) {
+    next();
+    return;
+  }
+  const account =
+    authMode() === "open"
+      ? OPEN_ACCOUNT
+      : (accountFromSessionToken(readCookie(req.headers.cookie, SESSION_COOKIE)) ??
+        authenticateBasic(req.headers.authorization));
   if (account) {
     res.locals.account = account;
     next();
     return;
   }
-  res.set("WWW-Authenticate", 'Basic realm="AG Review Radar"');
-  res.status(401).send("Authenticatie vereist.");
+  // No WWW-Authenticate header on purpose: that's what made browsers pop
+  // up their own unstyled login dialog. The app shows its login page.
+  res.status(401).json({ error: "Niet ingelogd." });
+}
+
+function sessionCookieOptions(req: express.Request): express.CookieOptions {
+  return {
+    httpOnly: true,
+    secure: req.secure,
+    // Lax: sent on normal navigation to the dashboard, never on another
+    // site's form or fetch — which is what stops cross-site requests from
+    // acting as the logged-in person.
+    sameSite: "lax",
+    path: "/",
+  };
 }
 
 /** Blocks a route for accounts without `permission` — enforced here on the
@@ -91,6 +136,38 @@ app.use(express.json());
 // Always 200 while the server itself is up (so a platform health check
 // doesn't restart it over a Google problem it can't fix) — googleConnected
 // reflects a real token check, with Google's error when it fails.
+app.post("/api/login", (req, res) => {
+  const { username, password } = req.body ?? {};
+  if (typeof username !== "string" || typeof password !== "string" || !username || !password) {
+    res.status(400).json({ error: "Vul je gebruikersnaam en wachtwoord in." });
+    return;
+  }
+  const ip = req.ip ?? "onbekend";
+  if (isLoginBlocked(ip, username)) {
+    res.status(429).json({
+      error: "Te veel mislukte pogingen. Probeer het over een kwartier opnieuw.",
+    });
+    return;
+  }
+  const account = checkCredentials(username, password);
+  if (!account) {
+    recordLoginFailure(ip, username);
+    res.status(401).json({ error: "Gebruikersnaam of wachtwoord klopt niet." });
+    return;
+  }
+  clearLoginFailures(ip, username);
+  res.cookie(SESSION_COOKIE, createSessionToken(account.username), {
+    ...sessionCookieOptions(req),
+    maxAge: SESSION_MAX_AGE_MS,
+  });
+  res.json({ username: account.username });
+});
+
+app.post("/api/logout", (req, res) => {
+  res.clearCookie(SESSION_COOKIE, sessionCookieOptions(req));
+  res.json({ ok: true });
+});
+
 // Who is logged in and what they may do — the frontend hides what an
 // account can't use (the server still enforces it per route).
 app.get("/api/me", (_req, res) => {

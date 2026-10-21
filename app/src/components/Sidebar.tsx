@@ -1,4 +1,5 @@
 import { useAccount } from "../hooks/useAccount";
+import { logout } from "../lib/api";
 import { ThemeToggle } from "./ThemeToggle";
 import styles from "./Sidebar.module.css";
 
@@ -67,7 +68,19 @@ export function Sidebar({ active, onNavigate }: SidebarProps) {
 
       {account && (
         <div className={styles.account}>
-          Ingelogd als <strong>{account.username}</strong>
+          <span>
+            Ingelogd als <strong>{account.username}</strong>
+          </span>
+          <button
+            type="button"
+            className={styles.logout}
+            onClick={async () => {
+              await logout();
+              window.location.reload();
+            }}
+          >
+            Uitloggen
+          </button>
         </div>
       )}
 

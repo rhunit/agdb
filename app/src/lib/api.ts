@@ -392,9 +392,58 @@ export interface Me {
   replyDraftAvailable: boolean;
 }
 
+export type SessionCheck =
+  | { status: "ok"; me: Me }
+  | { status: "unauthenticated" }
+  | { status: "error" };
+
+let sessionPromise: Promise<SessionCheck> | null = null;
+
+/** Who's logged in — fetched once per page load and shared (the app's
+ * login gate and every permission check read the same result). Not via
+ * getJson: "not logged in" is the login page's job, not an error banner. */
+export function loadSession(): Promise<SessionCheck> {
+  sessionPromise ??= (async (): Promise<SessionCheck> => {
+    try {
+      const res = await fetch(`${API_BASE}/api/me`, { signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS) });
+      if (res.status === 401) return { status: "unauthenticated" };
+      if (!res.ok) return { status: "error" };
+      return { status: "ok", me: (await res.json()) as Me };
+    } catch {
+      return { status: "error" };
+    }
+  })();
+  return sessionPromise;
+}
+
 export async function fetchMe(): Promise<Me | null> {
   if (!hasLiveBackend()) return null;
-  return getJson<Me>("/api/me");
+  const session = await loadSession();
+  return session.status === "ok" ? session.me : null;
+}
+
+export type LoginResult = { ok: true } | { ok: false; error: string };
+
+export async function login(username: string, password: string): Promise<LoginResult> {
+  try {
+    const res = await fetch(`${API_BASE}/api/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+      signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
+    });
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+      return { ok: false, error: body?.error ?? `Inloggen mislukt (${res.status}).` };
+    }
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Kon de server niet bereiken. Probeer het zo opnieuw." };
+  }
+}
+
+export async function logout(): Promise<void> {
+  await fetch(`${API_BASE}/api/logout`, { method: "POST" }).catch(() => undefined);
 }
 
 export type GenerateReplyDraftResult = { ok: true; draft: string } | { ok: false; error: string };

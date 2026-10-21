@@ -1,0 +1,260 @@
+.page {
+  min-height: 100%;
+  display: flex;
+  background: var(--ag-page-bg);
+}
+
+/* Left: the same green brand surface as the sidebar, so logging in feels
+   like the dashboard rather than a separate tool. */
+.brandPanel {
+  flex: 0 0 42%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--sp-lg);
+  padding: var(--sp-lg) var(--sp-lg) var(--sp-md);
+  background: linear-gradient(165deg, var(--ag-primary) 0%, var(--ag-primary-strong) 120%);
+  color: var(--ag-neutral);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+}
+
+.mark {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  border-radius: var(--r-full);
+  background: var(--ag-neutral);
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.brandName {
+  font: var(--fs-label-lg);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.betaBadge {
+  font: var(--fs-label-sm);
+  letter-spacing: var(--ls-label-sm);
+  font-weight: 700;
+  background: var(--ag-neutral);
+  color: var(--ag-primary-strong);
+  padding: 1px 7px;
+  border-radius: var(--r-full);
+}
+
+.brandSub {
+  font: var(--fs-body-sm);
+  opacity: 0.85;
+}
+
+.pitch {
+  max-width: 400px;
+}
+
+.pitchTitle {
+  margin: 0;
+  font: var(--fs-headline-display);
+  text-wrap: balance;
+}
+
+.pitchText {
+  margin: var(--sp-sm) 0 0;
+  font: var(--fs-body-lg);
+  opacity: 0.9;
+}
+
+.quote {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  padding-top: var(--sp-sm);
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  font: var(--fs-body-sm);
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+.professorImg {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border-radius: var(--r-full);
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+/* Right: the form. */
+.formPanel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-lg) var(--sp-md);
+}
+
+.card {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+
+.title {
+  margin: 0;
+  font: var(--fs-headline-lg);
+  color: var(--ag-secondary);
+}
+
+.subtitle {
+  margin: -6px 0 var(--sp-xs);
+  font: var(--fs-body-md);
+  color: var(--ag-muted);
+}
+
+.error {
+  padding: 10px var(--sp-sm);
+  background: var(--ag-error-bg);
+  border: 1px solid var(--ag-error-border);
+  border-radius: var(--r-md);
+  font: var(--fs-body-sm);
+  color: var(--ag-error);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font: var(--fs-label-md);
+  font-weight: 600;
+  color: var(--ag-secondary);
+}
+
+.input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 var(--sp-sm);
+  border: 1px solid var(--ag-border);
+  border-radius: var(--r-md);
+  background: var(--ag-surface);
+  color: var(--ag-on-surface);
+  font: var(--fs-body-md);
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--ag-primary);
+  box-shadow: 0 0 0 3px var(--ag-primary-bg);
+}
+
+.input:disabled {
+  opacity: 0.7;
+}
+
+.passwordWrap {
+  position: relative;
+  display: block;
+}
+
+.passwordWrap .input {
+  padding-right: 84px;
+}
+
+.reveal {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 6px 8px;
+  border-radius: var(--r-sm);
+  font: var(--fs-label-sm);
+  font-weight: 700;
+  color: var(--ag-primary-strong);
+  cursor: pointer;
+}
+
+.reveal:hover {
+  background: var(--ag-primary-bg);
+}
+
+.reveal:focus-visible,
+.submit:focus-visible {
+  outline: 2px solid var(--ag-primary);
+  outline-offset: 2px;
+}
+
+.submit {
+  margin-top: var(--sp-xs);
+  min-height: 48px;
+  border: none;
+  border-radius: var(--r-full);
+  background: var(--ag-primary);
+  color: var(--ag-neutral);
+  font: var(--fs-button-text);
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.submit:not(:disabled):hover {
+  background: var(--ag-primary-strong);
+}
+
+.submit:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.footnote {
+  margin: 0;
+  text-align: center;
+  font: var(--fs-body-sm);
+  color: var(--ag-muted);
+}
+
+/* Phone/tablet: brand panel becomes a compact header above the form. */
+@media (max-width: 860px) {
+  .page {
+    flex-direction: column;
+  }
+
+  .brandPanel {
+    flex: 0 0 auto;
+    max-width: none;
+    gap: var(--sp-md);
+    padding: var(--sp-md);
+  }
+
+  .pitchTitle {
+    font: var(--fs-headline-sm);
+  }
+
+  .pitchText {
+    font: var(--fs-body-sm);
+    margin-top: 6px;
+  }
+
+  .quote {
+    display: none;
+  }
+
+  .formPanel {
+    align-items: flex-start;
+    padding: var(--sp-md) var(--sp-md) var(--sp-lg);
+  }
+}
