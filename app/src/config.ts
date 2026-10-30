@@ -8,10 +8,10 @@ import type { LocationId } from "./types";
 // silently blend in data for a location nobody can otherwise see or
 // select, which is confusing rather than honest.
 export const VISIBLE_LOCATION_IDS: LocationId[] = [
-  "centrum",
-  "almere",
-  "amsterdamgenetics",
   "boerejongens",
+  "almere",
+  "centrum",
+  "amsterdamgenetics",
 ];
 
 /** Short tab labels for the locations above — used by both the
