@@ -24,7 +24,7 @@ const LOCATION_LABEL: Record<LocationId, string> = {
   centrum: "BIJ Amsterdam",
   oost: "Sloterdijk",
   depijp: "Boerejongens West",
-  boerejongens: "Boerejongens",
+  boerejongens: "Boerejongens Centrum",
   almere: "Boerejongens Almere",
   amsterdamgenetics: "Amsterdam Genetics",
 };
