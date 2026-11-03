@@ -81,7 +81,10 @@ export function acceptsHit(term: MentionTerm, title: string, body: string): bool
   return true;
 }
 
-// ---- Reddit (official API, app-only OAuth) ----
+// ---- Reddit ----
+// The official API when REDDIT_CLIENT_ID/SECRET are set (Reddit now only
+// hands those out after a request is approved); otherwise Reddit's own
+// public RSS feed of the same search, which needs no keys.
 
 let redditToken: { token: string; expiresAt: number } | null = null;
 
@@ -133,6 +136,43 @@ export async function searchReddit(term: MentionTerm): Promise<Found[]> {
     publishedAt: new Date(p.created_utc * 1000).toISOString(),
     terms: [term.term],
   }));
+}
+
+/** Reddit's search feed is Atom: one <entry> per post, the subreddit as
+ * <category label="r/…">, the post text as HTML in <content> followed by
+ * "submitted by /u/… [link] [comments]". */
+export function parseRedditRss(xml: string, term: string): Found[] {
+  return blocks(xml, "entry").map((entry) => {
+    const url = decodeEntities(entry.match(/<link[^>]*href="([^"]+)"/)?.[1] ?? "");
+    const label = decodeEntities(entry.match(/<category[^>]*label="([^"]+)"/)?.[1] ?? "");
+    const title = tagText(entry, "title");
+    const text = tagText(entry, "content").split(/\bsubmitted by\b/)[0].trim();
+    const published = tagText(entry, "published") || tagText(entry, "updated");
+    return {
+      url,
+      source: "reddit" as MentionSource,
+      sourceName: label || "Reddit",
+      title,
+      firstLine: firstLine(text, title),
+      matchText: text,
+      publishedAt: published && !Number.isNaN(Date.parse(published)) ? new Date(published).toISOString() : null,
+      terms: [term],
+    };
+  }).filter((f) => f.url);
+}
+
+// Gentle on Reddit: one feed request at a time, a short pause in between.
+const REDDIT_RSS_PAUSE_MS = 2_000;
+
+export async function searchRedditRss(term: MentionTerm): Promise<Found[]> {
+  const url = new URL("https://www.reddit.com/search.rss");
+  url.searchParams.set("q", `"${term.term}"`);
+  url.searchParams.set("sort", "new");
+  url.searchParams.set("t", "year");
+  url.searchParams.set("limit", "50");
+  const found = parseRedditRss(await fetchText(url.toString()), term.term);
+  await new Promise((resolve) => setTimeout(resolve, REDDIT_RSS_PAUSE_MS));
+  return found;
 }
 
 // ---- Google News (public RSS search) ----
@@ -223,7 +263,7 @@ export interface SourceStatus {
 }
 
 const status: Record<MentionSource, SourceStatus> = {
-  reddit: { configured: false, lastRunAt: null, lastError: null },
+  reddit: { configured: true, lastRunAt: null, lastError: null },
   news: { configured: true, lastRunAt: null, lastError: null },
   alerts: { configured: false, lastRunAt: null, lastError: null },
 };
@@ -232,7 +272,8 @@ let running: Promise<number> | null = null;
 
 export function mentionStatus() {
   const terms = loadTerms();
-  status.reddit.configured = isRedditConfigured();
+  // Always on: the API with keys, the public feed without.
+  status.reddit.configured = true;
   status.alerts.configured = terms.some((t) => t.alertsFeedUrl);
   return { sources: status, lastCheckAt, checking: running !== null };
 }
@@ -265,7 +306,7 @@ export function checkMentions(): Promise<number> {
   running = (async () => {
     const terms = loadTerms();
     const found: Found[] = [];
-    if (isRedditConfigured()) await runSource("reddit", terms, searchReddit, found);
+    await runSource("reddit", terms, isRedditConfigured() ? searchReddit : searchRedditRss, found);
     await runSource("news", terms, searchGoogleNews, found);
     const withFeeds = terms.filter((t) => t.alertsFeedUrl);
     if (withFeeds.length > 0) await runSource("alerts", withFeeds, searchGoogleAlerts, found);

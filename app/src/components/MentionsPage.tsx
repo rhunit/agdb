@@ -24,7 +24,8 @@ const SOURCE_LABEL: Record<MentionSource, string> = {
 };
 
 const SOURCE_HINT: Record<MentionSource, string> = {
-  reddit: "Nog niet gekoppeld: zet REDDIT_CLIENT_ID en REDDIT_CLIENT_SECRET op Northflank.",
+  // Always on (public feed without keys), so this is never shown.
+  reddit: "",
   news: "",
   alerts: "Nog geen Google Alerts-feed: voeg die per zoekterm toe onder Zoektermen.",
 };
