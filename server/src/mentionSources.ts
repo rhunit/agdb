@@ -1,6 +1,10 @@
+import { fetchArticle, mentionsTerm, resolveGoogleNewsUrl } from "./articleCheck.js";
 import {
   addMentions,
+  addRejected,
+  pageState,
   loadTerms,
+  mentionId,
   type Mention,
   type MentionSource,
   type MentionTerm,
@@ -310,7 +314,7 @@ export function checkMentions(): Promise<number> {
     await runSource("news", terms, searchGoogleNews, found);
     const withFeeds = terms.filter((t) => t.alertsFeedUrl);
     if (withFeeds.length > 0) await runSource("alerts", withFeeds, searchGoogleAlerts, found);
-    const added = addMentions(found.map(({ matchText: _, ...mention }) => mention));
+    const added = addMentions(await verifyArticles(found, terms));
     lastCheckAt = new Date().toISOString();
     if (added > 0) console.log(`mentions: ${added} new mention(s)`);
     return added;
@@ -318,6 +322,78 @@ export function checkMentions(): Promise<number> {
     running = null;
   });
   return running;
+}
+
+// Fetching and checking articles takes a moment each; anything beyond this
+// per run is simply picked up by the next run.
+const MAX_ARTICLE_CHECKS_PER_RUN = 30;
+
+type Checked = Omit<Found, "matchText"> & { idUrl?: string };
+
+/** Search engines match a term anywhere on a page, including "Lees ook"
+ * teasers for other articles. For new news and web hits, fetch the page
+ * and keep only the terms its own article text mentions. A page that
+ * can't be fetched or read is kept only for terms in its title. Rejected
+ * pages are remembered and not checked again. */
+async function verifyArticles(found: Found[], terms: MentionTerm[]): Promise<Checked[]> {
+  const termByName = new Map(terms.map((t) => [t.term, t]));
+  // One check per page, for all the terms it came up for.
+  const byUrl = new Map<string, Found>();
+  for (const f of found) {
+    const existing = byUrl.get(f.url);
+    if (existing) existing.terms = [...new Set([...existing.terms, ...f.terms])];
+    else byUrl.set(f.url, { ...f, terms: [...f.terms] });
+  }
+
+  const out: Checked[] = [];
+  const rejected: string[] = [];
+  let checks = 0;
+  for (const f of byUrl.values()) {
+    const { matchText: _, ...mention } = f;
+    const state = pageState(mentionId(f.url));
+    if (state === "rejected") continue;
+    if (f.source === "reddit" || state === "known") {
+      // Reddit hits are the post itself; known pages only gain terms.
+      out.push(mention);
+      continue;
+    }
+    const id = mentionId(f.url);
+    if (checks >= MAX_ARTICLE_CHECKS_PER_RUN) continue;
+    checks++;
+
+    let realUrl: string | null = f.url;
+    let article = null;
+    try {
+      if (f.source === "news") realUrl = await resolveGoogleNewsUrl(f.url);
+      if (realUrl) article = await fetchArticle(realUrl);
+    } catch {
+      article = null;
+    }
+    const inText = (text: string) =>
+      f.terms.filter((t) => {
+        const term = termByName.get(t);
+        return term ? mentionsTerm(text, term.term, term.matchCase) : false;
+      });
+    const kept = article ? inText(article.body) : inText(f.title);
+    if (kept.length === 0) {
+      rejected.push(id);
+      continue;
+    }
+    out.push({
+      ...mention,
+      url: realUrl ?? f.url,
+      idUrl: f.url,
+      terms: kept,
+      // The article's own opening beats a feed's snippet ("eerste regel
+      // van de bron"); the snippet is the fallback when it couldn't be read.
+      firstLine: article?.lead || mention.firstLine,
+    });
+  }
+  addRejected(rejected);
+  if (rejected.length > 0) {
+    console.log(`mentions: ${rejected.length} page(s) skipped — term not in the article itself`);
+  }
+  return out;
 }
 
 /** Checks every 30 minutes, the first time shortly after startup. */

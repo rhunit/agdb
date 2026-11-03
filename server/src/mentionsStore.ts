@@ -116,8 +116,42 @@ export function saveTerms(input: unknown): MentionTerm[] {
   return terms;
 }
 
+interface ItemsFile {
+  items: Mention[];
+  /** Pages checked and found not to mention any term in the article
+   * itself (e.g. only in a "Lees ook" teaser) — remembered so they aren't
+   * fetched and checked again on every run. id → when rejected. */
+  rejected?: Record<string, string>;
+}
+
+function loadFile(): ItemsFile {
+  return readJson<ItemsFile>(ITEMS_FILE, { items: [] });
+}
+
 export function loadMentions(): Mention[] {
-  return readJson<{ items: Mention[] }>(ITEMS_FILE, { items: [] }).items;
+  return loadFile().items;
+}
+
+/** Whether a page is already listed ("known") or was checked and turned
+ * down ("rejected") — either way it isn't fetched and checked again. */
+export function pageState(id: string): "known" | "rejected" | "new" {
+  const file = loadFile();
+  if (file.items.some((m) => m.id === id)) return "known";
+  return file.rejected?.[id] ? "rejected" : "new";
+}
+
+const MAX_REJECTED = 5000;
+
+export function addRejected(ids: string[]): void {
+  if (ids.length === 0) return;
+  const file = loadFile();
+  const rejected = { ...(file.rejected ?? {}) };
+  const now = new Date().toISOString();
+  for (const id of ids) rejected[id] = now;
+  const kept = Object.entries(rejected)
+    .sort((a, b) => b[1].localeCompare(a[1]))
+    .slice(0, MAX_REJECTED);
+  writeJson(ITEMS_FILE, { ...file, rejected: Object.fromEntries(kept) });
 }
 
 export function mentionId(url: string): string {
@@ -127,13 +161,20 @@ export function mentionId(url: string): string {
 /** Adds what a check found. A URL already known only gains the new term
  * (one article can mention "Boerejongens" and "Boerejongens West"), so the
  * same page is never listed twice. Returns how many were new. */
-export function addMentions(found: Omit<Mention, "id" | "foundAt" | "hidden" | "hiddenBy">[]): number {
-  const items = loadMentions();
+export function addMentions(
+  found: (Omit<Mention, "id" | "foundAt" | "hidden" | "hiddenBy"> & {
+    /** What identifies the page across checks, when the stored url differs
+     * from what the search returned (e.g. a resolved Google News link). */
+    idUrl?: string;
+  })[],
+): number {
+  const file = loadFile();
+  const items = file.items;
   const byId = new Map(items.map((m) => [m.id, m]));
   const now = new Date().toISOString();
   let added = 0;
-  for (const f of found) {
-    const id = mentionId(f.url);
+  for (const { idUrl, ...f } of found) {
+    const id = mentionId(idUrl ?? f.url);
     const existing = byId.get(id);
     if (existing) {
       for (const t of f.terms) if (!existing.terms.includes(t)) existing.terms.push(t);
@@ -147,17 +188,18 @@ export function addMentions(found: Omit<Mention, "id" | "foundAt" | "hidden" | "
   const newestFirst = items.sort((a, b) =>
     (b.publishedAt ?? b.foundAt).localeCompare(a.publishedAt ?? a.foundAt),
   );
-  writeJson(ITEMS_FILE, { items: newestFirst.slice(0, MAX_ITEMS) });
+  writeJson(ITEMS_FILE, { ...file, items: newestFirst.slice(0, MAX_ITEMS) });
   return added;
 }
 
 /** "Niet relevant" / "Toch tonen" on one mention. */
 export function setMentionHidden(id: string, hidden: boolean, username: string): Mention | null {
-  const items = loadMentions();
+  const file = loadFile();
+  const items = file.items;
   const mention = items.find((m) => m.id === id);
   if (!mention) return null;
   mention.hidden = hidden;
   mention.hiddenBy = hidden ? username : null;
-  writeJson(ITEMS_FILE, { items });
+  writeJson(ITEMS_FILE, file);
   return mention;
 }
