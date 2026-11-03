@@ -504,8 +504,8 @@ export interface AccountListing {
 
 export type AdminResult<T> = { ok: true; data: T } | { ok: false; error: string };
 
-async function adminRequest<T>(
-  method: "POST" | "PATCH" | "DELETE",
+async function sendJson<T>(
+  method: "POST" | "PATCH" | "PUT" | "DELETE",
   path: string,
   body?: unknown,
 ): Promise<AdminResult<T>> {
@@ -529,16 +529,73 @@ export async function fetchAccounts(): Promise<AccountListing[] | null> {
 }
 
 export function createAccount(username: string, password: string, permissions: Permission[]) {
-  return adminRequest<AccountListing>("POST", "/api/admin/users", { username, password, permissions });
+  return sendJson<AccountListing>("POST", "/api/admin/users", { username, password, permissions });
 }
 
 export function updateAccount(
   username: string,
   changes: { permissions?: Permission[]; password?: string },
 ) {
-  return adminRequest<AccountListing>("PATCH", `/api/admin/users/${encodeURIComponent(username)}`, changes);
+  return sendJson<AccountListing>("PATCH", `/api/admin/users/${encodeURIComponent(username)}`, changes);
 }
 
 export function deleteAccount(username: string) {
-  return adminRequest<{ ok: true }>("DELETE", `/api/admin/users/${encodeURIComponent(username)}`);
+  return sendJson<{ ok: true }>("DELETE", `/api/admin/users/${encodeURIComponent(username)}`);
+}
+
+// ---- Vermeldingen — see server/src/mentionsStore.ts ----
+
+export type MentionSource = "reddit" | "news" | "alerts";
+
+export interface Mention {
+  id: string;
+  url: string;
+  source: MentionSource;
+  sourceName: string;
+  title: string;
+  firstLine: string;
+  publishedAt: string | null;
+  foundAt: string;
+  terms: string[];
+  hidden: boolean;
+  hiddenBy: string | null;
+}
+
+export interface MentionTerm {
+  term: string;
+  exclude: string[];
+  matchCase: boolean;
+  alertsFeedUrl: string | null;
+}
+
+export interface MentionSourceStatus {
+  configured: boolean;
+  lastRunAt: string | null;
+  lastError: string | null;
+}
+
+export interface MentionsResponse {
+  items: Mention[];
+  terms: MentionTerm[];
+  sources: Record<MentionSource, MentionSourceStatus>;
+  lastCheckAt: string | null;
+  checking: boolean;
+}
+
+export async function fetchMentions(): Promise<MentionsResponse | null> {
+  if (!hasLiveBackend()) return null;
+  return getJson<MentionsResponse>("/api/mentions");
+}
+
+/** "Nu zoeken" — waits for the check, which can take a little while. */
+export function runMentionCheck() {
+  return sendJson<{ added: number }>("POST", "/api/mentions/check", {});
+}
+
+export function setMentionHidden(id: string, hidden: boolean) {
+  return sendJson<Mention>("PATCH", `/api/mentions/${encodeURIComponent(id)}`, { hidden });
+}
+
+export function saveMentionTerms(terms: MentionTerm[]) {
+  return sendJson<{ terms: MentionTerm[] }>("PUT", "/api/mentions/terms", { terms });
 }

@@ -54,6 +54,14 @@ import {
 } from "./sessions.js";
 import { generateReplyDraft, isReplyDraftAvailable } from "./replyDraft.js";
 import { listReplyLog, recordReply } from "./replyLogStore.js";
+import { checkMentions, mentionStatus, scheduleMentionChecks } from "./mentionSources.js";
+import {
+  loadMentions,
+  loadTerms,
+  MentionTermError,
+  saveTerms,
+  setMentionHidden,
+} from "./mentionsStore.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -373,6 +381,57 @@ app.delete("/api/admin/users/:username", requirePermission("admin"), (req, res) 
   }
 });
 
+// ---- Vermeldingen: where the tracked terms came up on the web ----
+
+app.get("/api/mentions", (_req, res) => {
+  res.json({ items: loadMentions(), terms: loadTerms(), ...mentionStatus() });
+});
+
+// "Nu zoeken": an immediate check instead of waiting for the next scheduled
+// one. Throttled, since every check queries each source once per term.
+let lastManualCheck = 0;
+app.post("/api/mentions/check", async (_req, res) => {
+  if (Date.now() - lastManualCheck < 60_000) {
+    res.status(429).json({ error: "Er is net al gezocht. Probeer het over een minuut opnieuw." });
+    return;
+  }
+  lastManualCheck = Date.now();
+  try {
+    const added = await checkMentions();
+    res.json({ added });
+  } catch (err) {
+    console.error(err);
+    res.status(503).json({ error: (err as Error).message });
+  }
+});
+
+app.patch("/api/mentions/:id", (req, res) => {
+  const { hidden } = req.body ?? {};
+  if (typeof hidden !== "boolean") {
+    res.status(400).json({ error: "Vereist: hidden (true/false)." });
+    return;
+  }
+  const mention = setMentionHidden(req.params.id, hidden, (res.locals.account as Account).username);
+  if (!mention) {
+    res.status(404).json({ error: "Vermelding niet gevonden." });
+    return;
+  }
+  res.json(mention);
+});
+
+app.put("/api/mentions/terms", requirePermission("admin"), (req, res) => {
+  try {
+    res.json({ terms: saveTerms(req.body?.terms) });
+  } catch (err) {
+    if (err instanceof MentionTermError) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    console.error(err);
+    res.status(500).json({ error: "Opslaan mislukt." });
+  }
+});
+
 // Who replied to which review through the dashboard, and when.
 app.get("/api/reply-log", (_req, res) => {
   res.json(listReplyLog());
@@ -630,6 +689,7 @@ if (existsSync(FRONTEND_DIST)) {
 app.listen(PORT, () => {
   console.log(`Review Radar server listening on http://localhost:${PORT}`);
   console.log(describeLoginSetup());
+  scheduleMentionChecks();
   console.log(
     isConnected()
       ? "Google Business Profile: connected"

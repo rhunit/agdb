@@ -3,7 +3,13 @@ import { logout } from "../lib/api";
 import { ThemeToggle } from "./ThemeToggle";
 import styles from "./Sidebar.module.css";
 
-export type SidebarView = "dashboard" | "alle-reviews" | "locaties" | "rapportage" | "gebruikers";
+export type SidebarView =
+  | "dashboard"
+  | "alle-reviews"
+  | "locaties"
+  | "rapportage"
+  | "vermeldingen"
+  | "gebruikers";
 
 interface NavItem {
   label: string;
@@ -14,6 +20,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", view: "dashboard" },
   { label: "Alle reviews", view: "alle-reviews" },
   { label: "Rapportage", view: "rapportage" },
+  { label: "Vermeldingen", view: "vermeldingen" },
   { label: "Locaties", view: "locaties" },
 ];
 

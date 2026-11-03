@@ -19,6 +19,7 @@ import { CriticalReviewFeed } from "./CriticalReviewFeed";
 import { ErrorState } from "./ErrorState";
 import { LoadingState } from "./LoadingState";
 import { LocationsOverview } from "./LocationsOverview";
+import { MentionsPage } from "./MentionsPage";
 import { Rapportage } from "./Rapportage";
 import { RatingBreakdown } from "./RatingBreakdown";
 import { RemovedReviewsCard } from "./RemovedReviewsCard";
@@ -107,7 +108,11 @@ export function Dashboard() {
         <Sidebar active={view} onNavigate={setView} />
         <div className={styles.main}>
           <ApiErrorBanner />
-          {view === "gebruikers" ? (
+          {view === "vermeldingen" ? (
+            <div className={styles.content}>
+              <MentionsPage />
+            </div>
+          ) : view === "gebruikers" ? (
             <div className={styles.content}>
               <UsersPage />
             </div>
