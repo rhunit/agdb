@@ -31,8 +31,8 @@ function originalText(text: string): string {
 // Each draft is a separate call, so the model can't see its earlier
 // replies and keeps landing on the same greeting and phrasing. The code
 // picks the greeting, and the last few drafts go along as "don't repeat".
-const GREETINGS_NL = ["Hi", "Hey", "Hoi", "Hallo", "Beste", "Dag"];
-const GREETINGS_EN = ["Hi", "Hey", "Hello", "Dear"];
+const GREETINGS_NL = ["Hi", "Hey", "Hoi", "Hallo", "Dag"];
+const GREETINGS_EN = ["Hi", "Hey", "Hello"];
 const RECENT_LIMIT = 6;
 const recentDrafts: string[] = [];
 
