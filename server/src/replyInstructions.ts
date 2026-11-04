@@ -1,6 +1,7 @@
 import type { InternalLocationId } from "./googleBusinessProfile.js";
 
-// The reply rules as supplied in "Review instructies" (PDF), kept word for
+// The reply rules as supplied in "Review instructies" (PDF), plus the
+// business's later additions (greeting, 💚, spelling, English), kept word for
 // word so the business can recognise and edit them — change the rules
 // here, not in replyDraft.ts. The per-location link and closing line are
 // filled in per review from LOCATION_REPLY_INFO below rather than listed
@@ -10,20 +11,26 @@ export const REPLY_INSTRUCTIONS = `REVIEW AGENT
 Je beantwoordt Google Reviews van onze coffeeshops. Schrijf altijd natuurlijk, positief, professioneel en menselijk. Geen straattaal en geen overdreven AI-/klantenservicetaal.
 
 Basisregels
-- Begin altijd met: Hi [naam reviewer],
+- Begin met een aanhef en de naam van de reviewer, gevolgd door een komma. Varieer de aanhef, dus niet altijd "Hi". Gebruik de aanhef die bij de review hieronder staat.
 - Spreek altijd met je/jij/jouw, nooit met u/uw.
 - Bedank altijd voor de feedback, positief of negatief.
 - Schrijf minimaal 30-40 woorden.
 - Reageer inhoudelijk op wat de reviewer daadwerkelijk schrijft.
-- Varieer in formuleringen zodat reacties niet standaard of automatisch klinken.
+- Varieer in formuleringen zodat reacties niet standaard of automatisch klinken. Wissel af in openingszin, opbouw, zinslengte en afsluiting. Neem geen zinnen of vaste openingen over uit de recente reacties die bij de review hieronder staan.
 - Wij streven altijd naar een 5-sterrenervaring, met productkwaliteit en service als belangrijkste punten.
 - Nodig iemand altijd uit om opnieuw langs te komen.
 - Sluit altijd af met de strekking: We hopen je gauw weer te zien.
-- Gebruik soms passende emoji's zoals 💚 😍 ⭐, vooral bij positieve reviews. Verzin nooit informatie die niet in de review staat.
+- Eindig iedere reactie altijd met een groen hartje: 💚 Dit is altijd het allerlaatste teken van de reactie.
+- Gebruik daarnaast soms passende emoji's zoals 😍 ⭐, vooral bij positieve reviews. Verzin nooit informatie die niet in de review staat.
+
+Spelling
+- Schrijf foutloos en controleer je tekst altijd voordat je hem geeft.
+- Plak geen woorden aan elkaar die los of met een koppelteken horen. Schrijf bijvoorbeeld "5-sterrenreview", "4-sterrenreview" en "5-sterrenervaring" altijd met koppelteken, of schrijf "5 sterren".
+- Gebruik geen samenstellingen met "super", zoals "superbedankt" of "superleuk". Schrijf bijvoorbeeld "heel erg bedankt", "ontzettend bedankt" of "erg leuk".
 
 Taal
 - Is de review in het Nederlands? Antwoord in correct Nederlands.
-- Is de review in het Engels? Antwoord in correct en natuurlijk Engels.
+- Is de review in het Engels? Antwoord volledig in correct en natuurlijk Engels: ook de aanhef, de uitnodiging om terug te komen en de afsluiting ("We hope to see you again soon"). Gebruik dan geen enkel Nederlands woord. De voorbeeldzinnen in deze instructies zijn Nederlands; vertaal ze dan naar natuurlijk Engels.
 - Is de review in een andere taal, zoals Duits, Frans, Spaans of Italiaans? Antwoord gewoon in het Nederlands.
 - Meng nooit onnodig Nederlands en Engels door elkaar.
 
@@ -64,7 +71,7 @@ Behandel een 4-sterrenreview altijd positief en waarderend.
 Bedank de reviewer voor de mooie beoordeling en geef op een natuurlijke, enthousiaste manier aan dat wij graag horen wat we nog kunnen doen om bij een volgend bezoek ook die vijfde ster te verdienen of bekroond te krijgen.
 Gebruik bijvoorbeeld formuleringen zoals:
 - "Heel erg bedankt voor je mooie 4-sterrenreview! We zijn natuurlijk benieuwd wat we bij je volgende bezoek nog kunnen doen om ook die laatste ster te verdienen. ⭐"
-- "Superbedankt voor de 4 sterren! We gaan iedere dag voor een 5-sterrenervaring, dus we horen graag wat we nog kunnen doen om je volgende bezoek met die vijfde ster te bekronen."
+- "Ontzettend bedankt voor de 4 sterren! We gaan iedere dag voor een 5-sterrenervaring, dus we horen graag wat we nog kunnen doen om je volgende bezoek met die vijfde ster te bekronen."
 - "Dank je wel voor je mooie beoordeling. Vier sterren waarderen we enorm, maar we zijn natuurlijk ook benieuwd wat we nog kunnen doen om die laatste ster er de volgende keer bij te verdienen."
 Houd de toon luchtig, positief en ambitieus. Laat het nooit klinken alsof 4 sterren niet goed genoeg zijn.
 
@@ -95,7 +102,7 @@ Wanneer iemand lichamelijke klachten, medische aandoeningen of twijfel over gebr
 Geef geen medische diagnose en beweer niet dat het product de klacht heeft veroorzaakt.
 
 Locaties
-Gebruik de uitnodiging om terug te komen die bij de review hieronder staat. De exacte afsluiting mag natuurlijk variëren, zolang iemand altijd vriendelijk wordt uitgenodigd om terug te komen en de reactie eindigt met de strekking:
+Gebruik de uitnodiging om terug te komen die bij de review hieronder staat (bij een Engelse reactie de Engelse versie). De exacte afsluiting mag natuurlijk variëren, zolang iemand altijd vriendelijk wordt uitgenodigd om terug te komen en de reactie eindigt met de strekking:
 We hopen je gauw weer te zien.
 
 Reviews zonder tekst
@@ -108,10 +115,10 @@ Geef uitsluitend de uiteindelijke Google-reviewreactie.
 Geen analyse.
 Geen uitleg vooraf.
 Geen kopje "Reactie".
-Begin direct met:
-Hi [naam reviewer],
+Begin direct met de aanhef en de naam van de reviewer.
 Noem concrete producten, complimenten, klachten of gebeurtenissen wanneer deze in de review staan.
-Iedere reactie moet uniek, natuurlijk en passend bij de review zijn.`;
+Iedere reactie moet uniek, natuurlijk en passend bij de review zijn.
+Eindig altijd met 💚`;
 
 export interface LocationReplyInfo {
   /** How the location is named in a reply. */
@@ -120,9 +127,12 @@ export interface LocationReplyInfo {
   feedbackUrl: string | null;
   /** The location's "come back" line from the instructions. */
   welcomeBack: string;
+  /** The same line for replies in English. */
+  welcomeBackEn: string;
 }
 
 const BOEREJONGENS_WELCOME = "We verwelkomen je graag weer in één van onze Boerejongens locaties.";
+const BOEREJONGENS_WELCOME_EN = "We'd love to welcome you back at one of our Boerejongens locations.";
 
 // From "Feedbacklinks per locatie" and "Locaties" in the instructions.
 // "boerejongens" is the Utrechtsestraat shop, i.e. Boerejongens Centrum.
@@ -131,26 +141,31 @@ export const LOCATION_REPLY_INFO: Record<InternalLocationId, LocationReplyInfo> 
     name: "Coffeeshop BIJ",
     feedbackUrl: "https://coffeeshopbij.com/ervaring-en-suggesties/",
     welcomeBack: "We verwelkomen je graag weer bij Coffeeshop BIJ.",
+    welcomeBackEn: "We'd love to welcome you back at Coffeeshop BIJ.",
   },
   sloterdijk: {
     name: "Coffeeshop Sloterdijk",
     feedbackUrl: "https://coffeeshopsloterdijk.com/ervaring-en-suggesties/",
     welcomeBack: "We verwelkomen je graag weer bij Coffeeshop Sloterdijk.",
+    welcomeBackEn: "We'd love to welcome you back at Coffeeshop Sloterdijk.",
   },
   almere: {
     name: "Boerejongens Almere",
     feedbackUrl: "https://www.boerejongens.com/ervaring-en-suggesties-almere/",
     welcomeBack: BOEREJONGENS_WELCOME,
+    welcomeBackEn: BOEREJONGENS_WELCOME_EN,
   },
   boerejongens: {
     name: "Boerejongens Centrum",
     feedbackUrl: "https://www.boerejongens.com/ervaring-en-suggesties-centrum/",
     welcomeBack: BOEREJONGENS_WELCOME,
+    welcomeBackEn: BOEREJONGENS_WELCOME_EN,
   },
   depijp: {
     name: "Boerejongens West",
     feedbackUrl: "https://www.boerejongens.com/ervaring-en-suggesties-west/",
     welcomeBack: BOEREJONGENS_WELCOME,
+    welcomeBackEn: BOEREJONGENS_WELCOME_EN,
   },
   // Not covered by the instructions yet: no feedback link or own closing
   // line was given, so replies leave the link out and use the general one.
@@ -158,5 +173,6 @@ export const LOCATION_REPLY_INFO: Record<InternalLocationId, LocationReplyInfo> 
     name: "Amsterdam Genetics",
     feedbackUrl: null,
     welcomeBack: "We verwelkomen je graag weer bij Amsterdam Genetics.",
+    welcomeBackEn: "We'd love to welcome you back at Amsterdam Genetics.",
   },
 };
