@@ -120,7 +120,7 @@ export async function fetchLiveReviewGrowth(): Promise<ReviewGrowthWeek[] | null
     .map(([week, byLocation]) => ({
       week,
       centrum: byLocation.centrum ?? 0,
-      oost: byLocation.oost ?? 0,
+      sloterdijk: byLocation.sloterdijk ?? 0,
       depijp: byLocation.depijp ?? 0,
       boerejongens: byLocation.boerejongens ?? 0,
       almere: byLocation.almere ?? 0,

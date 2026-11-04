@@ -62,8 +62,13 @@ import {
   saveTerms,
   setMentionHidden,
 } from "./mentionsStore.js";
+import { runDataMigrations } from "./dataMigrations.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+// Before anything reads stored data: bring it up to date (e.g. renamed
+// location ids).
+runDataMigrations();
+
 const app = express();
 // Northflank terminates HTTPS in front of the app; trusting its proxy
 // makes req.secure / req.ip reflect the real visitor (secure cookies,
@@ -72,7 +77,7 @@ app.set("trust proxy", 1);
 const PORT = Number(process.env.PORT ?? 8787);
 const LOCATION_IDS = new Set([
   "centrum",
-  "oost",
+  "sloterdijk",
   "depijp",
   "boerejongens",
   "almere",
@@ -445,7 +450,7 @@ app.post("/api/business-reviews/:location/:reviewId/reply", requirePermission("r
   const { comment } = req.body ?? {};
   if (!LOCATION_IDS.has(location)) {
     res.status(400).json({
-      error: "Onbekende locatie. Vereist: centrum|oost|depijp|boerejongens|almere|amsterdamgenetics.",
+      error: "Onbekende locatie. Vereist: centrum|sloterdijk|depijp|boerejongens|almere|amsterdamgenetics.",
     });
     return;
   }
@@ -611,7 +616,7 @@ app.get("/api/business-reviews-test", async (req, res) => {
   const locationParam = req.query.location;
   if (typeof locationParam !== "string") {
     res.status(400).json({
-      error: "Vereist: ?location=centrum|oost|depijp|boerejongens|almere|amsterdamgenetics",
+      error: "Vereist: ?location=centrum|sloterdijk|depijp|boerejongens|almere|amsterdamgenetics",
     });
     return;
   }
@@ -660,7 +665,7 @@ app.post("/api/weekly-log", (req, res) => {
   ) {
     res.status(400).json({
       error:
-        "Vereist: location (centrum|oost|depijp|boerejongens|almere|amsterdamgenetics), type (smoke|qr), submitter, note.",
+        "Vereist: location (centrum|sloterdijk|depijp|boerejongens|almere|amsterdamgenetics), type (smoke|qr), submitter, note.",
     });
     return;
   }

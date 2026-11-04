@@ -3,7 +3,7 @@ import type { OAuth2Client } from "google-auth-library";
 
 export type InternalLocationId =
   | "centrum"
-  | "oost"
+  | "sloterdijk"
   | "depijp"
   | "boerejongens"
   | "almere"
@@ -30,7 +30,7 @@ export interface DiscoveredLocation {
 function matchInternalId(title: string): InternalLocationId | null {
   const t = title.toLowerCase();
   if (t.includes("bij amsterdam")) return "centrum";
-  if (t.includes("sloterdijk")) return "oost";
+  if (t.includes("sloterdijk")) return "sloterdijk";
   if (t.includes("boerejongens") && t.includes("west")) return "depijp";
   if (t.includes("boerejongens") && t.includes("almere")) return "almere";
   if (t.includes("boerejongens")) return "boerejongens";
@@ -157,7 +157,7 @@ export async function getWeeklySearchViews(
           const value = Number(dated.value ?? 0);
           weekly[week] ??= {
             centrum: 0,
-            oost: 0,
+            sloterdijk: 0,
             depijp: 0,
             boerejongens: 0,
             almere: 0,

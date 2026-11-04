@@ -21,7 +21,7 @@ const CACHE_FILE = join(DATA_DIR, "places-cache.json");
 // enough to trust the resulting rating/review numbers.
 const SEARCH_QUERIES: Partial<Record<InternalLocationId, string>> = {
   centrum: "Coffeeshop BIJ Amsterdam, Bonairestraat 78, 1058 XL Amsterdam",
-  oost: "Coffeeshop Sloterdijk, Humberweg 2, 1043 AC Amsterdam",
+  sloterdijk: "Coffeeshop Sloterdijk, Humberweg 2, 1043 AC Amsterdam",
   depijp: "Boerejongens West, Baarsjesweg 239, 1058 AA Amsterdam",
   boerejongens: "Boerejongens Coffeeshop, Utrechtsestraat 21, 1017 VH Amsterdam",
   almere: "Boerejongens Almere, Grote Markt 23, 1315 JA Almere",

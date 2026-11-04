@@ -132,7 +132,7 @@ export const LOCATION_REPLY_INFO: Record<InternalLocationId, LocationReplyInfo> 
     feedbackUrl: "https://coffeeshopbij.com/ervaring-en-suggesties/",
     welcomeBack: "We verwelkomen je graag weer bij Coffeeshop BIJ.",
   },
-  oost: {
+  sloterdijk: {
     name: "Coffeeshop Sloterdijk",
     feedbackUrl: "https://coffeeshopsloterdijk.com/ervaring-en-suggesties/",
     welcomeBack: "We verwelkomen je graag weer bij Coffeeshop Sloterdijk.",

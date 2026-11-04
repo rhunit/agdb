@@ -11,6 +11,7 @@ export const VISIBLE_LOCATION_IDS: LocationId[] = [
   "boerejongens",
   "almere",
   "centrum",
+  "sloterdijk",
   "amsterdamgenetics",
 ];
 
@@ -20,7 +21,7 @@ export const VISIBLE_LOCATION_IDS: LocationId[] = [
 export const LOCATION_TAB_LABEL: Record<LocationId, string> = {
   centrum: "Coffeeshop BIJ",
   almere: "Boerejongens Almere",
-  oost: "Sloterdijk",
+  sloterdijk: "Coffeeshop Sloterdijk",
   depijp: "Boerejongens West",
   // The Utrechtsestraat shop; "Centrum" as in the reply instructions, so it
   // isn't mistaken for Boerejongens Almere next to it.
