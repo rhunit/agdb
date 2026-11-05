@@ -17,6 +17,7 @@ import {
   getAllBusinessReviews,
   getRecentBusinessReviews,
   listBusinessReviews,
+  getCurrentReply,
   replyToReview,
 } from "./googleBusinessReviews.js";
 import { ACTIVE_LOCATIONS, getAllPlacesSummaries } from "./googlePlaces.js";
@@ -447,7 +448,10 @@ app.get("/api/reply-log", (_req, res) => {
 // step belongs on the frontend before this is ever called.
 app.post("/api/business-reviews/:location/:reviewId/reply", requirePermission("reply"), async (req, res) => {
   const { location, reviewId } = req.params;
-  const { comment } = req.body ?? {};
+  // bulk: sent through "Bulk beantwoorden" (shown in the reply log).
+  // onlyIfUnanswered: refuse when the review got a reply in the meantime,
+  // so a bulk run never overwrites a reply posted elsewhere.
+  const { comment, bulk, onlyIfUnanswered } = req.body ?? {};
   if (!LOCATION_IDS.has(location)) {
     res.status(400).json({
       error: "Onbekende locatie. Vereist: centrum|sloterdijk|depijp|boerejongens|almere|amsterdamgenetics.",
@@ -468,6 +472,17 @@ app.post("/api/business-reviews/:location/:reviewId/reply", requirePermission("r
       });
       return;
     }
+    if (onlyIfUnanswered === true) {
+      const existing = await getCurrentReply(auth, match.accountName, match.googleLocationId, reviewId);
+      if (existing !== null) {
+        res.status(409).json({
+          error: "Deze review heeft intussen al een antwoord; overgeslagen.",
+          alreadyReplied: true,
+          replyText: existing,
+        });
+        return;
+      }
+    }
     const reply = await replyToReview(
       auth,
       match.accountName,
@@ -483,6 +498,7 @@ app.post("/api/business-reviews/:location/:reviewId/reply", requirePermission("r
         reviewId,
         location: location as InternalLocationId,
         username: (res.locals.account as Account).username,
+        ...(bulk === true ? { bulk: true } : {}),
       });
     } catch (err) {
       console.error("recordReply failed:", err);

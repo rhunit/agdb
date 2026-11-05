@@ -22,7 +22,8 @@ export function ReplyMeta({ googleReviewId, responseTime }: ReplyMetaProps) {
   if (entry) {
     return (
       <div className={styles.meta}>
-        Beantwoord door <strong>{entry.username}</strong> op{" "}
+        Beantwoord door <strong>{entry.username}</strong>
+        {entry.bulk && " (bulk)"} op{" "}
         {formatReviewTimestamp(entry.repliedAt)}
       </div>
     );

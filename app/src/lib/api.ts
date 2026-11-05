@@ -222,6 +222,8 @@ export interface ReplyLogEntry {
   location: LocationId;
   username: string;
   repliedAt: string;
+  /** Sent through "Bulk beantwoorden". */
+  bulk?: boolean;
 }
 
 export async function fetchReplyLog(): Promise<ReplyLogEntry[] | null> {
@@ -231,7 +233,7 @@ export async function fetchReplyLog(): Promise<ReplyLogEntry[] | null> {
 
 export type SubmitReviewReplyResult =
   | { ok: true; logged: ReplyLogEntry | null }
-  | { ok: false; error: string };
+  | { ok: false; error: string; alreadyReplied?: string };
 
 /** Posts the owner reply to one review — this goes straight to the public
  * Google listing the moment the request succeeds, there's no draft state
@@ -241,6 +243,7 @@ export async function submitReviewReply(
   location: LocationId,
   googleReviewId: string,
   comment: string,
+  options: { bulk?: boolean; onlyIfUnanswered?: boolean } = {},
 ): Promise<SubmitReviewReplyResult> {
   if (!hasLiveBackend()) {
     return { ok: false, error: "Geen backend geconfigureerd." };
@@ -251,12 +254,20 @@ export async function submitReviewReply(
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ comment }),
+        body: JSON.stringify({ comment, ...options }),
       },
     );
     if (!res.ok) {
-      const body = (await res.json().catch(() => null)) as { error?: string } | null;
-      return { ok: false, error: body?.error ?? `Versturen mislukt (${res.status}).` };
+      const body = (await res.json().catch(() => null)) as {
+        error?: string;
+        alreadyReplied?: boolean;
+        replyText?: string;
+      } | null;
+      return {
+        ok: false,
+        error: body?.error ?? `Versturen mislukt (${res.status}).`,
+        ...(body?.alreadyReplied ? { alreadyReplied: body.replyText ?? "" } : {}),
+      };
     }
     const body = (await res.json().catch(() => null)) as { logged?: ReplyLogEntry | null } | null;
     return { ok: true, logged: body?.logged ?? null };

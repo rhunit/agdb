@@ -18,6 +18,8 @@ export interface ReplyLogEntry {
   location: InternalLocationId;
   username: string;
   repliedAt: string;
+  /** Sent through "Bulk beantwoorden". */
+  bulk?: boolean;
 }
 
 function load(): ReplyLogEntry[] {

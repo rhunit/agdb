@@ -15,6 +15,8 @@ import { ExportPdfButton } from "./ExportPdfButton";
 import { RefreshButton } from "./RefreshButton";
 import { FilterDropdown, type FilterOption } from "./FilterDropdown";
 import { LoadingState } from "./LoadingState";
+import { BulkReplyDialog } from "./BulkReplyDialog";
+import { useAccount } from "../hooks/useAccount";
 import { ReplyForm } from "./ReplyForm";
 import styles from "./AllReviews.module.css";
 import { ReviewText } from "./ReviewText";
@@ -22,6 +24,8 @@ import { ReplyMeta } from "./ReplyMeta";
 
 const LOCATION_NAME = new Map(LOCATIONS.map((l) => [l.id, l.name]));
 const PAGE_SIZE = 25;
+/** Most reviews in one "Bulk beantwoorden" round. */
+const MAX_BULK = 20;
 const RATING_OPTIONS: FilterOption[] = [
   { value: "all", label: "Alle sterren" },
   { value: "5", label: "5 sterren" },
@@ -73,6 +77,12 @@ export function AllReviews({
   // lets the status (and the reply text itself) show immediately after a
   // send succeeds, keyed by review id -> the text that was sent.
   const [repliedText, setRepliedText] = useState<Map<string, string>>(new Map());
+  // "Bulk beantwoorden": the picked reviews (by id) and whether the
+  // draft/post dialog is open. Needs both reply and AI rights.
+  const { account, can } = useAccount();
+  const bulkAvailable = can("reply") && can("ai") && (account?.replyDraftAvailable ?? false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkOpen, setBulkOpen] = useState(false);
 
   function isResponded(review: Review): boolean {
     return review.responded || repliedText.has(review.id);
@@ -179,6 +189,32 @@ export function AllReviews({
     setActiveTheme(next === "all" ? null : next);
     setShown(PAGE_SIZE);
   }
+
+  function canBulk(review: Review): boolean {
+    return !isResponded(review) && Boolean(review.googleReviewId) && !review.removedAt;
+  }
+
+  function toggleSelected(review: Review, on: boolean) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (on && next.size < MAX_BULK) next.add(review.id);
+      else next.delete(review.id);
+      return next;
+    });
+  }
+
+  // In the order they're listed now; still-unanswered ones only.
+  const selectedReviews = useMemo(() => {
+    const seen = new Set<string>();
+    return [...reviews, ...allReviews].filter((r) => {
+      if (!selected.has(r.id) || seen.has(r.id) || !canBulk(r)) return false;
+      seen.add(r.id);
+      return true;
+    });
+  }, [reviews, allReviews, selected, repliedText]);
+
+  const bulkCandidates = bulkAvailable ? reviews.filter(canBulk) : [];
+  const firstBatch = bulkCandidates.slice(0, MAX_BULK);
 
   const filtersActive =
     statusFilter !== "all" || ratingFilter !== "all" || activeTheme !== null;
@@ -295,6 +331,50 @@ export function AllReviews({
         </div>
       )}
 
+      {bulkCandidates.length > 0 && (
+        <div className={styles.bulkBar} data-print-hide>
+          <span className={styles.bulkLabel}>Bulk beantwoorden</span>
+          <button
+            type="button"
+            className={styles.bulkLink}
+            onClick={() => setSelected(new Set(firstBatch.map((r) => r.id)))}
+          >
+            Selecteer eerste {firstBatch.length}
+          </button>
+          {selectedReviews.length > 0 && (
+            <button type="button" className={styles.bulkLink} onClick={() => setSelected(new Set())}>
+              Selectie wissen
+            </button>
+          )}
+          <span className={styles.bulkCount}>
+            {selectedReviews.length} geselecteerd (max. {MAX_BULK})
+          </span>
+          <button
+            type="button"
+            className={styles.bulkStart}
+            disabled={selectedReviews.length === 0}
+            onClick={() => setBulkOpen(true)}
+          >
+            Concepten maken{selectedReviews.length > 0 && ` (${selectedReviews.length})`}
+          </button>
+        </div>
+      )}
+
+      {bulkOpen && (
+        <BulkReplyDialog
+          reviews={selectedReviews}
+          onReplied={(review, text) => {
+            setRepliedText((prev) => new Map(prev).set(review.id, text));
+            setSelected((prev) => {
+              const next = new Set(prev);
+              next.delete(review.id);
+              return next;
+            });
+          }}
+          onClose={() => setBulkOpen(false)}
+        />
+      )}
+
       {loading ? (
         <LoadingState />
       ) : !isLive ? (
@@ -329,6 +409,24 @@ export function AllReviews({
                   key={review.id}
                   className={beyondPage ? `${styles.item} ${styles.itemBeyondPage}` : styles.item}
                 >
+                  {bulkAvailable && (
+                    <div className={styles.pick} data-print-hide>
+                      {canBulk(review) && (
+                        <input
+                          type="checkbox"
+                          checked={selected.has(review.id)}
+                          disabled={!selected.has(review.id) && selected.size >= MAX_BULK}
+                          title={
+                            !selected.has(review.id) && selected.size >= MAX_BULK
+                              ? `Maximaal ${MAX_BULK} per keer`
+                              : "Selecteren voor bulk beantwoorden"
+                          }
+                          aria-label={`${review.reviewer} selecteren voor bulk beantwoorden`}
+                          onChange={(e) => toggleSelected(review, e.target.checked)}
+                        />
+                      )}
+                    </div>
+                  )}
                   <div className={styles.initials}>{review.initials}</div>
                   <div className={styles.body}>
                     <div className={styles.meta}>

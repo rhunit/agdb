@@ -188,6 +188,28 @@ export async function getRecentBusinessReviews(
   return out;
 }
 
+/** The owner reply currently on one review, straight from Google (null
+ * when there is none) — checked right before a bulk reply, so a reply
+ * someone posted elsewhere in the meantime is never overwritten. */
+export async function getCurrentReply(
+  auth: OAuth2Client,
+  accountName: string,
+  googleLocationId: string,
+  reviewId: string,
+): Promise<string | null> {
+  const { token } = await auth.getAccessToken();
+  if (!token) throw new Error("No access token available");
+  const res = await fetch(
+    `https://mybusiness.googleapis.com/v4/${accountName}/${googleLocationId}/reviews/${reviewId}`,
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  if (!res.ok) {
+    throw new Error(`Review request failed: ${res.status} ${await res.text()}`);
+  }
+  const data = (await res.json()) as { reviewReply?: { comment?: string } };
+  return data.reviewReply?.comment ?? null;
+}
+
 /** Posts (or overwrites) the owner reply on one review — a PUT to Google's
  * reply sub-resource upserts it, so this doubles as "edit my reply" when
  * called again with new text. This writes directly to the public Google
