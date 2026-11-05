@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { loadTerms, saveTerms } from "./mentionsStore.js";
 
 // One-time changes to what's already stored on the persistent volume, run
 // at startup before anything reads it. Each runs once; done ones are
@@ -46,9 +47,38 @@ function renameLocation(from: string, to: string): void {
   }
 }
 
+/** Adds tracked mention terms (or fills in a missing Google Alerts feed),
+ * keeping everything already set up in Vermeldingen → Zoektermen. */
+function addMentionTerms(add: { term: string; alertsFeedUrl: string; alertsOnly: boolean }[]): void {
+  const terms = loadTerms();
+  for (const a of add) {
+    const existing = terms.find((t) => t.term.toLowerCase() === a.term.toLowerCase());
+    if (existing) {
+      existing.alertsFeedUrl ??= a.alertsFeedUrl;
+    } else {
+      terms.push({ ...a, exclude: [], matchCase: false });
+    }
+  }
+  saveTerms(terms);
+}
+
+const FEED = "https://www.google.nl/alerts/feeds/05724818571195403781";
+
 const MIGRATIONS: { id: string; run: () => void }[] = [
   // Coffeeshop Sloterdijk's internal id was the historical "oost".
   { id: "rename-location-oost-to-sloterdijk", run: () => renameLocation("oost", "sloterdijk") },
+  {
+    id: "mention-terms-topics-2026-11",
+    run: () =>
+      addMentionTerms([
+        { term: "Top 5 coffeeshops", alertsFeedUrl: `${FEED}/6187541511528107308`, alertsOnly: true },
+        { term: "Top 10 coffeeshops", alertsFeedUrl: `${FEED}/3354795128526718366`, alertsOnly: true },
+        { term: "Beste coffeeshop", alertsFeedUrl: `${FEED}/7097446507546715527`, alertsOnly: true },
+        { term: "Spacecake", alertsFeedUrl: `${FEED}/7394153610603996636`, alertsOnly: true },
+        // Our own product name: searched everywhere, like the shop names.
+        { term: "Spacetry", alertsFeedUrl: `${FEED}/5227008320613579641`, alertsOnly: false },
+      ]),
+  },
 ];
 
 export function runDataMigrations(): void {

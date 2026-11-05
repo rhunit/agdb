@@ -1,4 +1,4 @@
-import { fetchArticle, mentionsTerm, resolveGoogleNewsUrl } from "./articleCheck.js";
+import { fetchArticle, mentionsAllWords, mentionsTerm, resolveGoogleNewsUrl } from "./articleCheck.js";
 import {
   addMentions,
   addRejected,
@@ -310,8 +310,10 @@ export function checkMentions(): Promise<number> {
   running = (async () => {
     const terms = loadTerms();
     const found: Found[] = [];
-    await runSource("reddit", terms, isRedditConfigured() ? searchReddit : searchRedditRss, found);
-    await runSource("news", terms, searchGoogleNews, found);
+    // Topic terms only come in through their own Google Alert.
+    const searchable = terms.filter((t) => !t.alertsOnly);
+    await runSource("reddit", searchable, isRedditConfigured() ? searchReddit : searchRedditRss, found);
+    await runSource("news", searchable, searchGoogleNews, found);
     const withFeeds = terms.filter((t) => t.alertsFeedUrl);
     if (withFeeds.length > 0) await runSource("alerts", withFeeds, searchGoogleAlerts, found);
     const added = addMentions(await verifyArticles(found, terms));
@@ -372,7 +374,12 @@ async function verifyArticles(found: Found[], terms: MentionTerm[]): Promise<Che
     const inText = (text: string) =>
       f.terms.filter((t) => {
         const term = termByName.get(t);
-        return term ? mentionsTerm(text, term.term, term.matchCase) : false;
+        if (!term) return false;
+        // Topic terms: the article's own title counts too ("De 10 beste
+        // coffeeshops van Amsterdam" is the article, not a teaser).
+        return term.alertsOnly
+          ? mentionsAllWords(`${f.title}\n${text}`, term.term)
+          : mentionsTerm(text, term.term, term.matchCase);
       });
     const kept = article ? inText(article.body) : inText(f.title);
     if (kept.length === 0) {

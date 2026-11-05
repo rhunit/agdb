@@ -13,6 +13,7 @@ interface Row {
   exclude: string;
   matchCase: boolean;
   alertsFeedUrl: string;
+  alertsOnly: boolean;
 }
 
 function toRows(terms: MentionTerm[]): Row[] {
@@ -21,6 +22,7 @@ function toRows(terms: MentionTerm[]): Row[] {
     exclude: t.exclude.join(", "),
     matchCase: t.matchCase,
     alertsFeedUrl: t.alertsFeedUrl ?? "",
+    alertsOnly: t.alertsOnly ?? false,
   }));
 }
 
@@ -45,6 +47,7 @@ export function MentionTermsEditor({ terms, onSaved }: MentionTermsEditorProps) 
         exclude: r.exclude.split(",").map((w) => w.trim()).filter(Boolean),
         matchCase: r.matchCase,
         alertsFeedUrl: r.alertsFeedUrl.trim() || null,
+        alertsOnly: r.alertsOnly,
       })),
     );
     setSaving(false);
@@ -64,6 +67,9 @@ export function MentionTermsEditor({ terms, onSaved }: MentionTermsEditorProps) 
         Elke term moet letterlijk voorkomen. Uitsluitwoorden (met komma&apos;s) verbergen treffers die
         over iets anders gaan. Google Alerts: maak per term een melding op google.com/alerts, kies bij
         &ldquo;Bezorgen aan&rdquo; <strong>RSS-feed</strong> en plak de link van het RSS-icoon hier.
+        Vink <strong>Onderwerp</strong> aan voor algemene zoektermen zoals &ldquo;Top 10 coffeeshops&rdquo;:
+        die worden alleen via hun Google Alert gezocht, en een artikel telt als alle woorden in één zin
+        staan (bijv. &ldquo;de top 10 coffeeshops van Amsterdam&rdquo;).
       </div>
 
       <div className={styles.termRows}>
@@ -103,6 +109,17 @@ export function MentionTermsEditor({ terms, onSaved }: MentionTermsEditorProps) 
               />
               Hoofdlettergevoelig
             </label>
+            <label
+              className={styles.checkLabel}
+              title="Voor onderwerpen zoals 'Top 10 coffeeshops': alleen via de Google Alert, en alle woorden hoeven niet letterlijk achter elkaar te staan."
+            >
+              <input
+                type="checkbox"
+                checked={row.alertsOnly}
+                onChange={(e) => update(i, { alertsOnly: e.target.checked })}
+              />
+              Onderwerp (alleen Google Alert)
+            </label>
             <button
               type="button"
               className={styles.removeButton}
@@ -126,7 +143,7 @@ export function MentionTermsEditor({ terms, onSaved }: MentionTermsEditorProps) 
           type="button"
           className={styles.secondaryButton}
           onClick={() =>
-            setRows((prev) => [...prev, { term: "", exclude: "", matchCase: false, alertsFeedUrl: "" }])
+            setRows((prev) => [...prev, { term: "", exclude: "", matchCase: false, alertsFeedUrl: "", alertsOnly: false }])
           }
         >
           + Zoekterm toevoegen

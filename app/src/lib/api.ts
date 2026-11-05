@@ -577,6 +577,8 @@ export interface MentionTerm {
   exclude: string[];
   matchCase: boolean;
   alertsFeedUrl: string | null;
+  /** A topic, not a name: only via its Google Alert, all words in one sentence. */
+  alertsOnly: boolean;
 }
 
 export interface MentionSourceStatus {

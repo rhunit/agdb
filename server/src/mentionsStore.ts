@@ -27,6 +27,11 @@ export interface MentionTerm {
   matchCase: boolean;
   /** The term's Google Alerts feed ("Bezorgen aan: RSS-feed"), if set up. */
   alertsFeedUrl: string | null;
+  /** A topic rather than a name ("Top 10 coffeeshops", "Spacecake"): only
+   * its Google Alert is read (Reddit and Google Nieuws would flood the list),
+   * and an article counts when all its words are in one sentence instead of
+   * the exact phrase. */
+  alertsOnly: boolean;
 }
 
 export interface Mention {
@@ -60,6 +65,7 @@ const DEFAULT_TERMS: MentionTerm[] = [
   exclude: [],
   matchCase: term === "Coffeeshop BIJ",
   alertsFeedUrl: null,
+  alertsOnly: false,
 }));
 
 // Enough history to look back on, small enough to load in one request.
@@ -80,7 +86,11 @@ function writeJson(file: string, data: unknown): void {
 }
 
 export function loadTerms(): MentionTerm[] {
-  return readJson<{ terms: MentionTerm[] }>(CONFIG_FILE, { terms: DEFAULT_TERMS }).terms;
+  return readJson<{ terms: MentionTerm[] }>(CONFIG_FILE, { terms: DEFAULT_TERMS }).terms.map((t) => ({
+    ...t,
+    // Saved before this field existed.
+    alertsOnly: t.alertsOnly ?? false,
+  }));
 }
 
 export class MentionTermError extends Error {}
@@ -110,6 +120,7 @@ export function saveTerms(input: unknown): MentionTerm[] {
         : [],
       matchCase: Boolean(raw.matchCase),
       alertsFeedUrl: feed || null,
+      alertsOnly: Boolean(raw.alertsOnly),
     });
   }
   writeJson(CONFIG_FILE, { terms });

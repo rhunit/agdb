@@ -91,6 +91,32 @@ export function mentionsTerm(text: string, term: string, matchCase: boolean): bo
   return matchCase ? text.includes(term) : text.toLowerCase().includes(term.toLowerCase());
 }
 
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** Looser match for topic terms ("Top 10 coffeeshops", "Beste coffeeshop"):
+ * every word of the term in one sentence, in any order, case-insensitive,
+ * with a plural "s" allowed and "coffee shop" / "space cake" counting as
+ * "coffeeshop" / "spacecake" —
+ * so "De 10 beste coffeeshops van Amsterdam" matches "Top 10 coffeeshops"
+ * only if "top" is in that sentence too. */
+export function mentionsAllWords(text: string, term: string): boolean {
+  const words = term.toLowerCase().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return false;
+  const patterns = words.map((w) => {
+    const core = /^coffeeshops?$/.test(w)
+      ? "coffee ?shop"
+      : /^spacecakes?$/.test(w)
+        ? "space ?cake"
+        : escapeRegExp(w.replace(/s$/, ""));
+    return new RegExp(`(^|[^\\p{L}\\p{N}])${core}s?($|[^\\p{L}\\p{N}])`, "iu");
+  });
+  return text
+    .split(/[.!?\n]+/)
+    .some((sentence) => patterns.every((p) => p.test(sentence)));
+}
+
 export async function fetchArticle(url: string): Promise<ArticleText | null> {
   const res = await fetch(url, {
     headers: { "User-Agent": USER_AGENT, Accept: "text/html" },
