@@ -257,16 +257,17 @@ export interface AllBusinessReviews {
 /** The complete review history (not just a recent window) for every
  * location we have a matched internal id for — backs the "Alle reviews"
  * page, which is explicitly meant to be the full list rather than a
- * recency-capped feed. 40 pages (2,000 reviews) per location is a safety
+ * recency-capped feed. 200 pages (10,000 reviews) per location is a safety
  * bound against pagination running away, not an expected ceiling; hitting
- * it marks the fetch incomplete.
+ * it marks the fetch incomplete. (It was 40 pages — 2,000 — until
+ * Coffeeshop Sloterdijk turned out to have more than that.)
  *
  * Same per-location fault isolation as getRecentBusinessReviews — one
  * location erroring must not blank out the others. */
 export async function getAllBusinessReviews(
   auth: OAuth2Client,
   locations: DiscoveredLocation[],
-  maxPagesPerLocation = 40,
+  maxPagesPerLocation = 200,
 ): Promise<AllBusinessReviews> {
   const settled = await Promise.allSettled(
     locations

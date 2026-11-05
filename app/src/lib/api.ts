@@ -150,7 +150,9 @@ export async function fetchLiveAllBusinessReviews(): Promise<Partial<
   // other calls, so it gets a longer timeout before counting as hung.
   return getJson<Partial<Record<LocationId, LiveBusinessReview[]>>>(
     "/api/business-reviews-all",
-    120_000,
+    // Up to 10,000 reviews per location now (Sloterdijk alone has more
+    // than 2,000), fetched 50 at a time.
+    240_000,
   );
 }
 

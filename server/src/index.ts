@@ -306,22 +306,46 @@ app.get("/api/business-reviews", async (_req, res) => {
 // removal detection (see reviewHistoryStore.ts) piggybacks on it rather
 // than the recent-window endpoint — a review missing from a 14-day
 // window just means it's old, not removed.
-app.get("/api/business-reviews-all", async (_req, res) => {
-  try {
+// The full history is thousands of reviews (dozens of pages per location),
+// and the dashboard and "Alle reviews" both ask for it. Requests that come
+// in while a fetch is running share it, and a result stays good for a
+// minute, so several open tabs don't each walk every page at Google.
+const ALL_REVIEWS_FRESH_MS = 60_000;
+let allReviewsInFlight: Promise<Awaited<ReturnType<typeof getAllBusinessReviews>>> | null = null;
+let allReviewsCache: { at: number; data: Awaited<ReturnType<typeof getAllBusinessReviews>> } | null = null;
+
+async function fetchAllReviewsShared() {
+  if (allReviewsCache && Date.now() - allReviewsCache.at < ALL_REVIEWS_FRESH_MS) {
+    return allReviewsCache.data;
+  }
+  allReviewsInFlight ??= (async () => {
     const auth = getAuthorizedClient();
     const locations = await listLocations(auth);
-    const { reviews, complete } = await getAllBusinessReviews(auth, locations);
-    for (const [location, list] of Object.entries(reviews)) {
+    const data = await getAllBusinessReviews(auth, locations);
+    // Compared with the stored history once per fetch — never twice for
+    // the same data, since a removal needs two separate fetches to agree.
+    for (const [location, list] of Object.entries(data.reviews)) {
       try {
         diffAndRecordReviews(
           location as InternalLocationId,
           list ?? [],
-          complete[location as InternalLocationId] ?? false,
+          data.complete[location as InternalLocationId] ?? false,
         );
       } catch (err) {
         console.error(`diffAndRecordReviews failed for ${location}:`, err);
       }
     }
+    allReviewsCache = { at: Date.now(), data };
+    return data;
+  })().finally(() => {
+    allReviewsInFlight = null;
+  });
+  return allReviewsInFlight;
+}
+
+app.get("/api/business-reviews-all", async (_req, res) => {
+  try {
+    const { reviews } = await fetchAllReviewsShared();
     res.json(reviews);
   } catch (err) {
     console.error(err);
@@ -490,6 +514,8 @@ app.post("/api/business-reviews/:location/:reviewId/reply", requirePermission("r
       reviewId,
       comment.trim(),
     );
+    // The cached full list no longer matches Google.
+    allReviewsCache = null;
     // Google has now accepted the reply; record who sent it. A failure to
     // write the log must not turn a reply that's already public into an error.
     let logged = null;
