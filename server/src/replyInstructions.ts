@@ -26,7 +26,8 @@ Basisregels
 
 Spelling
 - Schrijf foutloos en controleer je tekst altijd voordat je hem geeft.
-- Plak geen woorden aan elkaar. Schrijf "5-sterren review", "4-sterren review", "5-sterren beoordeling" en "5-sterren ervaring": cijfer, koppelteken, "sterren", spatie, en dan het woord. Of schrijf gewoon "5 sterren".
+- Plak geen woorden aan elkaar. Schrijf "[aantal]-sterren review", "[aantal]-sterren beoordeling" en "5-sterren ervaring": cijfer, koppelteken, "sterren", spatie, en dan het woord. Of schrijf gewoon "[aantal] sterren".
+- Noem nooit een ander aantal sterren dan de review echt heeft. Bedank bij 1-3 sterren nooit voor "de sterren" of "je mooie beoordeling" alsof het een compliment is.
 - Schrijf "super" los: "super bedankt", "super leuk", nooit "superbedankt".
 
 Taal
