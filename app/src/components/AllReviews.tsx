@@ -35,6 +35,11 @@ const RATING_OPTIONS: FilterOption[] = [
   { value: "1", label: "1 ster" },
 ];
 
+/** Lowercase without accents, so "zoe" finds "Zoë" and "jose" finds "José". */
+function normalizeName(s: string): string {
+  return s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().trim();
+}
+
 export type StatusFilter = "all" | "open" | "responded" | "removed";
 
 /** A request to jump straight into a specific filter combination (e.g.
@@ -73,6 +78,8 @@ export function AllReviews({
   const [ratingFilter, setRatingFilter] = useState<number | "all">("all");
   const [activeTheme, setActiveTheme] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>("recent");
+  // Search by reviewer name, on top of the other filters.
+  const [nameQuery, setNameQuery] = useState("");
   // Reviews replied to in this session, ahead of the next full refetch —
   // lets the status (and the reply text itself) show immediately after a
   // send succeeds, keyed by review id -> the text that was sent.
@@ -134,7 +141,9 @@ export function AllReviews({
 
   const reviews = useMemo(() => {
     const base = statusFilter === "removed" ? removedScoped : scopedReviews;
+    const query = normalizeName(nameQuery);
     const filtered = base.filter((r) => {
+      if (query && !normalizeName(r.reviewer).includes(query)) return false;
       if (statusFilter === "open" && isResponded(r)) return false;
       if (statusFilter === "responded" && !isResponded(r)) return false;
       if (ratingFilter !== "all" && r.rating !== ratingFilter) return false;
@@ -142,7 +151,7 @@ export function AllReviews({
       return true;
     });
     return sortReviews(filtered, sortBy);
-  }, [scopedReviews, removedScoped, statusFilter, ratingFilter, activeTheme, sortBy, repliedText]);
+  }, [scopedReviews, removedScoped, statusFilter, ratingFilter, activeTheme, sortBy, repliedText, nameQuery]);
 
   const statusOptions: FilterOption[] = useMemo(
     () => [
@@ -217,7 +226,7 @@ export function AllReviews({
   const firstBatch = bulkCandidates.slice(0, MAX_BULK);
 
   const filtersActive =
-    statusFilter !== "all" || ratingFilter !== "all" || activeTheme !== null;
+    statusFilter !== "all" || ratingFilter !== "all" || activeTheme !== null || nameQuery.trim() !== "";
 
   // Whichever pool "reviews" was built from — live reviews normally, the
   // detected-removed pool once that status is selected — used for the
@@ -285,6 +294,18 @@ export function AllReviews({
 
       {allReviews.length > 0 && (
         <div className={styles.filters}>
+          <input
+            type="search"
+            className={styles.search}
+            value={nameQuery}
+            onChange={(e) => {
+              setNameQuery(e.target.value);
+              setShown(PAGE_SIZE);
+            }}
+            placeholder="Zoek op naam…"
+            aria-label="Zoek reviews op naam van de reviewer"
+            data-print-hide
+          />
           <FilterDropdown
             label="Status"
             options={statusOptions}
@@ -322,6 +343,7 @@ export function AllReviews({
                 setStatusFilter("all");
                 setRatingFilter("all");
                 setActiveTheme(null);
+                setNameQuery("");
                 setShown(PAGE_SIZE);
               }}
             >

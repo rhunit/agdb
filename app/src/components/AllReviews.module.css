@@ -76,6 +76,30 @@
   flex-wrap: wrap;
 }
 
+.search {
+  flex: 0 1 240px;
+  min-width: 0;
+  height: 40px;
+  box-sizing: border-box;
+  padding: 0 var(--sp-sm);
+  border: 1px solid var(--ag-border);
+  border-radius: var(--r-full);
+  background: var(--ag-surface);
+  color: var(--ag-on-surface);
+  font: var(--fs-body-sm);
+}
+
+.search:focus {
+  outline: 2px solid var(--ag-primary-border);
+  outline-offset: 1px;
+}
+
+@media (max-width: 720px) {
+  .search {
+    flex: 1 1 100%;
+  }
+}
+
 .filterSpacer {
   flex: 1 1 auto;
 }
