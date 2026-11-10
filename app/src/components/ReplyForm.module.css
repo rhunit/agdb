@@ -145,3 +145,20 @@
     margin-right: 0;
   }
 }
+
+/* Google's own reply page, for reviews Google won't take a reply to via the API. */
+.googleLink {
+  border: 1px solid var(--ag-primary-border);
+  border-radius: var(--r-full);
+  background: var(--ag-primary-bg);
+  color: var(--ag-primary-strong);
+  font: var(--fs-button-text);
+  font-size: 13px;
+  padding: 6px 14px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.googleLink:hover {
+  border-color: var(--ag-primary);
+}

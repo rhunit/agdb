@@ -41,6 +41,8 @@ export function ReplyForm({
   // Google said "review not found": admins get a link to what Google
   // answers for it exactly (see /api/admin/review-debug on the server).
   const [notFound, setNotFound] = useState(false);
+  // Google's own reply page for a review it won't take a reply to via the API.
+  const [replyUrl, setReplyUrl] = useState<string | null>(null);
 
   if (!can("reply")) return null;
   const draftAvailable = account?.replyDraftAvailable ?? false;
@@ -67,6 +69,7 @@ export function ReplyForm({
     setStage("submitting");
     setError(null);
     setNotFound(false);
+    setReplyUrl(null);
     const sentText = text.trim();
     const result = await submitReviewReply(location, googleReviewId, sentText);
     if (result.ok) {
@@ -76,6 +79,7 @@ export function ReplyForm({
     } else {
       setError(result.error);
       setNotFound(Boolean(result.notFound));
+      setReplyUrl(result.replyUrl ?? null);
       setStage("editing");
     }
   }
@@ -123,6 +127,20 @@ export function ReplyForm({
               </a>
             </>
           )}
+        </div>
+      )}
+      {replyUrl && (
+        <div className={styles.actions}>
+          <button
+            type="button"
+            className={styles.secondary}
+            onClick={() => void navigator.clipboard?.writeText(text.trim())}
+          >
+            Tekst kopiëren
+          </button>
+          <a className={styles.googleLink} href={replyUrl} target="_blank" rel="noreferrer">
+            Beantwoorden in Google ↗
+          </a>
         </div>
       )}
 

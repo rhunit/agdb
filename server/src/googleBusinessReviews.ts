@@ -276,6 +276,27 @@ export async function replyToReview(
   return { comment: data.comment ?? comment, updateTime: data.updateTime ?? null };
 }
 
+/** The link Google gives for answering a review in its own interface
+ * ("reviewReplyUrl"). Some reviews can be read through the API but not
+ * replied to (PUT …/reply answers 404 while GET works); for those, this
+ * link is the way to reply. Only Google https links are passed on. */
+export async function getReviewReplyUrl(
+  auth: OAuth2Client,
+  accountName: string,
+  googleLocationId: string,
+  reviewId: string,
+): Promise<string | null> {
+  try {
+    const res = await onReview(auth, accountName, googleLocationId, reviewId, "", { method: "GET" }, "Review request");
+    const url = ((await res.json()) as { reviewReplyUrl?: unknown }).reviewReplyUrl;
+    if (typeof url !== "string") return null;
+    const host = new URL(url).hostname;
+    return url.startsWith("https://") && (host === "google.com" || host.endsWith(".google.com")) ? url : null;
+  } catch {
+    return null;
+  }
+}
+
 /** For the admin diagnostic page: what Google answers for one review on
  * each address, plus how the review list names it. Read-only. */
 export async function diagnoseReview(
@@ -291,7 +312,7 @@ export async function diagnoseReview(
   for (const path of reviewPaths(accountName, googleLocationId, reviewId)) {
     const res = await fetch(`${V4}/${path}`, { headers: { Authorization: `Bearer ${token}` } });
     const body = await res.text();
-    tried.push({ path, status: res.status, body: body.slice(0, 600) });
+    tried.push({ path, status: res.status, body: body.slice(0, 3000) });
   }
   return { reviewId, listedName, listedNameDiffers: listedName !== null && !listedName.endsWith(`/reviews/${reviewId}`), tried };
 }

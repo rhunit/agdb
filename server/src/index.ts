@@ -21,6 +21,7 @@ import {
   replyToReview,
   ReviewNotFoundError,
   diagnoseReview,
+  getReviewReplyUrl,
 } from "./googleBusinessReviews.js";
 import { ACTIVE_LOCATIONS, getAllPlacesSummaries } from "./googlePlaces.js";
 import { getWeeklyReviewGrowth, recordSnapshot } from "./placesHistoryStore.js";
@@ -556,12 +557,19 @@ app.post("/api/business-reviews/:location/:reviewId/reply", requirePermission("r
   } catch (err) {
     if (err instanceof ReviewNotFoundError) {
       // Usually a review Google took down while its list still showed it.
-      allReviewsCache = null;
+      // Google can serve a review through the API yet refuse a reply to it
+      // there; it then offers its own reply link for the review.
+      const auth = getAuthorizedClient();
+      const match = (await listLocations(auth)).find((l) => l.internalId === location);
+      const replyUrl = match
+        ? await getReviewReplyUrl(auth, match.accountName, match.googleLocationId, reviewId)
+        : null;
       res.status(404).json({
-        error:
-          "Google weigert een reactie op deze review via de koppeling (review niet gevonden), terwijl hij " +
-          "in Google zelf mogelijk wel te beantwoorden is. Reageer in dat geval direct in Google.",
+        error: replyUrl
+          ? "Google staat voor deze review geen reactie via het dashboard toe. Reageer via de knop hieronder direct in Google; je tekst blijft hier staan om te kopiëren."
+          : "Google weigert een reactie op deze review via de koppeling. Reageer in dat geval direct in Google.",
         notFound: true,
+        replyUrl,
       });
       return;
     }

@@ -36,6 +36,8 @@ interface Item {
   include: boolean;
   status: ItemStatus;
   error?: string;
+  /** Google's own reply page, when Google won't take this reply via the API. */
+  replyUrl?: string;
 }
 
 type Phase = "review" | "confirming" | "posting" | "done";
@@ -125,7 +127,7 @@ export function BulkReplyDialog({ reviews, onReplied, onClose }: BulkReplyDialog
         update(review.id, { status: "skipped", error: result.error });
         onReplied(review, result.alreadyReplied);
       } else {
-        update(review.id, { status: "failed", error: result.error });
+        update(review.id, { status: "failed", error: result.error, replyUrl: result.replyUrl });
       }
       setProgress({ done: i + 1, total: batch.length });
     }
@@ -244,6 +246,11 @@ export function BulkReplyDialog({ reviews, onReplied, onClose }: BulkReplyDialog
                   ) : (
                     <>
                       {it.status === "failed" && <span className={styles.error}>{it.error}</span>}
+                      {it.status === "failed" && it.replyUrl && (
+                        <a className={styles.googleLink} href={it.replyUrl} target="_blank" rel="noreferrer">
+                          Beantwoorden in Google ↗
+                        </a>
+                      )}
                       <label className={styles.include}>
                         <input
                           type="checkbox"
