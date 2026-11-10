@@ -565,9 +565,13 @@ app.post("/api/business-reviews/:location/:reviewId/reply", requirePermission("r
         ? await getReviewReplyUrl(auth, match.accountName, match.googleLocationId, reviewId)
         : null;
       res.status(404).json({
-        error: replyUrl
-          ? "Google staat voor deze review geen reactie via het dashboard toe. Reageer via de knop hieronder direct in Google; je tekst blijft hier staan om te kopiëren."
-          : "Google weigert een reactie op deze review via de koppeling. Reageer in dat geval direct in Google.",
+        // Seen in practice: Google refuses replies to a review it is about to
+        // take down (it vanished from Maps soon after), while still listing it.
+        error:
+          "Google accepteert nu geen reactie op deze review. Meestal is Google de review aan het verwijderen " +
+          "(dan verdwijnt hij binnenkort uit Google Maps en hier onder \"Verwijderd\"). Staat hij over een paar " +
+          "uur nog in Google Maps, reageer dan direct in Google" +
+          (replyUrl ? " via de knop hieronder; je tekst blijft hier staan om te kopiëren." : "."),
         notFound: true,
         replyUrl,
       });
