@@ -19,6 +19,7 @@ import {
   listBusinessReviews,
   getCurrentReply,
   replyToReview,
+  ReviewNotFoundError,
 } from "./googleBusinessReviews.js";
 import { ACTIVE_LOCATIONS, getAllPlacesSummaries } from "./googlePlaces.js";
 import { getWeeklyReviewGrowth, recordSnapshot } from "./placesHistoryStore.js";
@@ -531,6 +532,17 @@ app.post("/api/business-reviews/:location/:reviewId/reply", requirePermission("r
     }
     res.json({ ...reply, logged });
   } catch (err) {
+    if (err instanceof ReviewNotFoundError) {
+      // Usually a review Google took down while its list still showed it.
+      allReviewsCache = null;
+      res.status(404).json({
+        error:
+          "Google kent deze review niet (meer): hij is waarschijnlijk net door Google verwijderd. " +
+          "Controleer in Google Maps of hij er nog staat; zo niet, dan hoeft er niet op gereageerd te worden.",
+        notFound: true,
+      });
+      return;
+    }
     console.error(err);
     res.status(503).json({ error: (err as Error).message });
   }

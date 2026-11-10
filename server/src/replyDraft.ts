@@ -31,7 +31,7 @@ function originalText(text: string): string {
 // Each draft is a separate call, so the model can't see its earlier
 // replies and keeps landing on the same greeting and phrasing. The code
 // picks the greeting, and the last few drafts go along as "don't repeat".
-const GREETINGS_NL = ["Hi", "Hey", "Hoi", "Hallo", "Dag"];
+const GREETINGS_NL = ["Hi", "Hey", "Hoi", "Hallo"];
 const GREETINGS_EN = ["Hi", "Hey", "Hello"];
 const RECENT_LIMIT = 6;
 // Kept apart for positive (4-5) and critical (1-3) reviews: a list of
@@ -77,26 +77,37 @@ export function mentionsWrongRating(text: string, rating: number): boolean {
   return false;
 }
 
-// For positive reviews, sometimes an opening sentence that ends with the
-// name instead of a greeting (the business's own examples).
-const OPENING_LINES_NL = [
-  "Bedankt voor je bezoek, [naam]!",
-  "Bedankt voor het achterlaten van deze 5-sterren review, [naam]!",
-  "Hier doen we het uiteindelijk voor, [naam]!",
-  "Wij waarderen enorm dat je de tijd hebt genomen om deze 5-sterren review bij ons achter te laten, [naam]!",
-];
-const OPENING_LINE_CHANCE = 0.5;
+// Sometimes an opening sentence that ends with the name instead of a
+// greeting (the business's own examples). "5-sterren review" only for a
+// 5-star review; otherwise plain "review".
+function openingLines(rating: number): string[] {
+  const review = rating === 5 ? "5-sterren review" : "review";
+  const thanksForTime = `Bedankt dat je de tijd hebt genomen om deze ${review} bij ons achter te laten, [naam]!`;
+  if (rating <= 3) return [thanksForTime];
+  return [
+    "Bedankt voor je bezoek, [naam]!",
+    `Bedankt voor het achterlaten van deze ${review}, [naam]!`,
+    ...(rating === 5 ? ["Hier doen we het uiteindelijk voor, [naam]!"] : []),
+    thanksForTime,
+    `Wij waarderen enorm dat je de tijd hebt genomen om deze ${review} bij ons achter te laten, [naam]!`,
+  ];
+}
+const OPENING_LINE_CHANCE = { positive: 0.5, critical: 0.3 };
 
 function pick<T>(items: T[]): T {
   return items[Math.floor(Math.random() * items.length)];
 }
 
 function openingFor(req: ReplyDraftRequest): string {
-  if (req.rating >= 4 && Math.random() < OPENING_LINE_CHANCE) {
-    return [
-      `Opening voor deze reactie: geen losse aanhef, maar een korte, enthousiaste openingszin die eindigt met de naam van de reviewer en een uitroepteken, zoals (kies er een of schrijf er een in dezelfde stijl; bij een Engelse reactie in het Engels, bij 4 sterren zonder "5-sterren"):`,
-      ...OPENING_LINES_NL.map((l) => `- ${l.replace("[naam]", req.reviewer)}`),
-    ].join("\n");
+  const chance = req.rating >= 4 ? OPENING_LINE_CHANCE.positive : OPENING_LINE_CHANCE.critical;
+  if (Math.random() < chance) {
+    const lines = openingLines(req.rating).map((l) => l.replace("[naam]", req.reviewer));
+    return lines.length === 1
+      ? `Opening voor deze reactie: geen losse aanhef, maar deze openingszin (bij een Engelse reactie vertaald naar natuurlijk Engels): "${lines[0]}"`
+      : [
+          `Opening voor deze reactie: geen losse aanhef, maar een korte, enthousiaste openingszin die eindigt met de naam van de reviewer en een uitroepteken, zoals (kies er een of schrijf er een in dezelfde stijl; bij een Engelse reactie in het Engels):`,
+          ...lines.map((l) => `- ${l}`),
+        ].join("\n");
   }
   return `Opening voor deze reactie: de aanhef "${pick(GREETINGS_NL)} ${req.reviewer}," bij een Nederlandse reactie, "${pick(GREETINGS_EN)} ${req.reviewer}," bij een Engelse reactie.`;
 }

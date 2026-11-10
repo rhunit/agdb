@@ -191,6 +191,11 @@ export async function getRecentBusinessReviews(
 /** The owner reply currently on one review, straight from Google (null
  * when there is none) — checked right before a bulk reply, so a reply
  * someone posted elsewhere in the meantime is never overwritten. */
+/** Google answered 404 for one review: it doesn't (or no longer) know it,
+ * typically a review Google has just taken down while its review list
+ * still serves an older copy that includes it. */
+export class ReviewNotFoundError extends Error {}
+
 export async function getCurrentReply(
   auth: OAuth2Client,
   accountName: string,
@@ -203,6 +208,7 @@ export async function getCurrentReply(
     `https://mybusiness.googleapis.com/v4/${accountName}/${googleLocationId}/reviews/${reviewId}`,
     { headers: { Authorization: `Bearer ${token}` } },
   );
+  if (res.status === 404) throw new ReviewNotFoundError("Review not found at Google");
   if (!res.ok) {
     throw new Error(`Review request failed: ${res.status} ${await res.text()}`);
   }
@@ -236,6 +242,7 @@ export async function replyToReview(
       body: JSON.stringify({ comment }),
     },
   );
+  if (res.status === 404) throw new ReviewNotFoundError("Review not found at Google");
   if (!res.ok) {
     throw new Error(
       `Review reply request failed: ${res.status} ${await res.text()}`,
