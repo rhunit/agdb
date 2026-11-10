@@ -20,6 +20,7 @@ import {
   getCurrentReply,
   replyToReview,
   ReviewNotFoundError,
+  diagnoseReview,
 } from "./googleBusinessReviews.js";
 import { ACTIVE_LOCATIONS, getAllPlacesSummaries } from "./googlePlaces.js";
 import { getWeeklyReviewGrowth, recordSnapshot } from "./placesHistoryStore.js";
@@ -379,6 +380,27 @@ function sendUserError(res: express.Response, err: unknown) {
   res.status(500).json({ error: "Opslaan mislukt." });
 }
 
+// Admin diagnostic for a review Google won't accept a reply on: what
+// Google answers for it on each address. Read-only; open in the browser as
+// /api/admin/review-debug/<location>/<reviewId>.
+app.get("/api/admin/review-debug/:location/:reviewId", requirePermission("admin"), async (req, res) => {
+  const { location, reviewId } = req.params;
+  try {
+    const auth = getAuthorizedClient();
+    const match = (await listLocations(auth)).find((l) => l.internalId === location);
+    if (!match) {
+      res.status(404).json({ error: `Locatie "${location}" niet gevonden.` });
+      return;
+    }
+    res.json({
+      location: { name: match.name, googleLocationId: match.googleLocationId, accountName: match.accountName },
+      ...(await diagnoseReview(auth, match.accountName, match.googleLocationId, reviewId)),
+    });
+  } catch (err) {
+    res.status(503).json({ error: (err as Error).message });
+  }
+});
+
 app.get("/api/admin/users", requirePermission("admin"), (_req, res) => {
   res.json(listAccounts());
 });
@@ -537,8 +559,8 @@ app.post("/api/business-reviews/:location/:reviewId/reply", requirePermission("r
       allReviewsCache = null;
       res.status(404).json({
         error:
-          "Google kent deze review niet (meer): hij is waarschijnlijk net door Google verwijderd. " +
-          "Controleer in Google Maps of hij er nog staat; zo niet, dan hoeft er niet op gereageerd te worden.",
+          "Google weigert een reactie op deze review via de koppeling (review niet gevonden), terwijl hij " +
+          "in Google zelf mogelijk wel te beantwoorden is. Reageer in dat geval direct in Google.",
         notFound: true,
       });
       return;

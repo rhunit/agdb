@@ -38,6 +38,9 @@ export function ReplyForm({
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [drafting, setDrafting] = useState(false);
+  // Google said "review not found": admins get a link to what Google
+  // answers for it exactly (see /api/admin/review-debug on the server).
+  const [notFound, setNotFound] = useState(false);
 
   if (!can("reply")) return null;
   const draftAvailable = account?.replyDraftAvailable ?? false;
@@ -63,6 +66,7 @@ export function ReplyForm({
   async function send() {
     setStage("submitting");
     setError(null);
+    setNotFound(false);
     const sentText = text.trim();
     const result = await submitReviewReply(location, googleReviewId, sentText);
     if (result.ok) {
@@ -71,6 +75,7 @@ export function ReplyForm({
       close();
     } else {
       setError(result.error);
+      setNotFound(Boolean(result.notFound));
       setStage("editing");
     }
   }
@@ -103,7 +108,23 @@ export function ReplyForm({
         disabled={stage === "submitting" || drafting}
         autoFocus
       />
-      {error && <div className={styles.error}>{error}</div>}
+      {error && (
+        <div className={styles.error}>
+          {error}
+          {notFound && can("admin") && (
+            <>
+              {" "}
+              <a
+                href={`/api/admin/review-debug/${location}/${encodeURIComponent(googleReviewId)}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Technische details
+              </a>
+            </>
+          )}
+        </div>
+      )}
 
       {stage === "confirming" ? (
         <div className={styles.confirmRow}>

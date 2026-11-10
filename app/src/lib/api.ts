@@ -235,7 +235,7 @@ export async function fetchReplyLog(): Promise<ReplyLogEntry[] | null> {
 
 export type SubmitReviewReplyResult =
   | { ok: true; logged: ReplyLogEntry | null }
-  | { ok: false; error: string; alreadyReplied?: string };
+  | { ok: false; error: string; alreadyReplied?: string; notFound?: boolean };
 
 /** Posts the owner reply to one review — this goes straight to the public
  * Google listing the moment the request succeeds, there's no draft state
@@ -264,11 +264,13 @@ export async function submitReviewReply(
         error?: string;
         alreadyReplied?: boolean;
         replyText?: string;
+        notFound?: boolean;
       } | null;
       return {
         ok: false,
         error: body?.error ?? `Versturen mislukt (${res.status}).`,
         ...(body?.alreadyReplied ? { alreadyReplied: body.replyText ?? "" } : {}),
+        ...(body?.notFound ? { notFound: true } : {}),
       };
     }
     const body = (await res.json().catch(() => null)) as { logged?: ReplyLogEntry | null } | null;

@@ -16,6 +16,8 @@ interface GbpStarRating {
 }
 
 interface GbpReview {
+  /** "accounts/…/locations/…/reviews/…" */
+  name?: string;
   reviewId: string;
   reviewer?: { displayName?: string };
   starRating?: GbpStarRating["starRating"];
@@ -108,6 +110,7 @@ async function listBusinessReviewsWithTotal(
     if (typeof data.totalReviewCount === "number") totalReviewCount = data.totalReviewCount;
 
     for (const r of data.reviews ?? []) {
+      if (r.name) reviewResourceNames.set(r.reviewId, r.name);
       reviews.push({
         id: r.reviewId,
         reviewer: r.reviewer?.displayName ?? "Anoniem",
@@ -188,30 +191,62 @@ export async function getRecentBusinessReviews(
   return out;
 }
 
+/** Google answered 404 for one review on every address we tried. */
+export class ReviewNotFoundError extends Error {}
+
+// The full resource name Google lists each review under
+// ("accounts/…/locations/…/reviews/…"), by review id. Replies go to exactly
+// that address rather than one rebuilt from the location — some reviews
+// answered 404 on the rebuilt one while Google's own interface could reply.
+const reviewResourceNames = new Map<string, string>();
+
+/** Where a review can be addressed: the name Google listed it under first
+ * (when known), then the address built from location + id. */
+function reviewPaths(accountName: string, googleLocationId: string, reviewId: string): string[] {
+  const built = `${accountName}/${googleLocationId}/reviews/${encodeURIComponent(reviewId)}`;
+  const listed = reviewResourceNames.get(reviewId);
+  return [...new Set([listed, built].filter((p): p is string => Boolean(p)))];
+}
+
+const V4 = "https://mybusiness.googleapis.com/v4";
+
+/** Tries each address for a review in turn; a 404 moves on to the next.
+ * Throws ReviewNotFoundError when every one answered 404. */
+async function onReview(
+  auth: OAuth2Client,
+  accountName: string,
+  googleLocationId: string,
+  reviewId: string,
+  suffix: string,
+  init: RequestInit,
+  what: string,
+): Promise<Response> {
+  const { token } = await auth.getAccessToken();
+  if (!token) throw new Error("No access token available");
+  const paths = reviewPaths(accountName, googleLocationId, reviewId);
+  for (const path of paths) {
+    const res = await fetch(`${V4}/${path}${suffix}`, {
+      ...init,
+      headers: { ...(init.headers as Record<string, string>), Authorization: `Bearer ${token}` },
+    });
+    if (res.status === 404) continue;
+    if (!res.ok) throw new Error(`${what} failed: ${res.status} ${await res.text()}`);
+    return res;
+  }
+  console.error(`${what}: 404 for review ${reviewId} on ${paths.join(" and ")}`);
+  throw new ReviewNotFoundError(`Review not found at Google (${paths.length} address(es) tried)`);
+}
+
 /** The owner reply currently on one review, straight from Google (null
  * when there is none) — checked right before a bulk reply, so a reply
  * someone posted elsewhere in the meantime is never overwritten. */
-/** Google answered 404 for one review: it doesn't (or no longer) know it,
- * typically a review Google has just taken down while its review list
- * still serves an older copy that includes it. */
-export class ReviewNotFoundError extends Error {}
-
 export async function getCurrentReply(
   auth: OAuth2Client,
   accountName: string,
   googleLocationId: string,
   reviewId: string,
 ): Promise<string | null> {
-  const { token } = await auth.getAccessToken();
-  if (!token) throw new Error("No access token available");
-  const res = await fetch(
-    `https://mybusiness.googleapis.com/v4/${accountName}/${googleLocationId}/reviews/${reviewId}`,
-    { headers: { Authorization: `Bearer ${token}` } },
-  );
-  if (res.status === 404) throw new ReviewNotFoundError("Review not found at Google");
-  if (!res.ok) {
-    throw new Error(`Review request failed: ${res.status} ${await res.text()}`);
-  }
+  const res = await onReview(auth, accountName, googleLocationId, reviewId, "", { method: "GET" }, "Review request");
   const data = (await res.json()) as { reviewReply?: { comment?: string } };
   return data.reviewReply?.comment ?? null;
 }
@@ -228,28 +263,37 @@ export async function replyToReview(
   reviewId: string,
   comment: string,
 ): Promise<{ comment: string; updateTime: string | null }> {
-  const { token } = await auth.getAccessToken();
-  if (!token) throw new Error("No access token available");
-
-  const res = await fetch(
-    `https://mybusiness.googleapis.com/v4/${accountName}/${googleLocationId}/reviews/${reviewId}/reply`,
-    {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ comment }),
-    },
+  const res = await onReview(
+    auth,
+    accountName,
+    googleLocationId,
+    reviewId,
+    "/reply",
+    { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ comment }) },
+    "Review reply request",
   );
-  if (res.status === 404) throw new ReviewNotFoundError("Review not found at Google");
-  if (!res.ok) {
-    throw new Error(
-      `Review reply request failed: ${res.status} ${await res.text()}`,
-    );
-  }
   const data = (await res.json()) as { comment?: string; updateTime?: string };
   return { comment: data.comment ?? comment, updateTime: data.updateTime ?? null };
+}
+
+/** For the admin diagnostic page: what Google answers for one review on
+ * each address, plus how the review list names it. Read-only. */
+export async function diagnoseReview(
+  auth: OAuth2Client,
+  accountName: string,
+  googleLocationId: string,
+  reviewId: string,
+) {
+  const { token } = await auth.getAccessToken();
+  if (!token) throw new Error("No access token available");
+  const listedName = reviewResourceNames.get(reviewId) ?? null;
+  const tried = [];
+  for (const path of reviewPaths(accountName, googleLocationId, reviewId)) {
+    const res = await fetch(`${V4}/${path}`, { headers: { Authorization: `Bearer ${token}` } });
+    const body = await res.text();
+    tried.push({ path, status: res.status, body: body.slice(0, 600) });
+  }
+  return { reviewId, listedName, listedNameDiffers: listedName !== null && !listedName.endsWith(`/reviews/${reviewId}`), tried };
 }
 
 export interface AllBusinessReviews {
