@@ -119,12 +119,26 @@ function save(store: Store): void {
  * to be called every time the full history is fetched for real (see
  * index.ts) — a location's first-ever run only establishes the baseline
  * and reports nothing, since there's nothing yet to compare against. */
+/** Reviews we knew for this location that the current fetch lacks — on an
+ * incomplete fetch these are checked one by one at Google (see index.ts). */
+export function missingReviewIds(location: InternalLocationId, current: BusinessReview[]): string[] {
+  const currentIds = new Set(current.map((r) => r.id));
+  return load()
+    .snapshots.filter((s) => s.location === location && !currentIds.has(s.id))
+    .map((s) => s.id);
+}
+
 export function diffAndRecordReviews(
   location: InternalLocationId,
   current: BusinessReview[],
   /** False when this fetch may be missing reviews (see
    * getAllBusinessReviews): then nothing is treated as removed. */
   complete = true,
+  /** Missing reviews Google itself answered "not found" for when asked
+   * directly. They count towards removal even when the fetch is
+   * incomplete — Google's total can keep counting a review it filtered out
+   * for a long while, which would otherwise block removal detection. */
+  confirmedGone: Set<string> = new Set(),
 ): { edits: ReviewEditEvent[]; removals: RemovedReviewEvent[] } {
   const store = load();
   const now = new Date().toISOString();
@@ -177,8 +191,9 @@ export function diffAndRecordReviews(
   const stillMissing: ReviewSnapshot[] = [];
   for (const prior of priorForLocation) {
     if (currentIds.has(prior.id)) continue;
-    // An incomplete fetch says nothing about the reviews it lacks.
-    if (!complete) {
+    // An incomplete fetch says nothing about the reviews it lacks — unless
+    // Google confirmed that review gone when asked for it directly.
+    if (!complete && !confirmedGone.has(prior.id)) {
       stillMissing.push(prior);
       continue;
     }

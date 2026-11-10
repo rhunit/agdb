@@ -220,6 +220,8 @@ async function onReview(
   suffix: string,
   init: RequestInit,
   what: string,
+  /** A 404 is an expected answer (existence check): don't log it as an error. */
+  quiet404 = false,
 ): Promise<Response> {
   const { token } = await auth.getAccessToken();
   if (!token) throw new Error("No access token available");
@@ -233,7 +235,7 @@ async function onReview(
     if (!res.ok) throw new Error(`${what} failed: ${res.status} ${await res.text()}`);
     return res;
   }
-  console.error(`${what}: 404 for review ${reviewId} on ${paths.join(" and ")}`);
+  if (!quiet404) console.error(`${what}: 404 for review ${reviewId} on ${paths.join(" and ")}`);
   throw new ReviewNotFoundError(`Review not found at Google (${paths.length} address(es) tried)`);
 }
 
@@ -274,6 +276,22 @@ export async function replyToReview(
   );
   const data = (await res.json()) as { comment?: string; updateTime?: string };
   return { comment: data.comment ?? comment, updateTime: data.updateTime ?? null };
+}
+
+/** Whether Google still knows one review when asked for it directly:
+ * true, false (404 on every address), or null when that couldn't be told. */
+export async function reviewExists(
+  auth: OAuth2Client,
+  accountName: string,
+  googleLocationId: string,
+  reviewId: string,
+): Promise<boolean | null> {
+  try {
+    await onReview(auth, accountName, googleLocationId, reviewId, "", { method: "GET" }, "Review check", true);
+    return true;
+  } catch (err) {
+    return err instanceof ReviewNotFoundError ? false : null;
+  }
 }
 
 /** The link Google gives for answering a review in its own interface

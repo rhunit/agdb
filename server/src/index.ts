@@ -22,11 +22,13 @@ import {
   ReviewNotFoundError,
   diagnoseReview,
   getReviewReplyUrl,
+  reviewExists,
 } from "./googleBusinessReviews.js";
 import { ACTIVE_LOCATIONS, getAllPlacesSummaries } from "./googlePlaces.js";
 import { getWeeklyReviewGrowth, recordSnapshot } from "./placesHistoryStore.js";
 import {
   diffAndRecordReviews,
+  missingReviewIds,
   listRemovedReviews,
   listReviewEdits,
 } from "./reviewHistoryStore.js";
@@ -317,6 +319,39 @@ const ALL_REVIEWS_FRESH_MS = 60_000;
 let allReviewsInFlight: Promise<Awaited<ReturnType<typeof getAllBusinessReviews>>> | null = null;
 let allReviewsCache: { at: number; data: Awaited<ReturnType<typeof getAllBusinessReviews>> } | null = null;
 
+// On an incomplete fetch, reviews that dropped out of the list are asked
+// for one by one; those Google answers "not found" for may count as removed.
+// Capped per run so a big gap never turns into hundreds of calls.
+const MAX_MISSING_CHECKS_PER_LOCATION = 25;
+
+async function checkMissingReviews(
+  auth: ReturnType<typeof getAuthorizedClient>,
+  locations: Awaited<ReturnType<typeof listLocations>>,
+  location: InternalLocationId,
+  list: Parameters<typeof missingReviewIds>[1],
+): Promise<Set<string>> {
+  const gone = new Set<string>();
+  const match = locations.find((l) => l.internalId === location);
+  if (!match) return gone;
+  // A different random handful each run, so a long list still gets through.
+  const missing = missingReviewIds(location, list)
+    .map((id) => ({ id, order: Math.random() }))
+    .sort((a, b) => a.order - b.order)
+    .slice(0, MAX_MISSING_CHECKS_PER_LOCATION)
+    .map((m) => m.id);
+  for (const reviewId of missing) {
+    if ((await reviewExists(auth, match.accountName, match.googleLocationId, reviewId)) === false) {
+      gone.add(reviewId);
+    }
+  }
+  if (missing.length > 0) {
+    console.log(
+      `review history: ${location} incomplete fetch — checked ${missing.length} missing review(s), ${gone.size} not found at Google`,
+    );
+  }
+  return gone;
+}
+
 async function fetchAllReviewsShared() {
   if (allReviewsCache && Date.now() - allReviewsCache.at < ALL_REVIEWS_FRESH_MS) {
     return allReviewsCache.data;
@@ -328,12 +363,13 @@ async function fetchAllReviewsShared() {
     // Compared with the stored history once per fetch — never twice for
     // the same data, since a removal needs two separate fetches to agree.
     for (const [location, list] of Object.entries(data.reviews)) {
+      const id = location as InternalLocationId;
       try {
-        diffAndRecordReviews(
-          location as InternalLocationId,
-          list ?? [],
-          data.complete[location as InternalLocationId] ?? false,
-        );
+        const complete = data.complete[id] ?? false;
+        const confirmedGone = complete
+          ? new Set<string>()
+          : await checkMissingReviews(auth, locations, id, list ?? []);
+        diffAndRecordReviews(id, list ?? [], complete, confirmedGone);
       } catch (err) {
         console.error(`diffAndRecordReviews failed for ${location}:`, err);
       }
