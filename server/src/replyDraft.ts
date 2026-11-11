@@ -20,13 +20,51 @@ export function isReplyDraftAvailable(): boolean {
   return isOpenAiConfigured();
 }
 
-/** Google's v4 API returns non-English/Dutch reviews as "(Translated by
- * Google) … (Original) …". The language rules are about what the reviewer
+/** Google's v4 API returns reviews in another language than the
+ * account's as "(Translated by Google) <translation> (Original) <original>"
+ * (or the Dutch labels). The language rules are about what the reviewer
  * actually wrote, so the model gets the original only. */
-function originalText(text: string): string {
-  const marker = text.indexOf("(Original)");
-  return marker >= 0 ? text.slice(marker + "(Original)".length).trim() : text.trim();
+const TRANSLATED =
+  /^\((?:Translated by Google|Vertaald door Google)\)\s*[\s\S]*?\s*\((?:Original|Origineel)\)\s*([\s\S]*)$/i;
+
+export function originalText(text: string): { text: string; translatedByGoogle: boolean } {
+  const m = text.trim().match(TRANSLATED);
+  return m ? { text: m[1].trim(), translatedByGoogle: true } : { text: text.trim(), translatedByGoogle: false };
 }
+
+const DUTCH_WORDS = new Set(
+  "de het een en is niet wel heel erg zeer goed goede aardig aardige vriendelijk vriendelijke personeel bedankt lekker lekkere prima mooi mooie leuk leuke zijn voor met van ook maar dat wat je jullie wij we hier daar altijd nooit echt super top geweldig fijn fijne winkel zaak kwaliteit service medewerker medewerkers bediening wiet hasj soort soorten gezellig gezellige aanrader beste ik mijn heb hebben was waren kan kun".split(" "),
+);
+const ENGLISH_WORDS = new Set(
+  "the and is are was were very good great nice friendly staff thanks thank amazing awesome best place shop this that with for of in to it i my we you they really definitely recommend quality service weed hash strain strains love loved price prices will again".split(" "),
+);
+
+/** The language to answer in: Dutch for a Dutch review, English for any
+ * other language. Google only translates reviews written in another
+ * language than Dutch, so a translation marker settles it; otherwise
+ * common words decide. null when it can't be told (e.g. only "Top!"). */
+export function replyLanguage(fullText: string): "nl" | "en" | null {
+  const { text, translatedByGoogle } = originalText(fullText);
+  if (translatedByGoogle) return "en";
+  const words = text.toLowerCase().match(/\p{L}+/gu) ?? [];
+  let nl = 0;
+  let en = 0;
+  for (const w of words) {
+    if (DUTCH_WORDS.has(w)) nl++;
+    if (ENGLISH_WORDS.has(w)) en++;
+  }
+  if (nl === 0 && en === 0) return words.length === 0 ? "nl" : null;
+  if (nl > en) return "nl";
+  if (en > nl) return "en";
+  return null;
+}
+
+/** "Beste coffeeshop", "best shop in Amsterdam", "beste van Amsterdam"… */
+const CALLED_BEST =
+  /\bbest[e]?\s+(?:coffee\s?shop|shop|van\s+amsterdam|in\s+amsterdam|of\s+amsterdam)|\bbest[e]?\s+(?:\p{L}+\s+){0,3}(?:in|van|of)\s+(?:amsterdam|town|the city)\b/iu;
+/** How often a review calling us the best gets the "bekroont als beste
+ * shop" line — sporadic on purpose, so it doesn't become a fixed phrase. */
+const BEST_SHOP_LINE_CHANCE = 0.35;
 
 // Each draft is a separate call, so the model can't see its earlier
 // replies and keeps landing on the same greeting and phrasing. The code
@@ -98,7 +136,7 @@ function pick<T>(items: T[]): T {
   return items[Math.floor(Math.random() * items.length)];
 }
 
-function openingFor(req: ReplyDraftRequest): string {
+function openingFor(req: ReplyDraftRequest, language: "nl" | "en" | null): string {
   const chance = req.rating >= 4 ? OPENING_LINE_CHANCE.positive : OPENING_LINE_CHANCE.critical;
   if (Math.random() < chance) {
     const lines = openingLines(req.rating).map((l) => l.replace("[naam]", req.reviewer));
@@ -109,7 +147,11 @@ function openingFor(req: ReplyDraftRequest): string {
           ...lines.map((l) => `- ${l}`),
         ].join("\n");
   }
-  return `Opening voor deze reactie: de aanhef "${pick(GREETINGS_NL)} ${req.reviewer}," bij een Nederlandse reactie, "${pick(GREETINGS_EN)} ${req.reviewer}," bij een Engelse reactie.`;
+  const nl = `"${pick(GREETINGS_NL)} ${req.reviewer},"`;
+  const en = `"${pick(GREETINGS_EN)} ${req.reviewer},"`;
+  if (language === "nl") return `Opening voor deze reactie: de aanhef ${nl}`;
+  if (language === "en") return `Opening voor deze reactie: de aanhef ${en}`;
+  return `Opening voor deze reactie: de aanhef ${nl} bij een Nederlandse reactie, ${en} bij een Engelse reactie.`;
 }
 
 /** Fixes the model still gets wrong now and then, whatever the prompt says. */
@@ -152,7 +194,7 @@ async function complete(system: string, user: string, temperature: number): Prom
 
 const CHECK_INSTRUCTIONS = `Je controleert een concept-reactie op een Google-review voordat die geplaatst wordt. Verbeter alleen wat fout is en laat de rest zoals het is.
 Controleer:
-- Taal: is de review in het Engels, dan moet de hele reactie in het Engels zijn, zonder een enkel Nederlands woord (ook niet in de uitnodiging om terug te komen of de afsluiting). Is de review in het Nederlands of een andere taal, dan moet de hele reactie in het Nederlands zijn.
+- Taal: volg de opgegeven taal van de reactie. Engels betekent de hele reactie in het Engels, zonder een enkel Nederlands woord (ook niet in de uitnodiging om terug te komen of de afsluiting). Nederlands betekent de hele reactie in het Nederlands.
 - Sterren: noemt de reactie een ander aantal sterren dan de review heeft (bijvoorbeeld "bedankt voor je 5-sterren beoordeling" bij een review van 1 ster)? Corrigeer dat. Bij 1-3 sterren wordt bedankt voor de feedback, niet voor de sterren of "de mooie beoordeling". Alleen "we streven naar een 5-sterren ervaring" mag altijd.
 - Spelling en grammatica: foutloos. Schrijf "[aantal]-sterren review", "[aantal]-sterren beoordeling" en "5-sterren ervaring" (koppelteken, dan een spatie). Schrijf "super" los: "super bedankt". Gebruik niet het woord "prachtig".
 - Herhaalt of parafraseert de reactie wat de reviewer schreef ("Wat fijn om te horen dat…", "Wat goed om te lezen dat…")? Herschrijf die zin tot een eigen reactie, bijvoorbeeld dat we trots zijn op ons team of ons uiterste best doen voor de kwaliteit.
@@ -166,7 +208,14 @@ export async function generateReplyDraft(req: ReplyDraftRequest): Promise<string
   }
 
   const info = LOCATION_REPLY_INFO[req.location];
-  const reviewText = originalText(req.text);
+  const reviewText = originalText(req.text).text;
+  const language = replyLanguage(req.text);
+  const languageLine =
+    language === "nl"
+      ? "Taal van de reactie: Nederlands (de review is in het Nederlands geschreven)."
+      : language === "en"
+        ? "Taal van de reactie: Engels (de review is niet in het Nederlands geschreven). Schrijf de hele reactie in natuurlijk Engels, zonder Nederlandse woorden."
+        : "Taal van de reactie: bepaal die zelf uit de originele reviewtekst — Nederlands bij een Nederlandse review, anders Engels.";
   const reviewBlock = [
     `Locatie: ${info.name}`,
     info.feedbackUrl
@@ -174,12 +223,20 @@ export async function generateReplyDraft(req: ReplyDraftRequest): Promise<string
       : "Feedbacklink van deze locatie: geen — noem geen link en verzin er geen.",
     `Uitnodiging om terug te komen voor deze locatie: ${info.welcomeBack}`,
     `Uitnodiging om terug te komen in het Engels: ${info.welcomeBackEn}`,
-    openingFor(req),
+    openingFor(req, language),
+    languageLine,
     `Naam reviewer: ${req.reviewer}`,
     `Sterren: ${req.rating} van de 5`,
     ratingGuidance(req.rating),
     `Reviewtekst: ${reviewText ? `"""${reviewText}"""` : "(geen tekst — alleen sterren)"}`,
   ];
+  if (CALLED_BEST.test(reviewText)) {
+    reviewBlock.push(
+      Math.random() < BEST_SHOP_LINE_CHANCE
+        ? 'De reviewer noemt ons de beste: verwerk in deze reactie de strekking "Bedankt dat je ons bekroont als beste shop van Amsterdam!" (in eigen woorden mag; in het Engels vertaald bij een Engelse reactie).'
+        : 'De reviewer noemt ons de beste: gebruik in deze reactie NIET de zin over "bekronen als beste shop van Amsterdam", reageer er op een andere manier op.',
+    );
+  }
   const group = req.rating >= 4 ? "positive" : "critical";
   const recent = recentDrafts[group];
   if (recent.length > 0) {
@@ -198,7 +255,7 @@ export async function generateReplyDraft(req: ReplyDraftRequest): Promise<string
     // Second pass: proofread language, spelling, star count and the fixed parts.
     const checked = await complete(
       CHECK_INSTRUCTIONS,
-      `Sterren van de review: ${req.rating} van de 5\nReviewtekst: ${reviewText ? `"""${reviewText}"""` : "(geen tekst — alleen sterren)"}\n\nConcept-reactie:\n"""${first}"""`,
+      `Sterren van de review: ${req.rating} van de 5\n${languageLine}\nReviewtekst: ${reviewText ? `"""${reviewText}"""` : "(geen tekst — alleen sterren)"}\n\nConcept-reactie:\n"""${first}"""`,
       0.2,
     );
     const draft = tidyDraft(checked.replace(/^"""|"""$/g, ""));

@@ -35,9 +35,10 @@ const RATING_OPTIONS: FilterOption[] = [
   { value: "1", label: "1 ster" },
 ];
 
-/** Lowercase without accents, so "zoe" finds "Zoë" and "jose" finds "José". */
+/** Lowercase without accents and with single spaces, so "zoe" finds "Zoë"
+ * and a phrase copied from a review still matches across line breaks. */
 function normalizeName(s: string): string {
-  return s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().trim();
+  return s.normalize("NFD").replace(/\p{Diacritic}/gu, "").replace(/\s+/g, " ").toLowerCase().trim();
 }
 
 export type StatusFilter = "all" | "open" | "responded" | "removed";
@@ -78,7 +79,7 @@ export function AllReviews({
   const [ratingFilter, setRatingFilter] = useState<number | "all">("all");
   const [activeTheme, setActiveTheme] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>("recent");
-  // Search by reviewer name, on top of the other filters.
+  // Search by reviewer name or review text, on top of the other filters.
   const [nameQuery, setNameQuery] = useState("");
   // Reviews replied to in this session, ahead of the next full refetch —
   // lets the status (and the reply text itself) show immediately after a
@@ -143,7 +144,8 @@ export function AllReviews({
     const base = statusFilter === "removed" ? removedScoped : scopedReviews;
     const query = normalizeName(nameQuery);
     const filtered = base.filter((r) => {
-      if (query && !normalizeName(r.reviewer).includes(query)) return false;
+      // Name or review text (Google's translation and the original both).
+      if (query && !normalizeName(`${r.reviewer}\n${r.snippet}`).includes(query)) return false;
       if (statusFilter === "open" && isResponded(r)) return false;
       if (statusFilter === "responded" && !isResponded(r)) return false;
       if (ratingFilter !== "all" && r.rating !== ratingFilter) return false;
@@ -302,8 +304,8 @@ export function AllReviews({
               setNameQuery(e.target.value);
               setShown(PAGE_SIZE);
             }}
-            placeholder="Zoek op naam…"
-            aria-label="Zoek reviews op naam van de reviewer"
+            placeholder="Zoek op naam of tekst…"
+            aria-label="Zoek reviews op naam of tekst"
             data-print-hide
           />
           <FilterDropdown
