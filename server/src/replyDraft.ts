@@ -59,6 +59,33 @@ export function replyLanguage(fullText: string): "nl" | "en" | null {
   return null;
 }
 
+/** Reviewer names as people write them ("riccardo ansaldo"): each name
+ * part with a capital, except Dutch-style infixes inside a name ("Jan van
+ * Dijk"). Parts already starting with a capital are left as they are. */
+const NAME_INFIXES = new Set(["van", "de", "der", "den", "het", "ter", "ten", "te", "op", "in", "'t", "la", "le", "da", "di", "du", "von", "del", "dos", "das"]);
+
+export function capitalizeName(name: string): string {
+  const words = name.trim().split(/\s+/);
+  return words
+    .map((word, i) => {
+      if (i > 0 && i < words.length - 1 && NAME_INFIXES.has(word.toLowerCase())) return word;
+      return word
+        .split("-")
+        .map((part) => part.charAt(0).toLocaleUpperCase("nl") + part.slice(1))
+        .join("-");
+    })
+    .join(" ");
+}
+
+/** Words for the products themselves: a reply speaks of "onze producten". */
+const PRODUCT_WORDS = /\b(?:wiet|hasj|weed|hash|cannabis|marihuana|marijuana)\b/i;
+const PRODUCT_PHRASE =
+  /\b(?:(?:de|het|jullie|onze|je|jouw|your|the)\s+)?(?:wiet|hasj|weed|hash|cannabis|marihuana|marijuana)\b/gi;
+
+/** "Trots op ons team" came back in nearly every reply: allowed only now
+ * and then, and never twice in a row. */
+const PROUD_LINE_CHANCE = 0.15;
+
 /** "Beste coffeeshop", "best shop in Amsterdam", "beste van Amsterdam"… */
 const CALLED_BEST =
   /\bbest[e]?\s+(?:coffee\s?shop|shop|van\s+amsterdam|in\s+amsterdam|of\s+amsterdam)|\bbest[e]?\s+(?:\p{L}+\s+){0,3}(?:in|van|of)\s+(?:amsterdam|town|the city)\b/iu;
@@ -75,7 +102,8 @@ const RECENT_LIMIT = 6;
 // Kept apart for positive (4-5) and critical (1-3) reviews: a list of
 // cheerful "thanks for the 5 stars" drafts nudged 1-star replies the same way.
 const recentDrafts: Record<"positive" | "critical", string[]> = { positive: [], critical: [] };
-/** Extra tries when a draft names the wrong number of stars. */
+/** Extra tries when a draft names the wrong number of stars or names the
+ * products themselves. */
 const STAR_RETRIES = 2;
 
 function ratingGuidance(rating: number): string {
@@ -136,10 +164,10 @@ function pick<T>(items: T[]): T {
   return items[Math.floor(Math.random() * items.length)];
 }
 
-function openingFor(req: ReplyDraftRequest, language: "nl" | "en" | null): string {
-  const chance = req.rating >= 4 ? OPENING_LINE_CHANCE.positive : OPENING_LINE_CHANCE.critical;
+function openingFor(rating: number, name: string, language: "nl" | "en" | null): string {
+  const chance = rating >= 4 ? OPENING_LINE_CHANCE.positive : OPENING_LINE_CHANCE.critical;
   if (Math.random() < chance) {
-    const lines = openingLines(req.rating).map((l) => l.replace("[naam]", req.reviewer));
+    const lines = openingLines(rating).map((l) => l.replace("[naam]", name));
     return lines.length === 1
       ? `Opening voor deze reactie: geen losse aanhef, maar deze openingszin (bij een Engelse reactie vertaald naar natuurlijk Engels): "${lines[0]}"`
       : [
@@ -147,8 +175,8 @@ function openingFor(req: ReplyDraftRequest, language: "nl" | "en" | null): strin
           ...lines.map((l) => `- ${l}`),
         ].join("\n");
   }
-  const nl = `"${pick(GREETINGS_NL)} ${req.reviewer},"`;
-  const en = `"${pick(GREETINGS_EN)} ${req.reviewer},"`;
+  const nl = `"${pick(GREETINGS_NL)} ${name},"`;
+  const en = `"${pick(GREETINGS_EN)} ${name},"`;
   if (language === "nl") return `Opening voor deze reactie: de aanhef ${nl}`;
   if (language === "en") return `Opening voor deze reactie: de aanhef ${en}`;
   return `Opening voor deze reactie: de aanhef ${nl} bij een Nederlandse reactie, ${en} bij een Engelse reactie.`;
@@ -165,10 +193,12 @@ export function tidyDraft(draft: string): string {
     .replace(/(\d)(sterren)\b/gi, "$1 $2")
     .replace(/\b(s)uper(bedankt|leuk|blij|fijn|lekker|vriendelijk|tof|goed|snel|chill|gezellig)/gi, "$1uper $2")
     .replace(/\b(p)rachtig/gi, (_m, p: string) => (p === "P" ? "Mooi" : "mooi"));
-  // Always end with exactly one green heart.
-  // Drop any 💚 from the trailing emoji run ("💚💚 😍" -> "😍") first.
+  // No emoji but one green heart at the very end: drop every emoji (with
+  // its variation selectors and joiners), then add the heart.
   text = text
-    .replace(/[\s\p{Extended_Pictographic}\uFE0F]+$/u, (tail) => tail.replace(/💚/gu, "").replace(/ {2,}/g, " "))
+    .replace(/[\p{Extended_Pictographic}\u{1F3FB}-\u{1F3FF}\uFE0F\u200D\u20E3]/gu, "")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/ +([.,!?])/g, "$1")
     .replace(/\s+$/u, "");
   return `${text} 💚`;
 }
@@ -197,7 +227,9 @@ Controleer:
 - Taal: volg de opgegeven taal van de reactie. Engels betekent de hele reactie in het Engels, zonder een enkel Nederlands woord (ook niet in de uitnodiging om terug te komen of de afsluiting). Nederlands betekent de hele reactie in het Nederlands.
 - Sterren: noemt de reactie een ander aantal sterren dan de review heeft (bijvoorbeeld "bedankt voor je 5-sterren beoordeling" bij een review van 1 ster)? Corrigeer dat. Bij 1-3 sterren wordt bedankt voor de feedback, niet voor de sterren of "de mooie beoordeling". Alleen "we streven naar een 5-sterren ervaring" mag altijd.
 - Spelling en grammatica: foutloos. Schrijf "[aantal]-sterren review", "[aantal]-sterren beoordeling" en "5-sterren ervaring" (koppelteken, dan een spatie). Schrijf "super" los: "super bedankt". Gebruik niet het woord "prachtig".
-- Herhaalt of parafraseert de reactie wat de reviewer schreef ("Wat fijn om te horen dat…", "Wat goed om te lezen dat…")? Herschrijf die zin tot een eigen reactie, bijvoorbeeld dat we trots zijn op ons team of ons uiterste best doen voor de kwaliteit.
+- Herhaalt of parafraseert de reactie wat de reviewer schreef ("Wat fijn om te horen dat…", "Wat goed om te lezen dat…")? Herschrijf die zin tot een eigen reactie.
+- Producten: noemt de reactie wiet, hasj, weed, hash of cannabis? Vervang dat door "onze producten" (in een Engelse reactie "our products"; een soortnaam zoals Super Silver Haze mag blijven).
+- Emoji: alleen het groene hartje 💚 aan het eind; haal elke andere emoji weg.
 - Aanspreekvorm: je/jij/jouw, nooit u/uw (in het Nederlands).
 - De reactie begint met een aanhef of openingszin met de naam van de reviewer en eindigt met 💚. Laat de opening verder zoals hij is.
 Geef uitsluitend de verbeterde reactie terug, zonder uitleg.`;
@@ -209,6 +241,7 @@ export async function generateReplyDraft(req: ReplyDraftRequest): Promise<string
 
   const info = LOCATION_REPLY_INFO[req.location];
   const reviewText = originalText(req.text).text;
+  const name = capitalizeName(req.reviewer);
   const language = replyLanguage(req.text);
   const languageLine =
     language === "nl"
@@ -223,9 +256,9 @@ export async function generateReplyDraft(req: ReplyDraftRequest): Promise<string
       : "Feedbacklink van deze locatie: geen — noem geen link en verzin er geen.",
     `Uitnodiging om terug te komen voor deze locatie: ${info.welcomeBack}`,
     `Uitnodiging om terug te komen in het Engels: ${info.welcomeBackEn}`,
-    openingFor(req, language),
+    openingFor(req.rating, name, language),
     languageLine,
-    `Naam reviewer: ${req.reviewer}`,
+    `Naam reviewer (schrijf hem precies zo): ${name}`,
     `Sterren: ${req.rating} van de 5`,
     ratingGuidance(req.rating),
     `Reviewtekst: ${reviewText ? `"""${reviewText}"""` : "(geen tekst — alleen sterren)"}`,
@@ -237,8 +270,17 @@ export async function generateReplyDraft(req: ReplyDraftRequest): Promise<string
         : 'De reviewer noemt ons de beste: gebruik in deze reactie NIET de zin over "bekronen als beste shop van Amsterdam", reageer er op een andere manier op.',
     );
   }
+  if (PRODUCT_WORDS.test(reviewText)) {
+    reviewBlock.push(
+      'De reviewer noemt wiet of hasj: noem dat in je reactie "onze producten" (in het Engels "our products") en gebruik de woorden wiet, hasj, weed, hash of cannabis niet.',
+    );
+  }
   const group = req.rating >= 4 ? "positive" : "critical";
   const recent = recentDrafts[group];
+  const proudRecently = recent.some((d) => /\btrots\b/i.test(d));
+  if (proudRecently || Math.random() >= PROUD_LINE_CHANCE) {
+    reviewBlock.push('Gebruik in deze reactie het woord "trots" niet (dus ook niet "we zijn trots op ons team").');
+  }
   if (recent.length > 0) {
     reviewBlock.push(
       `Recente reacties (alleen als voorbeeld van wat je NIET moet herhalen — gebruik andere openingszinnen, formuleringen en afsluitingen; ze gingen over andere reviews):\n${recent.map((d) => `- ${d.replace(/\s+/g, " ")}`).join("\n")}`,
@@ -258,10 +300,15 @@ export async function generateReplyDraft(req: ReplyDraftRequest): Promise<string
       `Sterren van de review: ${req.rating} van de 5\n${languageLine}\nReviewtekst: ${reviewText ? `"""${reviewText}"""` : "(geen tekst — alleen sterren)"}\n\nConcept-reactie:\n"""${first}"""`,
       0.2,
     );
-    const draft = tidyDraft(checked.replace(/^"""|"""$/g, ""));
+    let draft = tidyDraft(checked.replace(/^"""|"""$/g, ""));
     if (mentionsWrongRating(draft, req.rating)) {
       if (attempt < STAR_RETRIES) continue;
       throw new Error("Het concept noemde steeds een verkeerd aantal sterren. Probeer het opnieuw.");
+    }
+    if (PRODUCT_WORDS.test(draft)) {
+      if (attempt < STAR_RETRIES) continue;
+      // Last resort after the retries: swap the word itself.
+      draft = draft.replace(PRODUCT_PHRASE, language === "en" ? "our products" : "onze producten");
     }
     recent.unshift(draft);
     recent.length = Math.min(recent.length, RECENT_LIMIT);
