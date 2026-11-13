@@ -33,16 +33,31 @@ export function originalText(text: string): { text: string; translatedByGoogle: 
 }
 
 const DUTCH_WORDS = new Set(
-  "de het een en is niet wel heel erg zeer goed goede aardig aardige vriendelijk vriendelijke personeel bedankt lekker lekkere prima mooi mooie leuk leuke zijn voor met van ook maar dat wat je jullie wij we hier daar altijd nooit echt super top geweldig fijn fijne winkel zaak kwaliteit service medewerker medewerkers bediening wiet hasj soort soorten gezellig gezellige aanrader beste ik mijn heb hebben was waren kan kun".split(" "),
+  "de het een en is niet wel heel erg zeer goed goede aardig aardige vriendelijk vriendelijke personeel bedankt lekker lekkere prima mooi mooie leuk leuke zijn voor met van ook maar dat wat je jullie wij we hier daar altijd nooit echt super top geweldig fijn fijne winkel zaak kwaliteit service medewerker medewerkers bediening wiet hasj soort soorten gezellig gezellige aanrader beste ik mijn heb hebben was waren kan kun mensen jongens meiden sfeer prijs prijzen snel snelle behulpzaam behulpzame klantvriendelijk vriendelijkheid aanbod keuze altijd weer zeker zo zoals ga gaan kom komen terug bezoek bezocht".split(" "),
 );
 const ENGLISH_WORDS = new Set(
-  "the and is are was were very good great nice friendly staff thanks thank amazing awesome best place shop this that with for of in to it i my we you they really definitely recommend quality service weed hash strain strains love loved price prices will again".split(" "),
+  "the and is are was were very good great nice friendly staff thanks thank amazing awesome best place shop this that with for of in to it i my we you they really definitely recommend quality service weed hash strain strains love loved price prices will again lovely people perfect nice cool chill vibe vibes excellent wonderful helpful kind guys guy team atmosphere music selection fast quick always everything everyone so too not but all our your us me them had got get go went come came back visit visited store strong buy bought worth super fantastic beautiful polite professional fair recommended highly must amsterdam's thanks".split(" "),
 );
 
 /** The language to answer in: Dutch for a Dutch review, English for any
  * other language. Google only translates reviews written in another
  * language than Dutch, so a translation marker settles it; otherwise
  * common words decide. null when it can't be told (e.g. only "Top!"). */
+/** For the reviews the word lists can't place ("Justin perfect!"): one
+ * short question to the model, which only has to say whether it's Dutch. */
+async function askIsDutch(text: string): Promise<"nl" | "en"> {
+  try {
+    const answer = await complete(
+      'Je krijgt de tekst van een review. Is die in het Nederlands geschreven? Antwoord met precies één woord: "ja" of "nee".',
+      `"""${text}"""`,
+      0,
+    );
+    return /^\s*ja\b/i.test(answer) ? "nl" : "en";
+  } catch {
+    return "en";
+  }
+}
+
 export function replyLanguage(fullText: string): "nl" | "en" | null {
   const { text, translatedByGoogle } = originalText(fullText);
   if (translatedByGoogle) return "en";
@@ -242,7 +257,7 @@ export async function generateReplyDraft(req: ReplyDraftRequest): Promise<string
   const info = LOCATION_REPLY_INFO[req.location];
   const reviewText = originalText(req.text).text;
   const name = capitalizeName(req.reviewer);
-  const language = replyLanguage(req.text);
+  const language = replyLanguage(req.text) ?? (await askIsDutch(reviewText));
   const languageLine =
     language === "nl"
       ? "Taal van de reactie: Nederlands (de review is in het Nederlands geschreven)."
