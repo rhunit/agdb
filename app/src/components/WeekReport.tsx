@@ -62,6 +62,27 @@ export function WeekReport({ data }: { data: WeekReportData }) {
 
   return createPortal(
     <div className={styles.report} data-week-report>
+      {/* A table whose header and footer repeat on every printed page gives
+          each page its top and bottom margin — the page itself has none, so
+          the browser has no room for its own date/title/URL lines. */}
+      <table className={styles.pageTable}>
+        <thead>
+          <tr>
+            <td>
+              <div className={styles.pageSpace} />
+            </td>
+          </tr>
+        </thead>
+        <tfoot>
+          <tr>
+            <td>
+              <div className={styles.pageSpace} />
+            </td>
+          </tr>
+        </tfoot>
+        <tbody>
+          <tr>
+            <td className={styles.pageBody}>
       <h1 className={styles.title}>GOOGLE REVIEWS | SAMEN STERK</h1>
       <p className={styles.subtitle}>
         Gezamenlijk {isWeekLong(range) ? "weekrapport" : "rapport"} · {period} · Voor alle{" "}
@@ -164,6 +185,10 @@ export function WeekReport({ data }: { data: WeekReportData }) {
         <h2 className={styles.h2}>Samen de nieuwe week in</h2>
         <p className={styles.text}>{CLOSING_TEXT}</p>
       </section>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>,
     document.body,
   );

@@ -173,3 +173,10 @@ button {
   size: A4;
   margin: 18mm 16mm;
 }
+
+/* The Rapportage report: no page margin, so the browser can't add its
+   date/title/URL lines; WeekReport makes its own margins. */
+@page week-report {
+  size: A4;
+  margin: 0;
+}

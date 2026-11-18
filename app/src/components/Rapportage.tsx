@@ -21,7 +21,7 @@ import type { LocationId, Review } from "../types";
 import { DateRangeSelector } from "./DateRangeSelector";
 import exportStyles from "./ExportPdfButton.module.css";
 import { WeekReport, type WeekReportData } from "./WeekReport";
-import { keywordCategories, REPORT_LOCATION_ORDER, formatPeriod } from "../lib/weekReport";
+import { keywordCategories, REPORT_LOCATION_ORDER, formatPeriod, isWeekLong } from "../lib/weekReport";
 import { RefreshButton } from "./RefreshButton";
 import { LoadingState } from "./LoadingState";
 import styles from "./Rapportage.module.css";
@@ -135,8 +135,12 @@ export function Rapportage({
   useEffect(() => {
     if (!report) return;
     document.body.classList.add("print-report");
+    // The print dialog's default file name (and title) for the PDF.
+    const previousTitle = document.title;
+    document.title = `Google Reviews ${isWeekLong(report.range) ? "weekrapport" : "rapport"} ${formatPeriod(report.range)}`;
     const done = () => {
       document.body.classList.remove("print-report");
+      document.title = previousTitle;
       setReport(null);
     };
     window.addEventListener("afterprint", done, { once: true });
@@ -145,6 +149,7 @@ export function Rapportage({
       window.clearTimeout(timer);
       window.removeEventListener("afterprint", done);
       document.body.classList.remove("print-report");
+      document.title = previousTitle;
     };
   }, [report]);
 

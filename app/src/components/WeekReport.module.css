@@ -4,6 +4,10 @@
 
 .report {
   display: none;
+  /* Its own page box without margins (see index.css): the side margins are
+     this padding, top and bottom come from .pageSpace. */
+  page: week-report;
+  padding: 0 16mm;
   color: #111;
   background: #fff;
   font-family: "DejaVu Sans", Verdana, "Helvetica Neue", Arial, sans-serif;
@@ -87,4 +91,20 @@
 
 .keep {
   break-inside: avoid;
+}
+
+.pageTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.pageTable > thead > tr > td,
+.pageTable > tfoot > tr > td,
+.pageBody {
+  padding: 0;
+  vertical-align: top;
+}
+
+.pageSpace {
+  height: 16mm;
 }
