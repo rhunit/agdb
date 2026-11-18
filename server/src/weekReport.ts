@@ -59,13 +59,16 @@ async function json(prompt: string): Promise<Record<string, unknown>> {
   if (!openai) throw new Error("AI staat uit: OPENAI_API_KEY of AI_ENABLED=true ontbreekt.");
   const completion = await openai.chat.completions.create({
     model: MODEL,
-    max_tokens: 1200,
+    max_tokens: 2500,
     temperature: 0.3,
     response_format: { type: "json_object" },
     messages: [{ role: "user", content: prompt }],
   });
-  const raw = completion.choices[0]?.message?.content;
+  const choice = completion.choices[0];
+  const raw = choice?.message?.content;
   if (!raw) throw new Error("Geen tekstantwoord van OpenAI ontvangen.");
+  // Cut off at max_tokens: the JSON is incomplete, don't try to read it.
+  if (choice.finish_reason === "length") throw new Error("Antwoord van OpenAI was te lang en is afgebroken.");
   return JSON.parse(raw) as Record<string, unknown>;
 }
 
@@ -77,8 +80,10 @@ async function locationTexts(
   const positive = loc.reviews.filter((r) => r.rating >= 4 && r.text.trim()).slice(0, MAX_POSITIVE);
   if (loc.reviews.length === 0) return { narrative: "", categories: {} };
 
+  // Short numbers instead of Google's long review ids keep the answer small
+  // (60 long ids once pushed it past the length limit, cutting the JSON off).
   const negLines = negative
-    .map((r) => `- id=${r.id} [${r.rating}★] ${r.text.trim() ? `"${clip(r.text)}"` : "(geen tekst)"}`)
+    .map((r, i) => `- nr=${i + 1} [${r.rating}★] ${r.text.trim() ? `"${clip(r.text)}"` : "(geen tekst)"}`)
     .join("\n");
   const posLines = positive.map((r) => `- [${r.rating}★] "${clip(r.text)}"`).join("\n");
 
@@ -96,7 +101,7 @@ ${CATEGORY_RULES}
 
 Antwoord met exact dit JSON-object:
 {
-  "categories": { "<id van elke review van 1-3 sterren>": ["Personeel" | "Huisregels" | "Handel" | "Overig/onbekend", ...] },
+  "categories": { "<nr van elke review van 1-3 sterren>": ["Personeel" | "Huisregels" | "Handel" | "Overig/onbekend", ...] },
   "narrative": "..."
 }
 
@@ -110,18 +115,32 @@ Voor "narrative" (3-6 zinnen, één alinea, zonder aantallen reviews of categori
   const out = await json(prompt);
   const categories: Record<string, ReportCategory[]> = {};
   const raw = (out.categories ?? {}) as Record<string, unknown>;
-  for (const r of negative) {
-    const list = Array.isArray(raw[r.id]) ? (raw[r.id] as unknown[]) : [];
+  negative.forEach((r, i) => {
+    const entry = raw[String(i + 1)];
+    const list = Array.isArray(entry) ? (entry as unknown[]) : [];
     const valid = [...new Set(list.filter((c): c is ReportCategory => REPORT_CATEGORIES.includes(c as ReportCategory)))];
     // "Overig/onbekend" only when nothing else fits.
     const specific = valid.filter((c) => c !== "Overig/onbekend");
     categories[r.id] = specific.length > 0 ? specific : ["Overig/onbekend"];
-  }
+  });
   return { narrative: typeof out.narrative === "string" ? out.narrative.trim() : "", categories };
 }
 
 export async function generateWeekReport(req: WeekReportRequest): Promise<WeekReportResult> {
-  const perLocation = await Promise.all(req.locations.map((loc) => locationTexts(loc, req.periodLabel)));
+  // One location failing (twice) leaves only that location without texts;
+  // the dashboard then falls back to keyword categories for it.
+  const perLocation = await Promise.all(
+    req.locations.map(async (loc) => {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          return await locationTexts(loc, req.periodLabel);
+        } catch (err) {
+          console.error(`week report: ${loc.id} attempt ${attempt + 1} failed:`, (err as Error).message);
+        }
+      }
+      return { narrative: "", categories: {} };
+    }),
+  );
   const locations: WeekReportResult["locations"] = {};
   req.locations.forEach((loc, i) => {
     locations[loc.id] = perLocation[i];
