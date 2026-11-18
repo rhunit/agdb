@@ -10,6 +10,7 @@ import {
   formatPeriod,
   isWeekLong,
   negativeCountSentence,
+  overviewSentence,
   numberWord,
   REPORT_CATEGORIES,
   starSentence,
@@ -30,7 +31,6 @@ export interface WeekReportData {
   locations: WeekReportLocationData[];
   /** From the AI; null when it's off or failed (then keyword categories, no narratives). */
   texts: {
-    overview: string;
     locations: Record<string, { narrative: string; categories: Record<string, string[]> }>;
   } | null;
   removedInPeriod: number;
@@ -104,7 +104,7 @@ export function WeekReport({ data }: { data: WeekReportData }) {
           </tr>
         </tbody>
       </table>
-      {texts?.overview && <p className={styles.text}>{texts.overview}</p>}
+      <p className={styles.text}>{overviewSentence(locations)}</p>
 
       {locations.map((loc) => {
         const table = categoryTable(loc.reviews, categoriesOf(loc));

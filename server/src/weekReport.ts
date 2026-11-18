@@ -2,9 +2,9 @@ import { getOpenAiClient, isOpenAiConfigured } from "./openaiClient.js";
 
 // The texts for the PDF export of Rapportage ("Google Reviews | Samen
 // sterk", the joint weekly report): per location, which category each
-// negative review falls under and a short narrative; plus one overview
-// paragraph under the "De week in één oogopslag" table. The numbers in the
-// report are counted by the dashboard itself; only the words come from here.
+// negative review falls under and a short narrative. The numbers — and the
+// paragraph under the "De week in één oogopslag" table, which is only about
+// numbers — come from the dashboard itself (the AI got those wrong once).
 // Generated on demand when someone exports, never automatically.
 
 export const REPORT_CATEGORIES = ["Personeel", "Huisregels", "Handel", "Overig/onbekend"] as const;
@@ -24,13 +24,10 @@ export interface WeekReportLocation {
 
 export interface WeekReportRequest {
   periodLabel: string;
-  /** The "in één oogopslag" table as plain lines, for the overview text. */
-  overviewTable: string;
   locations: WeekReportLocation[];
 }
 
 export interface WeekReportResult {
-  overview: string;
   locations: Record<string, { narrative: string; categories: Record<string, ReportCategory[]> }>;
 }
 
@@ -107,7 +104,8 @@ Voor "narrative" (3-6 zinnen, één alinea, zonder aantallen reviews of categori
 - Zijn er reviews van 1-3 sterren: beschrijf kort en neutraal wat er gemeld wordt en, als een review meerdere categorieën raakt, waarom (bijvoorbeeld "doordat één review zowel onvriendelijke ontvangst als tegenvallende edibles noemt"). Benoem dat het klantclaims zijn waar dat ertoe doet.
 - Dan "Positief: ..." met wat bezoekers in de 4-5 sterrenreviews prijzen.
 - Dan "Actie: ..." met één concrete, haalbare actie voor het team.
-- Zijn er géén reviews van 1-3 sterren: begin met "Geen negatieve reviews in de beschikbare data." en beschrijf kort wat bezoekers waarderen; is het aantal reviews klein, zeg dan dat dat voor trends onvoldoende is.`;
+- Zijn er géén reviews van 1-3 sterren: begin met "Geen negatieve reviews in de beschikbare data." en beschrijf in 1-2 zinnen wat bezoekers waarderen, zonder "Positief:" en "Actie:"; is het aantal reviews klein, zeg dan dat dat voor trends onvoldoende is.
+- "Overig/onbekend" alleen als een review in geen enkele andere categorie past.`;
 
   const out = await json(prompt);
   const categories: Record<string, ReportCategory[]> = {};
@@ -115,32 +113,18 @@ Voor "narrative" (3-6 zinnen, één alinea, zonder aantallen reviews of categori
   for (const r of negative) {
     const list = Array.isArray(raw[r.id]) ? (raw[r.id] as unknown[]) : [];
     const valid = [...new Set(list.filter((c): c is ReportCategory => REPORT_CATEGORIES.includes(c as ReportCategory)))];
-    categories[r.id] = valid.length > 0 ? valid : ["Overig/onbekend"];
+    // "Overig/onbekend" only when nothing else fits.
+    const specific = valid.filter((c) => c !== "Overig/onbekend");
+    categories[r.id] = specific.length > 0 ? specific : ["Overig/onbekend"];
   }
   return { narrative: typeof out.narrative === "string" ? out.narrative.trim() : "", categories };
 }
 
-async function overviewText(req: WeekReportRequest): Promise<string> {
-  const prompt = `${STYLE}
-
-Hieronder staat de tabel "De week in één oogopslag" van het gezamenlijke reviewrapport over ${req.periodLabel} (per locatie: aantal reviews per sterrental, totaal, gemiddelde en aandeel 5 sterren):
-${req.overviewTable}
-
-Schrijf 2-3 zinnen die de tabel duiden, in deze stijl: "Centrum pakt het meeste volume (31 reviews); Almere haalt 100% vijf sterren, maar op slechts één beoordeling. Een gemiddelde over één review is geen eerlijke vergelijking met een locatie met tientallen beoordelingen." Benoem ook een locatie zonder reviews in deze periode, als die er is. Gebruik Nederlandse notatie (4,55 en 87,1%).
-
-Antwoord met exact dit JSON-object: { "overview": "..." }`;
-  const out = await json(prompt);
-  return typeof out.overview === "string" ? out.overview.trim() : "";
-}
-
 export async function generateWeekReport(req: WeekReportRequest): Promise<WeekReportResult> {
-  const [overview, ...perLocation] = await Promise.all([
-    overviewText(req),
-    ...req.locations.map((loc) => locationTexts(loc, req.periodLabel)),
-  ]);
+  const perLocation = await Promise.all(req.locations.map((loc) => locationTexts(loc, req.periodLabel)));
   const locations: WeekReportResult["locations"] = {};
   req.locations.forEach((loc, i) => {
     locations[loc.id] = perLocation[i];
   });
-  return { overview, locations };
+  return { locations };
 }

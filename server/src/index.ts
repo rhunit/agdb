@@ -720,7 +720,7 @@ app.post("/api/week-report", requirePermission("ai"), async (req, res) => {
     res.status(501).json({ error: "AI staat uit (OPENAI_API_KEY of AI_ENABLED=true ontbreekt)." });
     return;
   }
-  const { periodLabel, overviewTable, locations } = req.body ?? {};
+  const { periodLabel, locations } = req.body ?? {};
   const validLocations =
     Array.isArray(locations) &&
     locations.length <= 12 &&
@@ -741,12 +741,12 @@ app.post("/api/week-report", requirePermission("ai"), async (req, res) => {
             typeof r.text === "string",
         ),
     );
-  if (typeof periodLabel !== "string" || typeof overviewTable !== "string" || !validLocations) {
-    res.status(400).json({ error: "Vereist: periodLabel, overviewTable, locations[] met id, name en reviews." });
+  if (typeof periodLabel !== "string" || !validLocations) {
+    res.status(400).json({ error: "Vereist: periodLabel, locations[] met id, name en reviews." });
     return;
   }
   try {
-    res.json(await generateWeekReport({ periodLabel, overviewTable: overviewTable.slice(0, 4000), locations }));
+    res.json(await generateWeekReport({ periodLabel, locations }));
   } catch (err) {
     console.error(err);
     res.status(503).json({ error: (err as Error).message });

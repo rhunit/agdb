@@ -136,3 +136,56 @@ export function negativeCountSentence(reviews: Review[], table: CategoryCounts):
 
 export const CLOSING_TEXT =
   "Dank aan alle teams voor het werk achter iedere beoordeling, van een vriendelijk welkom tot het laatste advies aan de balie. De complimenten laten zien dat klanten die aandacht echt merken. En de kritische reacties? Die geven ons concrete kansen om duidelijker, zorgvuldiger en consistenter te worden. Neem de goede energie mee, bespreek de verbeterpunten met elkaar en maak er samen weer een sterke week van. Op naar nieuwe tevreden bezoekers!";
+
+function joinNames(names: string[]): string {
+  return names.length > 1 ? `${names.slice(0, -1).join(", ")} en ${names[names.length - 1]}` : names[0];
+}
+
+/** The paragraph under "De week in één oogopslag" — written from the table's
+ * own numbers (not by the AI, which once got them wrong): most volume,
+ * highest share of five stars (with a warning when that rests on very few
+ * reviews), a location that lags behind, locations without reviews. */
+export function overviewSentence(locations: { name: string; counts: StarCounts }[]): string {
+  const withReviews = locations.filter((l) => countTotal(l.counts) > 0);
+  const without = locations.filter((l) => countTotal(l.counts) === 0).map((l) => l.name);
+  if (withReviews.length === 0) return "In deze periode zijn er bij geen enkele locatie reviews binnengekomen.";
+
+  const sentences: string[] = [];
+  const maxTotal = Math.max(...withReviews.map((l) => countTotal(l.counts)));
+  const busiest = withReviews.filter((l) => countTotal(l.counts) === maxTotal);
+  const volume = `${joinNames(busiest.map((l) => l.name))} ${busiest.length > 1 ? "pakken" : "pakt"} het meeste volume (${maxTotal} reviews${busiest.length > 1 ? " elk" : ""})`;
+
+  const share = (l: { counts: StarCounts }) => l.counts[5] / countTotal(l.counts);
+  const bestShare = Math.max(...withReviews.map(share));
+  const best = withReviews.filter((l) => share(l) === bestShare && !busiest.includes(l));
+  if (best.length > 0 && bestShare > 0) {
+    const fewest = Math.min(...best.map((l) => countTotal(l.counts)));
+    const pct = formatFivePct(best[0].counts);
+    const few = fewest < 5;
+    sentences.push(
+      `${volume}; ${joinNames(best.map((l) => l.name))} ${best.length > 1 ? "halen" : "haalt"} ${pct} vijf sterren${
+        few ? `, maar op slechts ${fewest === 1 ? "één beoordeling" : `${fewest} beoordelingen`}` : ""
+      }.`,
+    );
+    if (few) {
+      sentences.push(
+        "Een percentage over zo weinig reviews is geen eerlijke vergelijking met een locatie met tientallen beoordelingen.",
+      );
+    }
+  } else {
+    sentences.push(`${volume}.`);
+  }
+
+  const average = (l: { counts: StarCounts }) =>
+    (5 * l.counts[5] + 4 * l.counts[4] + 3 * l.counts[3] + 2 * l.counts[2] + l.counts[1]) / countTotal(l.counts);
+  const lagging = withReviews.filter((l) => average(l) < 4);
+  if (lagging.length > 0) {
+    sentences.push(
+      `${joinNames(lagging.map((l) => `${l.name} (gemiddeld ${formatAverage(l.counts)} over ${countTotal(l.counts) === 1 ? "één review" : `${countTotal(l.counts)} reviews`})`))} ${lagging.length > 1 ? "blijven" : "blijft"} achter.`,
+    );
+  }
+  if (without.length > 0) {
+    sentences.push(`${joinNames(without)} ${without.length > 1 ? "kregen" : "kreeg"} in deze periode geen reviews.`);
+  }
+  return sentences.join(" ");
+}

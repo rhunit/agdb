@@ -161,15 +161,8 @@ export function Rapportage({
     let texts: WeekReportData["texts"] = null;
     if (can("ai") && summaryAvailable) {
       setPreparingReport(true);
-      const overviewTable = locations
-        .map((l) => {
-          const total = l.counts[1] + l.counts[2] + l.counts[3] + l.counts[4] + l.counts[5];
-          return `${l.name}: 5★ ${l.counts[5]}, 4★ ${l.counts[4]}, 3★ ${l.counts[3]}, 2★ ${l.counts[2]}, 1★ ${l.counts[1]}, totaal ${total}`;
-        })
-        .join("\n");
       const result = await generateWeekReport({
         periodLabel: formatPeriod(dateRange),
-        overviewTable,
         locations: locations.map((l) => ({
           id: l.id,
           name: l.name,

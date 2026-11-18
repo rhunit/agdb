@@ -366,13 +366,11 @@ export async function generateReportSummary(
 
 /** Texts for the Rapportage PDF export — see server/src/weekReport.ts. */
 export interface WeekReportTexts {
-  overview: string;
   locations: Record<string, { narrative: string; categories: Record<string, string[]> }>;
 }
 
 export async function generateWeekReport(input: {
   periodLabel: string;
-  overviewTable: string;
   locations: { id: string; name: string; reviews: { id: string; rating: number; text: string }[] }[];
 }): Promise<{ ok: true; texts: WeekReportTexts } | { ok: false; error: string }> {
   if (!hasLiveBackend()) return { ok: false, error: "Geen backend geconfigureerd." };
