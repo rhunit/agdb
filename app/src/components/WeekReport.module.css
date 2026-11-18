@@ -1,0 +1,90 @@
+/* The PDF layout of Rapportage, after the business's own weekly report:
+   white A4, dark green headings, light green table headers. Only shown
+   when printing (body.print-report); the app itself is hidden then. */
+
+.report {
+  display: none;
+  color: #111;
+  background: #fff;
+  font-family: "DejaVu Sans", Verdana, "Helvetica Neue", Arial, sans-serif;
+  font-size: 10.5pt;
+  line-height: 1.55;
+}
+
+@media print {
+  :global(body.print-report) .report {
+    display: block;
+  }
+}
+
+.title {
+  margin: 0 0 14pt;
+  font-size: 20pt;
+  font-weight: 700;
+  letter-spacing: 0.3pt;
+  color: #24593a;
+}
+
+.subtitle {
+  margin: 0 0 16pt;
+  font-size: 10pt;
+}
+
+.h2 {
+  margin: 16pt 0 8pt;
+  font-size: 13.5pt;
+  font-weight: 700;
+  color: #24593a;
+  break-after: avoid;
+}
+
+.section {
+  break-inside: auto;
+}
+
+.text {
+  margin: 0 0 6pt;
+}
+
+.table {
+  border-collapse: collapse;
+  font-size: 8pt;
+  margin: 0 0 4pt;
+  break-inside: avoid;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 8pt 8pt;
+  font-weight: 400;
+}
+
+.table thead th {
+  background: #e3efe6;
+  border-bottom: 1px solid #24593a;
+}
+
+.table tbody tr:nth-child(even) td {
+  background: #f5f8f6;
+}
+
+.glance {
+  width: 78%;
+}
+
+.glance th:first-child {
+  width: 30%;
+}
+
+.categories {
+  width: 65%;
+}
+
+.categories th:first-child {
+  width: 36%;
+}
+
+.keep {
+  break-inside: avoid;
+}

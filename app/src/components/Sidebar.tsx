@@ -33,7 +33,7 @@ export function Sidebar({ active, onNavigate }: SidebarProps) {
   const { account, can } = useAccount();
   // "Gebruikers" only for accounts that may manage logins.
   const navItems = can("admin") && account
-    ? [...NAV_ITEMS, { label: "Gebruikers", view: "gebruikers" as const }]
+    ? [...NAV_ITEMS, { label: "Instellingen", view: "gebruikers" as const }]
     : NAV_ITEMS;
   return (
     <aside className={styles.sidebar} data-print-hide>

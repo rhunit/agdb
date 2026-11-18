@@ -14,7 +14,7 @@ import { useRefreshState } from "../lib/refresh";
 import { AiChatPanel } from "./AiChatPanel";
 import { AllReviews } from "./AllReviews";
 import { ApiErrorBanner } from "./ApiErrorBanner";
-import { SloterdijkNotice } from "./SloterdijkNotice";
+import { SiteNotice } from "./SiteNotice";
 import { BentoGrid } from "./BentoGrid";
 import { CriticalReviewFeed } from "./CriticalReviewFeed";
 import { ErrorState } from "./ErrorState";
@@ -109,9 +109,7 @@ export function Dashboard() {
         <Sidebar active={view} onNavigate={setView} />
         <div className={styles.main}>
           <ApiErrorBanner />
-          {(view === "alle-reviews" ||
-            view === "rapportage" ||
-            (view === "dashboard" && (filter === "all" || filter === "sloterdijk"))) && <SloterdijkNotice />}
+          <SiteNotice />
           {view === "vermeldingen" ? (
             <div className={styles.content}>
               <MentionsPage />

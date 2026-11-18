@@ -9,6 +9,7 @@ import {
   type Permission,
 } from "../lib/api";
 import { formatReviewTimestamp } from "../lib/format";
+import { NoticeSettings } from "./NoticeSettings";
 import styles from "./UsersPage.module.css";
 
 const PERMISSION_OPTIONS: { value: Permission; label: string; hint: string }[] = [
@@ -146,7 +147,16 @@ export function UsersPage() {
   return (
     <div className={styles.wrap}>
       <div>
-        <div className={styles.title}>Gebruikers</div>
+        <div className={styles.title}>Instellingen</div>
+        <div className={styles.subtitle}>
+          De melding bovenaan het dashboard, en wie er kan inloggen.
+        </div>
+      </div>
+
+      <NoticeSettings />
+
+      <div>
+        <div className={styles.cardTitle}>Gebruikers</div>
         <div className={styles.subtitle}>
           Bepaal wie er kan inloggen en wat iemand mag. Zonder vinkjes kan iemand alles bekijken,
           maar niet reageren of de AI gebruiken.

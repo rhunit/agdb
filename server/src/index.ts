@@ -69,6 +69,8 @@ import {
   setMentionHidden,
 } from "./mentionsStore.js";
 import { runDataMigrations } from "./dataMigrations.js";
+import { loadNotice, NoticeError, saveNotice } from "./noticeStore.js";
+import { generateWeekReport, isWeekReportAvailable, type WeekReportLocation } from "./weekReport.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // Before anything reads stored data: bring it up to date (e.g. renamed
@@ -156,7 +158,8 @@ function hasPermission(res: express.Response, permission: Permission): boolean {
 
 app.use(requireLogin);
 app.use(cors({ origin: process.env.FRONTEND_ORIGIN ?? "http://localhost:5173" }));
-app.use(express.json());
+// 1 MB: the Rapportage export sends a sample of review texts per location.
+app.use(express.json({ limit: "1mb" }));
 
 // Always 200 while the server itself is up (so a platform health check
 // doesn't restart it over a Google problem it can't fix) — googleConnected
@@ -416,6 +419,25 @@ function sendUserError(res: express.Response, err: unknown) {
   console.error(err);
   res.status(500).json({ error: "Opslaan mislukt." });
 }
+
+// The notice at the top of the dashboard: everyone reads it, admins set it
+// under Instellingen (title, description, on/off).
+app.get("/api/notice", (_req, res) => {
+  res.json(loadNotice());
+});
+
+app.put("/api/admin/notice", requirePermission("admin"), (req, res) => {
+  try {
+    res.json(saveNotice(req.body, (res.locals.account as Account).username));
+  } catch (err) {
+    if (err instanceof NoticeError) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    console.error(err);
+    res.status(500).json({ error: "Opslaan mislukt." });
+  }
+});
 
 // Admin diagnostic for a review Google won't accept a reply on: what
 // Google answers for it on each address. Read-only; open in the browser as
@@ -684,6 +706,47 @@ app.post("/api/reply-draft", requirePermission("reply"), async (req, res) => {
       text: text.slice(0, 5000),
     });
     res.json({ draft });
+  } catch (err) {
+    console.error(err);
+    res.status(503).json({ error: (err as Error).message });
+  }
+});
+
+// Texts for the Rapportage PDF export ("Google Reviews | Samen sterk"):
+// categories of the negative reviews and short narratives per location, plus
+// the overview paragraph. On demand only (it's a paid OpenAI call).
+app.post("/api/week-report", requirePermission("ai"), async (req, res) => {
+  if (!isWeekReportAvailable()) {
+    res.status(501).json({ error: "AI staat uit (OPENAI_API_KEY of AI_ENABLED=true ontbreekt)." });
+    return;
+  }
+  const { periodLabel, overviewTable, locations } = req.body ?? {};
+  const validLocations =
+    Array.isArray(locations) &&
+    locations.length <= 12 &&
+    locations.every(
+      (l: unknown) =>
+        typeof l === "object" &&
+        l !== null &&
+        typeof (l as WeekReportLocation).id === "string" &&
+        typeof (l as WeekReportLocation).name === "string" &&
+        Array.isArray((l as WeekReportLocation).reviews) &&
+        (l as WeekReportLocation).reviews.length <= 3000 &&
+        (l as WeekReportLocation).reviews.every(
+          (r) =>
+            typeof r === "object" &&
+            r !== null &&
+            typeof r.id === "string" &&
+            typeof r.rating === "number" &&
+            typeof r.text === "string",
+        ),
+    );
+  if (typeof periodLabel !== "string" || typeof overviewTable !== "string" || !validLocations) {
+    res.status(400).json({ error: "Vereist: periodLabel, overviewTable, locations[] met id, name en reviews." });
+    return;
+  }
+  try {
+    res.json(await generateWeekReport({ periodLabel, overviewTable: overviewTable.slice(0, 4000), locations }));
   } catch (err) {
     console.error(err);
     res.status(503).json({ error: (err as Error).message });

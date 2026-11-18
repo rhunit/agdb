@@ -342,3 +342,13 @@
     flex-wrap: wrap;
   }
 }
+
+/* Multi-line field (the notice description). */
+.textarea {
+  height: auto;
+  min-height: 96px;
+  padding-top: var(--sp-xs);
+  padding-bottom: var(--sp-xs);
+  font-family: inherit;
+  resize: vertical;
+}

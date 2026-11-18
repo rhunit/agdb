@@ -156,3 +156,20 @@ button {
     background: #fff;
   }
 }
+
+/* Rapportage → "Exporteer naar PDF": only the report (WeekReport) is
+   printed, not the screen. */
+@media print {
+  body.print-report #root {
+    display: none !important;
+  }
+
+  body.print-report {
+    margin: 0;
+  }
+}
+
+@page {
+  size: A4;
+  margin: 18mm 16mm;
+}

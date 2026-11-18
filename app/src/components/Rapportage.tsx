@@ -4,6 +4,7 @@ import { LOCATIONS } from "../data/mockData";
 import {
   fetchReportSummaryAvailable,
   generateReportSummary,
+  generateWeekReport,
   type LiveBusinessReview,
   type RemovedReview,
   type ReportSummaryResult,
@@ -18,7 +19,9 @@ import { businessReviewsFor, dateFromReview } from "../lib/reviews";
 import { buildThemeStarBreakdown } from "../lib/reviewPatterns";
 import type { LocationId, Review } from "../types";
 import { DateRangeSelector } from "./DateRangeSelector";
-import { ExportPdfButton } from "./ExportPdfButton";
+import exportStyles from "./ExportPdfButton.module.css";
+import { WeekReport, type WeekReportData } from "./WeekReport";
+import { keywordCategories, REPORT_LOCATION_ORDER, formatPeriod } from "../lib/weekReport";
 import { RefreshButton } from "./RefreshButton";
 import { LoadingState } from "./LoadingState";
 import styles from "./Rapportage.module.css";
@@ -49,6 +52,10 @@ export function Rapportage({
   const [summaryResult, setSummaryResult] = useState<ReportSummaryResult | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [summaryError, setSummaryError] = useState<string | null>(null);
+  // "Exporteer naar PDF": the report layout (WeekReport), filled and printed.
+  const [report, setReport] = useState<WeekReportData | null>(null);
+  const [preparingReport, setPreparingReport] = useState(false);
+  const [reportNote, setReportNote] = useState<string | null>(null);
 
   useEffect(() => {
     fetchReportSummaryAvailable().then(setSummaryAvailable);
@@ -124,6 +131,63 @@ export function Rapportage({
     [edits, locationTab, dateRange],
   );
 
+  // Once the report is rendered: print only it, then clear it again.
+  useEffect(() => {
+    if (!report) return;
+    document.body.classList.add("print-report");
+    const done = () => {
+      document.body.classList.remove("print-report");
+      setReport(null);
+    };
+    window.addEventListener("afterprint", done, { once: true });
+    const timer = window.setTimeout(() => window.print(), 50);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("afterprint", done);
+      document.body.classList.remove("print-report");
+    };
+  }, [report]);
+
+  /** The joint report over all locations for the chosen period — the same
+   * layout whichever location tab is open. */
+  async function handleExportReport() {
+    setReportNote(null);
+    const locations = REPORT_LOCATION_ORDER.filter((id) => VISIBLE_LOCATION_IDS.includes(id)).map((id) => {
+      const reviews = scopedReviews.filter((r) => r.location === id);
+      return { id, name: LOCATION_TAB_LABEL[id], reviews, counts: starCounts(reviews) };
+    });
+    const removedInPeriod = (removed ?? []).filter((r) => isWithinRange(new Date(r.detectedAt), dateRange)).length;
+
+    let texts: WeekReportData["texts"] = null;
+    if (can("ai") && summaryAvailable) {
+      setPreparingReport(true);
+      const overviewTable = locations
+        .map((l) => {
+          const total = l.counts[1] + l.counts[2] + l.counts[3] + l.counts[4] + l.counts[5];
+          return `${l.name}: 5★ ${l.counts[5]}, 4★ ${l.counts[4]}, 3★ ${l.counts[3]}, 2★ ${l.counts[2]}, 1★ ${l.counts[1]}, totaal ${total}`;
+        })
+        .join("\n");
+      const result = await generateWeekReport({
+        periodLabel: formatPeriod(dateRange),
+        overviewTable,
+        locations: locations.map((l) => ({
+          id: l.id,
+          name: l.name,
+          // What the AI uses (as capped on the server): every negative review
+          // (up to 60) and up to 40 positive ones with text, texts shortened.
+          reviews: [
+            ...l.reviews.filter((r) => r.rating <= 3).slice(0, 60),
+            ...l.reviews.filter((r) => r.rating >= 4 && r.snippet.trim()).slice(0, 40),
+          ].map((r) => ({ id: r.googleReviewId ?? r.id, rating: r.rating, text: r.snippet.slice(0, 700) })),
+        })),
+      });
+      setPreparingReport(false);
+      if (result.ok) texts = result.texts;
+      else setReportNote(`AI-teksten konden niet worden gemaakt (${result.error}); het rapport is zonder die teksten gemaakt.`);
+    }
+    setReport({ range: dateRange, locations, texts, removedInPeriod, keywordCategories: (r) => keywordCategories(r.snippet) });
+  }
+
   async function handleGenerateSummary() {
     if (locationTab === "all") return;
     setSummaryLoading(true);
@@ -159,9 +223,24 @@ export function Rapportage({
         <div className={styles.headerRight}>
           <RefreshButton />
           <DateRangeSelector value={dateRange} onChange={setDateRange} />
-          <ExportPdfButton />
+          <button
+            type="button"
+            className={exportStyles.button}
+            data-print-hide
+            onClick={handleExportReport}
+            disabled={preparingReport || loading || !isLive}
+            title="Het gezamenlijke rapport over alle locaties voor de gekozen periode"
+          >
+            {preparingReport ? "Rapport voorbereiden..." : "Exporteer naar PDF"}
+          </button>
         </div>
       </div>
+      {reportNote && (
+        <div className={styles.cardFootnote} role="status" data-print-hide>
+          {reportNote}
+        </div>
+      )}
+      {report && <WeekReport data={report} />}
 
       <div className={styles.locationTabs} role="tablist" aria-label="Locatie">
         <button

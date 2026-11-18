@@ -364,6 +364,35 @@ export async function generateReportSummary(
   }
 }
 
+/** Texts for the Rapportage PDF export — see server/src/weekReport.ts. */
+export interface WeekReportTexts {
+  overview: string;
+  locations: Record<string, { narrative: string; categories: Record<string, string[]> }>;
+}
+
+export async function generateWeekReport(input: {
+  periodLabel: string;
+  overviewTable: string;
+  locations: { id: string; name: string; reviews: { id: string; rating: number; text: string }[] }[];
+}): Promise<{ ok: true; texts: WeekReportTexts } | { ok: false; error: string }> {
+  if (!hasLiveBackend()) return { ok: false, error: "Geen backend geconfigureerd." };
+  try {
+    const res = await fetch(`${API_BASE}/api/week-report`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+      signal: AbortSignal.timeout(120_000),
+    });
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+      return { ok: false, error: body?.error ?? `Rapport-teksten maken mislukt (${res.status}).` };
+    }
+    return { ok: true, texts: (await res.json()) as WeekReportTexts };
+  } catch {
+    return { ok: false, error: "Kon de server niet bereiken." };
+  }
+}
+
 export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
@@ -539,6 +568,24 @@ async function sendJson<T>(
   } catch {
     return { ok: false, error: "Kon de server niet bereiken." };
   }
+}
+
+/** The notice at the top of the dashboard — see server/src/noticeStore.ts. */
+export interface Notice {
+  title: string;
+  description: string;
+  active: boolean;
+  updatedAt: string | null;
+  updatedBy: string | null;
+}
+
+export async function fetchNotice(): Promise<Notice | null> {
+  if (!hasLiveBackend()) return null;
+  return getJson<Notice>("/api/notice");
+}
+
+export function saveNotice(notice: Pick<Notice, "title" | "description" | "active">) {
+  return sendJson<Notice>("PUT", "/api/admin/notice", notice);
 }
 
 export async function fetchAccounts(): Promise<AccountListing[] | null> {
