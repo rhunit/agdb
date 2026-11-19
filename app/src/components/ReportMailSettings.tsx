@@ -52,15 +52,35 @@ export function ReportMailSettings() {
 
   async function test() {
     setBusy("test");
-    setMessage(null);
-    const result = await sendReportMailTest(testTo);
-    setBusy(null);
-    if (!result.ok) {
-      setMessage({ ok: false, text: `Test niet gelukt: ${result.error}` });
+    setMessage({ ok: true, text: "Test wordt gemaakt en verstuurd… dit kan een paar minuten duren." });
+    const started = await sendReportMailTest(testTo);
+    if (!started.ok) {
+      setBusy(null);
+      setMessage({ ok: false, text: `Test niet gelukt: ${started.error}` });
       return;
     }
-    setStatus(result.data);
-    setMessage({ ok: true, text: `Testmail met het rapport over ${result.data.result.period} verstuurd naar ${testTo}.` });
+    const previous = started.data.lastResult?.at ?? null;
+    // Poll until the test is done (at most ~6 minutes).
+    for (let i = 0; i < 120; i++) {
+      await new Promise((r) => setTimeout(r, 3000));
+      const s = await fetchReportMail();
+      if (!s || s.testRunning) continue;
+      setStatus(s);
+      setBusy(null);
+      const r = s.lastResult;
+      if (r && r.at !== previous && r.test) {
+        setMessage(
+          r.ok
+            ? { ok: true, text: `Testmail met het rapport over ${r.period} verstuurd naar ${r.recipients.join(", ")}.` }
+            : { ok: false, text: `Test niet gelukt: ${r.message}` },
+        );
+      } else {
+        setMessage({ ok: false, text: "De test is gestopt zonder resultaat. Mogelijk is de server herstart; kijk in de logs van Northflank." });
+      }
+      return;
+    }
+    setBusy(null);
+    setMessage({ ok: false, text: "Geen resultaat na 6 minuten. Kijk in de logs van Northflank." });
   }
 
   if (failed) {

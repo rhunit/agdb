@@ -562,7 +562,16 @@ async function sendJson<T>(
       signal: AbortSignal.timeout(timeoutMs),
     });
     const data = (await res.json().catch(() => null)) as (T & { error?: string }) | null;
-    if (!res.ok) return { ok: false, error: data?.error ?? `Opslaan mislukt (${res.status}).` };
+    if (!res.ok) {
+      return {
+        ok: false,
+        error:
+          data?.error ??
+          (res.status >= 500
+            ? `De server gaf geen antwoord (${res.status}). Mogelijk duurde het te lang of werd de server net herstart; probeer het over een minuut opnieuw.`
+            : `Opslaan mislukt (${res.status}).`),
+      };
+    }
     return { ok: true, data: data as T };
   } catch {
     return { ok: false, error: "Kon de server niet bereiken." };
@@ -608,6 +617,8 @@ export interface ReportMailStatus {
   /** RESEND_API_KEY is set on the server. */
   configured: boolean;
   nextRun: string | null;
+  /** A test send is still being made (it runs in the background). */
+  testRunning: boolean;
 }
 
 export async function fetchReportMail(): Promise<ReportMailStatus | null> {
@@ -619,8 +630,8 @@ export function saveReportMail(settings: { enabled: boolean; recipients: string[
 }
 
 export function sendReportMailTest(to: string) {
-  // Fetching every review, writing the AI texts and sending takes a while.
-  return sendJson<ReportMailStatus & { result: ReportMailResult }>("POST", "/api/admin/report-mail/test", { to }, 300_000);
+  // Only starts the test; the result arrives later in the status.
+  return sendJson<ReportMailStatus>("POST", "/api/admin/report-mail/test", { to });
 }
 
 export async function fetchAccounts(): Promise<AccountListing[] | null> {

@@ -78,7 +78,8 @@ import {
   ReportMailError,
   saveReportMailSettings,
   scheduleReportMail,
-  sendTestReport,
+  isTestRunning,
+  startTestReport,
 } from "./reportMail.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -433,7 +434,7 @@ function sendUserError(res: express.Response, err: unknown) {
 // weekly schedule (scheduleReportMail in app.listen below).
 function reportMailStatus() {
   const settings = loadReportMailSettings();
-  return { ...settings, configured: isMailConfigured(), nextRun: nextRun(settings) };
+  return { ...settings, configured: isMailConfigured(), nextRun: nextRun(settings), testRunning: isTestRunning() };
 }
 
 app.get("/api/admin/report-mail", requirePermission("admin"), (_req, res) => {
@@ -454,10 +455,11 @@ app.put("/api/admin/report-mail", requirePermission("admin"), (req, res) => {
   }
 });
 
-app.post("/api/admin/report-mail/test", requirePermission("admin"), async (req, res) => {
+// Starts the test and answers right away (202); the card polls the status.
+app.post("/api/admin/report-mail/test", requirePermission("admin"), (req, res) => {
   try {
-    const result = await sendTestReport(String(req.body?.to ?? ""), fetchAllReviewsShared);
-    res.status(result.ok ? 200 : 502).json({ ...reportMailStatus(), result, error: result.ok ? undefined : result.message });
+    startTestReport(String(req.body?.to ?? ""), fetchAllReviewsShared);
+    res.status(202).json(reportMailStatus());
   } catch (err) {
     res.status(err instanceof ReportMailError ? 400 : 500).json({ error: (err as Error).message });
   }

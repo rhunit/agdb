@@ -266,9 +266,29 @@ export async function sendReport(
   return result;
 }
 
-export async function sendTestReport(to: string, getReviews: ReviewSource): Promise<ReportMailResult> {
+let testRunning = false;
+
+export function isTestRunning(): boolean {
+  return testRunning;
+}
+
+/** Starts a test send in the background and returns at once: fetching every
+ * review, the AI texts and the PDF can take longer than Northflank waits for
+ * an answer (it then cut the request off with a bare 503). The settings card
+ * polls the status until the result is in. */
+export function startTestReport(to: string, getReviews: ReviewSource): void {
   const [recipient] = parseRecipients([to]);
   if (!recipient) throw new ReportMailError("Vul een e-mailadres in voor de test.");
+  if (testRunning) throw new ReportMailError("Er loopt al een test; wacht even tot die klaar is.");
+  testRunning = true;
+  void sendTestReport(recipient, getReviews)
+    .catch((err) => console.error("report mail test failed:", err))
+    .finally(() => {
+      testRunning = false;
+    });
+}
+
+async function sendTestReport(recipient: string, getReviews: ReviewSource): Promise<ReportMailResult> {
   const result = await sendReport(previousWeek(new Date()), [recipient], getReviews, true);
   const s = loadReportMailSettings();
   writeSettings({ ...s, lastResult: result });
