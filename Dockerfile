@@ -15,6 +15,8 @@ ENV NODE_ENV=production
 
 COPY --from=build /repo/app/dist app/dist
 COPY --from=build /repo/server/dist server/dist
+# Fonts for the PDF the server makes for the weekly report e-mail.
+COPY --from=build /repo/server/assets server/assets
 COPY --from=build /repo/server/package*.json server/
 RUN npm ci --omit=dev --prefix server
 

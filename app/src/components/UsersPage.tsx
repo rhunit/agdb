@@ -10,6 +10,7 @@ import {
 } from "../lib/api";
 import { formatReviewTimestamp } from "../lib/format";
 import { NoticeSettings } from "./NoticeSettings";
+import { ReportMailSettings } from "./ReportMailSettings";
 import styles from "./UsersPage.module.css";
 
 const PERMISSION_OPTIONS: { value: Permission; label: string; hint: string }[] = [
@@ -149,11 +150,13 @@ export function UsersPage() {
       <div>
         <div className={styles.title}>Instellingen</div>
         <div className={styles.subtitle}>
-          De melding bovenaan het dashboard, en wie er kan inloggen.
+          De melding bovenaan het dashboard, het weekrapport per e-mail, en wie er kan inloggen.
         </div>
       </div>
 
       <NoticeSettings />
+
+      <ReportMailSettings />
 
       <div>
         <div className={styles.cardTitle}>Gebruikers</div>

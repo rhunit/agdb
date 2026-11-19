@@ -552,13 +552,14 @@ async function sendJson<T>(
   method: "POST" | "PATCH" | "PUT" | "DELETE",
   path: string,
   body?: unknown,
+  timeoutMs = DEFAULT_TIMEOUT_MS,
 ): Promise<AdminResult<T>> {
   try {
     const res = await fetch(`${API_BASE}${path}`, {
       method,
       headers: body ? { "Content-Type": "application/json" } : undefined,
       body: body ? JSON.stringify(body) : undefined,
-      signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
+      signal: AbortSignal.timeout(timeoutMs),
     });
     const data = (await res.json().catch(() => null)) as (T & { error?: string }) | null;
     if (!res.ok) return { ok: false, error: data?.error ?? `Opslaan mislukt (${res.status}).` };
@@ -584,6 +585,42 @@ export async function fetchNotice(): Promise<Notice | null> {
 
 export function saveNotice(notice: Pick<Notice, "title" | "description" | "active">) {
   return sendJson<Notice>("PUT", "/api/admin/notice", notice);
+}
+
+/** "Weekrapport per e-mail" — see server/src/reportMail.ts. */
+export interface ReportMailResult {
+  at: string;
+  ok: boolean;
+  period: string;
+  recipients: string[];
+  sent: number;
+  message: string;
+  test: boolean;
+}
+
+export interface ReportMailStatus {
+  enabled: boolean;
+  recipients: string[];
+  weekday: number;
+  time: string;
+  lastResult: ReportMailResult | null;
+  updatedBy: string | null;
+  /** RESEND_API_KEY is set on the server. */
+  configured: boolean;
+  nextRun: string | null;
+}
+
+export async function fetchReportMail(): Promise<ReportMailStatus | null> {
+  return getJson<ReportMailStatus>("/api/admin/report-mail");
+}
+
+export function saveReportMail(settings: { enabled: boolean; recipients: string[]; weekday: number; time: string }) {
+  return sendJson<ReportMailStatus>("PUT", "/api/admin/report-mail", settings);
+}
+
+export function sendReportMailTest(to: string) {
+  // Fetching every review, writing the AI texts and sending takes a while.
+  return sendJson<ReportMailStatus & { result: ReportMailResult }>("POST", "/api/admin/report-mail/test", { to }, 300_000);
 }
 
 export async function fetchAccounts(): Promise<AccountListing[] | null> {

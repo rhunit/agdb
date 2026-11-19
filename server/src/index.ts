@@ -71,6 +71,15 @@ import {
 import { runDataMigrations } from "./dataMigrations.js";
 import { loadNotice, NoticeError, saveNotice } from "./noticeStore.js";
 import { generateWeekReport, isWeekReportAvailable, type WeekReportLocation } from "./weekReport.js";
+import {
+  isMailConfigured,
+  loadReportMailSettings,
+  nextRun,
+  ReportMailError,
+  saveReportMailSettings,
+  scheduleReportMail,
+  sendTestReport,
+} from "./reportMail.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // Before anything reads stored data: bring it up to date (e.g. renamed
@@ -419,6 +428,40 @@ function sendUserError(res: express.Response, err: unknown) {
   console.error(err);
   res.status(500).json({ error: "Opslaan mislukt." });
 }
+
+// "Weekrapport per e-mail" (Instellingen): settings, a test send, and the
+// weekly schedule (scheduleReportMail in app.listen below).
+function reportMailStatus() {
+  const settings = loadReportMailSettings();
+  return { ...settings, configured: isMailConfigured(), nextRun: nextRun(settings) };
+}
+
+app.get("/api/admin/report-mail", requirePermission("admin"), (_req, res) => {
+  res.json(reportMailStatus());
+});
+
+app.put("/api/admin/report-mail", requirePermission("admin"), (req, res) => {
+  try {
+    saveReportMailSettings(req.body, (res.locals.account as Account).username);
+    res.json(reportMailStatus());
+  } catch (err) {
+    if (err instanceof ReportMailError) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    console.error(err);
+    res.status(500).json({ error: "Opslaan mislukt." });
+  }
+});
+
+app.post("/api/admin/report-mail/test", requirePermission("admin"), async (req, res) => {
+  try {
+    const result = await sendTestReport(String(req.body?.to ?? ""), fetchAllReviewsShared);
+    res.status(result.ok ? 200 : 502).json({ ...reportMailStatus(), result, error: result.ok ? undefined : result.message });
+  } catch (err) {
+    res.status(err instanceof ReportMailError ? 400 : 500).json({ error: (err as Error).message });
+  }
+});
 
 // The notice at the top of the dashboard: everyone reads it, admins set it
 // under Instellingen (title, description, on/off).
@@ -882,6 +925,7 @@ app.listen(PORT, () => {
   console.log(`Review Radar server listening on http://localhost:${PORT}`);
   console.log(describeLoginSetup());
   scheduleMentionChecks();
+  scheduleReportMail(fetchAllReviewsShared);
   console.log(
     isConnected()
       ? "Google Business Profile: connected"
