@@ -9,6 +9,7 @@ import {
   buildReportModel,
   formatPeriod,
   inPeriod,
+  monthBlocks,
   previousWeek,
   REPORT_LOCATIONS,
   type ReportPeriod,
@@ -198,7 +199,14 @@ async function buildReport(period: ReportPeriod, getReviews: ReviewSource) {
       console.error("report mail: AI texts failed, sending without them:", (err as Error).message);
     }
   }
-  const model = buildReportModel(period, locations, texts, removedInPeriod);
+  const months = monthBlocks(period).map((block) => ({
+    ...block,
+    locations: REPORT_LOCATIONS.filter((l) => reviews[l.id] !== undefined).map((l) => ({
+      name: l.name,
+      reviews: (reviews[l.id] ?? []).filter((r) => inPeriod(r.createTime, block.period)),
+    })),
+  }));
+  const model = buildReportModel(period, locations, texts, removedInPeriod, months);
   return { model, html: renderReportHtml(model, DASHBOARD_URL), pdf: await renderReportPdf(model) };
 }
 

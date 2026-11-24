@@ -99,6 +99,21 @@ export function renderReportPdf(model: ReportModel): Promise<Buffer> {
   table(glanceCols, [...model.glance.map((g) => glanceRow(g.name, g)), glanceRow("Totaal beschikbaar", model.glanceTotal)]);
   text(model.overview);
 
+  // Maandstand review bonus
+  for (const ms of model.monthStatus) {
+    heading(ms.title, 13.5, ROW_H * (ms.rows.length + 2) + 40);
+    text(ms.intro);
+    const mw = width * 0.92;
+    const monthCols = [0.26, 0.07, 0.07, 0.08, 0.09, 0.13, 0.16, 0.14].map((f, i) => ({
+      label: ["Locatie", "5★", "4★", "1–3★", "Totaal", "5★ × €5", "1–3★ × −€10", "Stand"][i],
+      width: mw * f,
+    }));
+    table(
+      monthCols,
+      [...ms.rows, ms.total].map((r) => [r.name, String(r.five), String(r.four), String(r.low), String(r.total), r.fiveEur, r.lowEur, r.net]),
+    );
+  }
+
   // Per location
   const catW = width * 0.65;
   const catCols = [0.36, 0.16, 0.16, 0.16, 0.16].map((f, i) => ({

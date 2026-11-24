@@ -53,6 +53,20 @@ ${p(model.subtitle)}
 ${h2("De week in één oogopslag")}
 ${table(["Locatie", "5★", "4★", "3★", "2★", "1★", "Totaal", "Gem.", "5★ %"], glanceRows, 560)}
 ${p(model.overview)}
+${model.monthStatus
+    .map(
+      (ms) =>
+        h2(ms.title) +
+        p(ms.intro) +
+        table(
+          ["Locatie", "5★", "4★", "1–3★", "Totaal", "5★ × €5", "1–3★ × −€10", "Stand"],
+          [...ms.rows, ms.total].map((r) => [
+            r.name, String(r.five), String(r.four), String(r.low), String(r.total), r.fiveEur, r.lowEur, r.net,
+          ]),
+          620,
+        ),
+    )
+    .join("")}
 ${sections}
 ${h2("Datakwaliteit en vergelijkbaarheid")}
 ${p(model.dataQuality)}

@@ -69,6 +69,33 @@ export function formatPeriod(p: ReportPeriod): string {
   return `${sd} t/m ${ed} ${MONTHS[em - 1]} ${ey}`;
 }
 
+/** From the 1st of the month of the week's last day up to that day:
+ * "1 t/m 22 november" for the week 16–22 November. On a week that ends on
+ * the last day of a month, the whole month — the final standing. */
+export function monthToDate(week: ReportPeriod): ReportPeriod {
+  return { start: `${week.end.slice(0, 8)}01`, end: week.end };
+}
+
+/** The month blocks for a week's mail: the month so far — and, when the
+ * week started in the previous month, that month's full final standing
+ * first, so the last days of a month are never left out of a standing. */
+export function monthBlocks(week: ReportPeriod): { period: ReportPeriod; final: boolean }[] {
+  const blocks: { period: ReportPeriod; final: boolean }[] = [];
+  if (week.start.slice(0, 7) !== week.end.slice(0, 7)) {
+    const lastDay = addDays(`${week.end.slice(0, 8)}01`, -1);
+    blocks.push({ period: { start: `${lastDay.slice(0, 8)}01`, end: lastDay }, final: true });
+  }
+  // A week ending on a month's last day already holds that month's final standing.
+  const endsMonth = addDays(week.end, 1).slice(8) === "01";
+  blocks.push({ period: monthToDate(week), final: endsMonth });
+  return blocks;
+}
+
+export function monthName(day: string): string {
+  const [y, m] = day.split("-").map(Number);
+  return `${MONTHS[m - 1]} ${y}`;
+}
+
 export function inPeriod(iso: string | null, p: ReportPeriod): boolean {
   if (!iso) return false;
   const day = amsterdamDay(new Date(iso));
@@ -170,6 +197,41 @@ export function overviewSentence(locations: { name: string; counts: StarCounts }
   return sentences.join(" ");
 }
 
+// The review bonus rule, as on the Rapportage page ("Financiële indicatie",
+// app/src/lib/reportCalc.ts POT_RULE): 5★ adds, 1-3★ subtracts, 4★ neutral.
+export const POT_RULE = { fiveStarEur: 5, fourStarEur: 0, oneToThreeStarEur: -10 };
+
+export function formatEur(n: number): string {
+  return `${n < 0 ? "-" : ""}€ ${Math.round(Math.abs(n))}`;
+}
+
+export interface MonthStatusRow {
+  name: string;
+  five: number;
+  four: number;
+  low: number;
+  total: number;
+  fiveEur: string;
+  lowEur: string;
+  net: string;
+}
+
+function monthRow(name: string, c: StarCounts): MonthStatusRow {
+  const low = c[1] + c[2] + c[3];
+  const fiveEur = c[5] * POT_RULE.fiveStarEur;
+  const lowEur = low * POT_RULE.oneToThreeStarEur;
+  return {
+    name,
+    five: c[5],
+    four: c[4],
+    low,
+    total: countTotal(c),
+    fiveEur: formatEur(fiveEur),
+    lowEur: formatEur(lowEur),
+    net: formatEur(fiveEur + lowEur),
+  };
+}
+
 export const CLOSING_TEXT =
   "Dank aan alle teams voor het werk achter iedere beoordeling, van een vriendelijk welkom tot het laatste advies aan de balie. De complimenten laten zien dat klanten die aandacht echt merken. En de kritische reacties? Die geven ons concrete kansen om duidelijker, zorgvuldiger en consistenter te worden. Neem de goede energie mee, bespreek de verbeterpunten met elkaar en maak er samen weer een sterke week van. Op naar nieuwe tevreden bezoekers!";
 
@@ -183,6 +245,9 @@ export interface ReportModel {
   glance: { name: string; counts: StarCounts; total: number; average: string; fivePct: string }[];
   glanceTotal: { counts: StarCounts; total: number; average: string; fivePct: string };
   overview: string;
+  /** "Maandstand review bonus": the month so far (and the previous month's
+   * final standing when the week started in it). */
+  monthStatus: { title: string; intro: string; rows: MonthStatusRow[]; total: MonthStatusRow }[];
   sections: {
     name: string;
     starSentence: string;
@@ -199,6 +264,8 @@ export function buildReportModel(
   locations: { id: string; name: string; reviews: BusinessReview[] }[],
   texts: WeekReportResult | null,
   removedInPeriod: number,
+  /** Per month block (see monthBlocks): the reviews in it, per location. */
+  months: { period: ReportPeriod; final: boolean; locations: { name: string; reviews: BusinessReview[] }[] }[] = [],
 ): ReportModel {
   const periodLabel = formatPeriod(period);
   const withCounts = locations.map((l) => ({ ...l, counts: starCounts(l.reviews) }));
@@ -258,6 +325,28 @@ export function buildReportModel(
     })),
     glanceTotal: { counts: total, total: countTotal(total), average: formatAverage(total), fivePct: formatFivePct(total) },
     overview: overviewSentence(withCounts),
+    monthStatus: months.map((month) => {
+      const rows = month.locations.map((l) => monthRow(l.name, starCounts(l.reviews)));
+      const all: StarCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+      for (const l of month.locations) {
+        const c = starCounts(l.reviews);
+        for (const s of [1, 2, 3, 4, 5] as const) all[s] += c[s];
+      }
+      const rule = `Rekenregel: 5★ = +€${POT_RULE.fiveStarEur}, 4★ = €${POT_RULE.fourStarEur}, 1–3★ = −€${Math.abs(POT_RULE.oneToThreeStarEur)} per review.`;
+      return month.final
+        ? {
+            title: `Eindstand review bonus · ${monthName(month.period.start)}`,
+            intro: `De volledige maand ${formatPeriod(month.period)}: de eindstand voor de bonus. ${rule}`,
+            rows,
+            total: monthRow("Totaal", all),
+          }
+        : {
+            title: `Maandstand review bonus · ${formatPeriod(month.period)}`,
+            intro: `Stand van de maand tot nu toe, zodat elk team ziet waar het staat. ${rule}`,
+            rows,
+            total: monthRow("Totaal", all),
+          };
+    }),
     sections,
     dataQuality:
       `Bron: Google Business Profile, reviews met aanmaakdatum ${periodLabel}. De cijfers zijn momentopnamen van de beschikbare reviewrecords.${removedNote} ` +
