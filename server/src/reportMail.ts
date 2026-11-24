@@ -171,7 +171,9 @@ export function nextRun(s: ReportMailSettings, now = new Date()): string | null 
 
 type ReviewSource = () => Promise<AllBusinessReviews>;
 
-async function buildReport(period: ReportPeriod, getReviews: ReviewSource) {
+/** `sendDay`: the day the mail goes out (Dutch time) — the month standing
+ * runs from the 1st up to and including it. */
+async function buildReport(period: ReportPeriod, getReviews: ReviewSource, sendDay: string) {
   const { reviews } = await getReviews();
   const locations = REPORT_LOCATIONS.filter((l) => reviews[l.id] !== undefined).map((l) => ({
     ...l,
@@ -199,7 +201,7 @@ async function buildReport(period: ReportPeriod, getReviews: ReviewSource) {
       console.error("report mail: AI texts failed, sending without them:", (err as Error).message);
     }
   }
-  const months = monthBlocks(period).map((block) => ({
+  const months = monthBlocks(sendDay).map((block) => ({
     ...block,
     locations: REPORT_LOCATIONS.filter((l) => reviews[l.id] !== undefined).map((l) => ({
       name: l.name,
@@ -249,7 +251,7 @@ export async function sendReport(
   const result: ReportMailResult = { at: new Date().toISOString(), ok: false, period: label, recipients, sent: 0, message: "", test };
   try {
     if (recipients.length === 0) throw new ReportMailError("Geen ontvangers ingesteld.");
-    const { html, pdf } = await buildReport(period, getReviews);
+    const { html, pdf } = await buildReport(period, getReviews, amsterdamDay(new Date()));
     const subject = `${test ? "[Test] " : ""}Google Reviews weekrapport ${label}`;
     const filename = `Google Reviews weekrapport ${label}.pdf`;
     const failed: string[] = [];

@@ -69,25 +69,19 @@ export function formatPeriod(p: ReportPeriod): string {
   return `${sd} t/m ${ed} ${MONTHS[em - 1]} ${ey}`;
 }
 
-/** From the 1st of the month of the week's last day up to that day:
- * "1 t/m 22 november" for the week 16–22 November. On a week that ends on
- * the last day of a month, the whole month — the final standing. */
-export function monthToDate(week: ReportPeriod): ReportPeriod {
-  return { start: `${week.end.slice(0, 8)}01`, end: week.end };
-}
-
-/** The month blocks for a week's mail: the month so far — and, when the
- * week started in the previous month, that month's full final standing
- * first, so the last days of a month are never left out of a standing. */
-export function monthBlocks(week: ReportPeriod): { period: ReportPeriod; final: boolean }[] {
+/** The month blocks for a mail sent on `sendDay` ("2026-11-30"): the month
+ * so far, from the 1st up to and including the day of sending. When the
+ * previous weekly mail went out in an earlier month, that month's full
+ * final standing comes first — that mail was sent before its last day(s)
+ * were over, so they'd otherwise never be counted in a standing. */
+export function monthBlocks(sendDay: string): { period: ReportPeriod; final: boolean }[] {
   const blocks: { period: ReportPeriod; final: boolean }[] = [];
-  if (week.start.slice(0, 7) !== week.end.slice(0, 7)) {
-    const lastDay = addDays(`${week.end.slice(0, 8)}01`, -1);
+  const previousSend = addDays(sendDay, -7);
+  if (previousSend.slice(0, 7) !== sendDay.slice(0, 7)) {
+    const lastDay = addDays(`${sendDay.slice(0, 8)}01`, -1);
     blocks.push({ period: { start: `${lastDay.slice(0, 8)}01`, end: lastDay }, final: true });
   }
-  // A week ending on a month's last day already holds that month's final standing.
-  const endsMonth = addDays(week.end, 1).slice(8) === "01";
-  blocks.push({ period: monthToDate(week), final: endsMonth });
+  blocks.push({ period: { start: `${sendDay.slice(0, 8)}01`, end: sendDay }, final: false });
   return blocks;
 }
 
@@ -246,7 +240,7 @@ export interface ReportModel {
   glanceTotal: { counts: StarCounts; total: number; average: string; fivePct: string };
   overview: string;
   /** "Maandstand review bonus": the month so far (and the previous month's
-   * final standing when the week started in it). */
+   * final standing when the previous mail went out in that month). */
   monthStatus: { title: string; intro: string; rows: MonthStatusRow[]; total: MonthStatusRow }[];
   sections: {
     name: string;
@@ -342,7 +336,7 @@ export function buildReportModel(
           }
         : {
             title: `Maandstand review bonus · ${formatPeriod(month.period)}`,
-            intro: `Stand van de maand tot nu toe, zodat elk team ziet waar het staat. ${rule}`,
+            intro: `Stand van de maand tot en met vandaag, zodat elk team ziet waar het staat. ${rule}`,
             rows,
             total: monthRow("Totaal", all),
           };
