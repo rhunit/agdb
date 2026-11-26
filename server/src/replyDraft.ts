@@ -39,10 +39,6 @@ const ENGLISH_WORDS = new Set(
   "the and is are was were very good great nice friendly staff thanks thank amazing awesome best place shop this that with for of in to it i my we you they really definitely recommend quality service weed hash strain strains love loved price prices will again lovely people perfect nice cool chill vibe vibes excellent wonderful helpful kind guys guy team atmosphere music selection fast quick always everything everyone so too not but all our your us me them had got get go went come came back visit visited store strong buy bought worth super fantastic beautiful polite professional fair recommended highly must amsterdam's thanks".split(" "),
 );
 
-/** The language to answer in: Dutch for a Dutch review, English for any
- * other language. Google only translates reviews written in another
- * language than Dutch, so a translation marker settles it; otherwise
- * common words decide. null when it can't be told (e.g. only "Top!"). */
 /** For the reviews the word lists can't place ("Justin perfect!"): one
  * short question to the model, which only has to say whether it's Dutch. */
 async function askIsDutch(text: string): Promise<"nl" | "en"> {
@@ -58,9 +54,14 @@ async function askIsDutch(text: string): Promise<"nl" | "en"> {
   }
 }
 
+/** The language to answer in: Dutch for a Dutch review, English for any
+ * other language — decided by common words in the original text. null
+ * when that can't tell (then askIsDutch decides). */
 export function replyLanguage(fullText: string): "nl" | "en" | null {
-  const { text, translatedByGoogle } = originalText(fullText);
-  if (translatedByGoogle) return "en";
+  // Always judged on what the reviewer wrote. A Google translation alongside
+  // says nothing about it: Google also translates Dutch reviews (into
+  // English, seen on a Dutch review of Boerejongens Almere).
+  const { text } = originalText(fullText);
   const words = text.toLowerCase().match(/\p{L}+/gu) ?? [];
   let nl = 0;
   let en = 0;
