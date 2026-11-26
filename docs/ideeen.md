@@ -51,3 +51,25 @@ Voorstel:
 Nadeel: zonder "Vernieuwen" kan de lijst een paar minuten achterlopen
 (de nieuwste reviews op het Dashboard niet; die komen uit een aparte,
 snelle ophaalronde).
+
+## Boerejongens West: volledige reviewgegevens zonder beheerderstoegang (november 2026)
+
+Nu: tabblad met alleen openbare Google Maps-data (score, totaal, nieuwe
+reviews per week, max. 5 door Google gekozen reviews), met rode asterisk.
+Beste oplossing blijft: eigenaar voegt het dashboardaccount toe als
+beheerder van het profiel (gratis, volledig, ook reageren).
+
+Alternatieven om sterrenverdeling + teksten te krijgen (niet nagekeken,
+eerst controleren):
+1. SerpApi, gratis plan (~100 aanvragen/maand, Google Maps Reviews API,
+   sorteren op nieuwste, ~10 reviews per aanvraag). Plan: 3x per dag de
+   nieuwste reviews ophalen (~90/maand), teller die onder de grens blijft.
+   Sleutel in Northflank als SERPAPI_API_KEY. Voorkeur.
+2. Apify, gratis maandtegoed (~$5) met een Google Maps Reviews-scraper.
+3. Oudere Google Places API (legacy) met reviews_sort=newest (5 nieuwste),
+   met de bestaande Google-sleutel; mogelijk niet beschikbaar voor dit
+   project, valt onder Google's gratis maandlimiet.
+Outscraper valt af: vereist betaalgegevens voor API-gebruik.
+
+Met volledige gegevens: West telt mee in Alle reviews, Rapportage/PDF en
+de weekmail (incl. maandstand review bonus), zonder reageren.
