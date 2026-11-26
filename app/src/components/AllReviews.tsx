@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { LOCATION_TAB_LABEL, VISIBLE_LOCATION_IDS } from "../config";
+import { LOCATION_TAB_LABEL, PUBLIC_ONLY_LOCATION_IDS, TAB_LOCATION_IDS, VISIBLE_LOCATION_IDS } from "../config";
 import { LOCATIONS } from "../data/mockData";
-import type { LiveBusinessReview, RemovedReview, ReviewEdit } from "../lib/api";
+import type { LiveBusinessReview, LivePlaceSummary, RemovedReview, ReviewEdit } from "../lib/api";
 import { isWithinRange, rangeForPreset, type DateRange } from "../lib/dateRange";
 import { daysAgoLabel, formatReviewTimestamp } from "../lib/format";
 import { businessReviewsFor, dateFromReview, reviewsFromRemoved } from "../lib/reviews";
 import { originalVersionFor } from "../lib/reviewHistory";
 import { detectReviewPatterns, reviewMatchesTheme } from "../lib/reviewPatterns";
 import { sortReviews, SORT_OPTIONS, type SortOption } from "../lib/reviewSort";
-import type { LocationId, Review } from "../types";
+import type { LocationId, Review, ReviewGrowthWeek } from "../types";
+import { PublicLocationView } from "./PublicLocationView";
 import { StarRating } from "./badges";
 import { DateRangeSelector } from "./DateRangeSelector";
 import { ExportPdfButton } from "./ExportPdfButton";
@@ -59,6 +60,11 @@ interface AllReviewsProps {
   filterRequest?: AllReviewsFilterRequest | null;
   edits: ReviewEdit[] | null;
   removed: RemovedReview[] | null;
+  /** Public Google Maps data, for a location without profile access
+   * (Boerejongens West) — shown instead of the review list on its tab. */
+  publicPlaces?: Partial<Record<LocationId, LivePlaceSummary>> | null;
+  publicGrowth?: ReviewGrowthWeek[] | null;
+  publicLoading?: boolean;
 }
 
 export function AllReviews({
@@ -68,6 +74,9 @@ export function AllReviews({
   filterRequest,
   edits,
   removed,
+  publicPlaces = null,
+  publicGrowth = null,
+  publicLoading = false,
 }: AllReviewsProps) {
   const [shown, setShown] = useState(PAGE_SIZE);
   const [locationTab, setLocationTab] = useState<LocationId | "all">("all");
@@ -227,6 +236,10 @@ export function AllReviews({
   const bulkCandidates = bulkAvailable ? reviews.filter(canBulk) : [];
   const firstBatch = bulkCandidates.slice(0, MAX_BULK);
 
+  // A location without profile access (Boerejongens West): its tab shows
+  // the public data view instead of filters and a review list.
+  const publicOnly = PUBLIC_ONLY_LOCATION_IDS.includes(locationTab as LocationId);
+
   const filtersActive =
     statusFilter !== "all" || ratingFilter !== "all" || activeTheme !== null || nameQuery.trim() !== "";
 
@@ -241,7 +254,9 @@ export function AllReviews({
         <div>
           <div className={styles.title}>Alle reviews</div>
           <div className={styles.subtitle}>
-            {locationTab === "all"
+            {publicOnly
+              ? `Alleen openbare Google Maps-gegevens voor ${LOCATION_TAB_LABEL[locationTab as LocationId]}.`
+              : locationTab === "all"
               ? "Volledige lijst over alle gekoppelde locaties, te filteren op periode."
               : `Volledige lijst voor ${LOCATION_TAB_LABEL[locationTab]}, te filteren op periode.`}
           </div>
@@ -275,7 +290,7 @@ export function AllReviews({
           >
             Totaal
           </button>
-          {VISIBLE_LOCATION_IDS.map((id) => (
+          {TAB_LOCATION_IDS.map((id) => (
             <button
               key={id}
               type="button"
@@ -287,14 +302,24 @@ export function AllReviews({
                   : styles.locationTab
               }
               onClick={() => selectLocationTab(id)}
+              title={
+                PUBLIC_ONLY_LOCATION_IDS.includes(id)
+                  ? "Beperkte gegevens: alleen openbare Google Maps-data"
+                  : undefined
+              }
             >
               {LOCATION_TAB_LABEL[id]}
+              {PUBLIC_ONLY_LOCATION_IDS.includes(id) && (
+                <span className={styles.limitedMark} aria-label="(beperkte gegevens)">
+                  *
+                </span>
+              )}
             </button>
           ))}
         </div>
       )}
 
-      {allReviews.length > 0 && (
+      {!publicOnly && allReviews.length > 0 && (
         <div className={styles.filters}>
           <input
             type="search"
@@ -399,7 +424,15 @@ export function AllReviews({
         />
       )}
 
-      {loading ? (
+      {publicOnly ? (
+        <PublicLocationView
+          id={locationTab as LocationId}
+          name={LOCATION_TAB_LABEL[locationTab as LocationId]}
+          summary={publicPlaces?.[locationTab as LocationId]}
+          growth={publicGrowth}
+          loading={publicLoading}
+        />
+      ) : loading ? (
         <LoadingState />
       ) : !isLive ? (
         <div className={styles.empty}>

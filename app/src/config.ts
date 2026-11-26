@@ -22,6 +22,12 @@ export const VISIBLE_LOCATION_IDS: LocationId[] = [
  * the totals, Alle reviews, Rapportage and the weekly mail. */
 export const PUBLIC_ONLY_LOCATION_IDS: LocationId[] = ["depijp"];
 
+/** The location tabs in order (Dashboard and Alle reviews): Boerejongens
+ * West (public data only) next to the other Boerejongens shops, after Almere. */
+export const TAB_LOCATION_IDS: LocationId[] = VISIBLE_LOCATION_IDS.flatMap((id) =>
+  id === "almere" ? [id, ...PUBLIC_ONLY_LOCATION_IDS] : [id],
+);
+
 /** Short tab labels for the locations above — used by both the
  * dashboard's profile tabs (Topbar) and "Alle reviews"' per-location
  * tabs, so the two stay worded the same. */

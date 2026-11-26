@@ -146,6 +146,9 @@ export function Dashboard() {
                   loading={allBusinessReviews.loading}
                   edits={reviewEdits.edits}
                   removed={removedReviews.removed}
+                  publicPlaces={livePlaces.data}
+                  publicGrowth={reviewGrowth.data}
+                  publicLoading={livePlaces.loading}
                 />
               )}
             </div>
