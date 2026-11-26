@@ -15,6 +15,13 @@ export const VISIBLE_LOCATION_IDS: LocationId[] = [
   "amsterdamgenetics",
 ];
 
+/** Locations without access to their Google Business Profile: a tab on
+ * the dashboard with only public Google Maps data (score, review count, a
+ * few reviews Google picks), marked with a red asterisk. Kept out of
+ * VISIBLE_LOCATION_IDS on purpose — there they'd count as zero reviews in
+ * the totals, Alle reviews, Rapportage and the weekly mail. */
+export const PUBLIC_ONLY_LOCATION_IDS: LocationId[] = ["depijp"];
+
 /** Short tab labels for the locations above — used by both the
  * dashboard's profile tabs (Topbar) and "Alle reviews"' per-location
  * tabs, so the two stay worded the same. */

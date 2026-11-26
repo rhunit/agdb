@@ -1,4 +1,4 @@
-import { LOCATION_TAB_LABEL, VISIBLE_LOCATION_IDS } from "../config";
+import { LOCATION_TAB_LABEL, PUBLIC_ONLY_LOCATION_IDS, VISIBLE_LOCATION_IDS } from "../config";
 import type { LocationFilter } from "../hooks/useDashboardData";
 import type { DateRange } from "../lib/dateRange";
 import { DateRangeSelector } from "./DateRangeSelector";
@@ -10,9 +10,18 @@ import styles from "./Topbar.module.css";
 // LOCATIONS still exists in the data model, it just doesn't get its own
 // tab yet. More tabs land once those profiles are ready to show on
 // their own.
-const VISIBLE_TABS: { filter: LocationFilter; label: string }[] = [
-  { filter: "all", label: "Dashboard" },
-  ...VISIBLE_LOCATION_IDS.map((id) => ({ filter: id, label: LOCATION_TAB_LABEL[id] })),
+// Boerejongens West (public data only) sits next to the other Boerejongens
+// shops, after Almere.
+const TAB_IDS = VISIBLE_LOCATION_IDS.flatMap((id) =>
+  id === "almere" ? [id, ...PUBLIC_ONLY_LOCATION_IDS] : [id],
+);
+const VISIBLE_TABS: { filter: LocationFilter; label: string; publicOnly: boolean }[] = [
+  { filter: "all", label: "Dashboard", publicOnly: false },
+  ...TAB_IDS.map((id) => ({
+    filter: id,
+    label: LOCATION_TAB_LABEL[id],
+    publicOnly: PUBLIC_ONLY_LOCATION_IDS.includes(id),
+  })),
 ];
 
 interface TopbarProps {
@@ -54,8 +63,14 @@ export function Topbar({
                 : styles.tab
             }
             onClick={() => onSelect(tab.filter)}
+            title={tab.publicOnly ? "Beperkte gegevens: alleen openbare Google Maps-data" : undefined}
           >
             {tab.label}
+            {tab.publicOnly && (
+              <span className={styles.limitedMark} aria-label="(beperkte gegevens)">
+                *
+              </span>
+            )}
           </button>
         ))}
       </div>

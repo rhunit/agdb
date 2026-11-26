@@ -15,6 +15,9 @@ import { AiChatPanel } from "./AiChatPanel";
 import { AllReviews } from "./AllReviews";
 import { ApiErrorBanner } from "./ApiErrorBanner";
 import { SiteNotice } from "./SiteNotice";
+import { PublicLocationView } from "./PublicLocationView";
+import { LOCATION_TAB_LABEL, PUBLIC_ONLY_LOCATION_IDS } from "../config";
+import type { LocationId } from "../types";
 import { BentoGrid } from "./BentoGrid";
 import { CriticalReviewFeed } from "./CriticalReviewFeed";
 import { ErrorState } from "./ErrorState";
@@ -66,8 +69,13 @@ export function Dashboard() {
   // Without the review data useDashboardData falls back to mock reviews,
   // which would look like real numbers — show an error instead.
   const dashboardFailed = businessReviews.failed || allBusinessReviews.failed;
+  // A public-only location (Boerejongens West) has no review data here;
+  // computing its numbers would fall back to mock reviews. Its tab shows
+  // PublicLocationView instead, and the numbers below (AI chat context)
+  // stay on the real "all locations" view.
+  const dataFilter: typeof filter = PUBLIC_ONLY_LOCATION_IDS.includes(filter as LocationId) ? "all" : filter;
   const data = useDashboardData(
-    filter,
+    dataFilter,
     dateRange,
     reviewGrowth.data,
     livePlaces.data,
@@ -88,7 +96,7 @@ export function Dashboard() {
   // every chat turn.
   const aiChatContext = useMemo(
     () =>
-      buildDashboardContext(filter, dateRange, {
+      buildDashboardContext(dataFilter, dateRange, {
         reviewCount: data.reviewCount,
         reviewCountDelta: data.reviewCountDelta,
         avgScore: data.avgScore,
@@ -100,7 +108,7 @@ export function Dashboard() {
         criticalCountDelta: data.criticalCountDelta,
         openCriticalCount: data.openCriticalReviews.length,
       }),
-    [filter, dateRange, data],
+    [dataFilter, dateRange, data],
   );
 
   return (
@@ -165,7 +173,15 @@ export function Dashboard() {
                 onDateRangeChange={setDateRange}
               />
               <div className={styles.content}>
-                {dashboardFailed ? (
+                {PUBLIC_ONLY_LOCATION_IDS.includes(filter as LocationId) ? (
+                  <PublicLocationView
+                    id={filter as LocationId}
+                    name={LOCATION_TAB_LABEL[filter as LocationId]}
+                    summary={livePlaces.data?.[filter as LocationId]}
+                    growth={reviewGrowth.data}
+                    loading={livePlaces.loading}
+                  />
+                ) : dashboardFailed ? (
                   <ErrorState />
                 ) : dashboardLoading ? (
                   <LoadingState />
