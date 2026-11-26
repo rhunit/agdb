@@ -9,6 +9,7 @@ export type SidebarView =
   | "locaties"
   | "rapportage"
   | "vermeldingen"
+  | "reviews-mailen"
   | "gebruikers";
 
 interface NavItem {
@@ -32,9 +33,12 @@ interface SidebarProps {
 export function Sidebar({ active, onNavigate }: SidebarProps) {
   const { account, can } = useAccount();
   // "Gebruikers" only for accounts that may manage logins.
-  const navItems = can("admin") && account
-    ? [...NAV_ITEMS, { label: "Instellingen", view: "gebruikers" as const }]
-    : NAV_ITEMS;
+  // "Reviews mailen" for accounts given that right, and admins.
+  const navItems: NavItem[] = [
+    ...NAV_ITEMS,
+    ...(account && (can("mail") || can("admin")) ? [{ label: "Reviews mailen", view: "reviews-mailen" as const }] : []),
+    ...(account && can("admin") ? [{ label: "Instellingen", view: "gebruikers" as const }] : []),
+  ];
   return (
     <aside className={styles.sidebar} data-print-hide>
       <div className={styles.stickyTop}>

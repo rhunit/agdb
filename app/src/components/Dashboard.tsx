@@ -16,6 +16,7 @@ import { AllReviews } from "./AllReviews";
 import { ApiErrorBanner } from "./ApiErrorBanner";
 import { SiteNotice } from "./SiteNotice";
 import { PublicLocationView } from "./PublicLocationView";
+import { ReviewMailPage } from "./ReviewMailPage";
 import { LOCATION_TAB_LABEL, PUBLIC_ONLY_LOCATION_IDS } from "../config";
 import type { LocationId } from "../types";
 import { BentoGrid } from "./BentoGrid";
@@ -125,6 +126,14 @@ export function Dashboard() {
           ) : view === "gebruikers" ? (
             <div className={styles.content}>
               <UsersPage />
+            </div>
+          ) : view === "reviews-mailen" ? (
+            <div className={styles.content}>
+              <ReviewMailPage
+                reviewsByLocation={allBusinessReviews.data}
+                loading={allBusinessReviews.loading}
+                failed={allBusinessReviews.failed}
+              />
             </div>
           ) : view === "locaties" ? (
             <div className={styles.content}>

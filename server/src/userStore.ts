@@ -7,8 +7,9 @@ import { fileURLToPath } from "node:url";
 // persistent volume so they survive restarts and deploys. Only a scrypt
 // hash of each password is stored, never the password itself.
 
-export type Permission = "reply" | "ai" | "admin";
-export const ALL_PERMISSIONS: Permission[] = ["reply", "ai", "admin"];
+// "mail": "Reviews mailen" — a selection of reviews sent by e-mail.
+export type Permission = "reply" | "ai" | "admin" | "mail";
+export const ALL_PERMISSIONS: Permission[] = ["reply", "ai", "admin", "mail"];
 
 export interface StoredUser {
   username: string;

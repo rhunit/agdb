@@ -71,6 +71,8 @@ import {
 import { runDataMigrations } from "./dataMigrations.js";
 import { loadNotice, NoticeError, saveNotice } from "./noticeStore.js";
 import { generateWeekReport, isWeekReportAvailable, type WeekReportLocation } from "./weekReport.js";
+import { MailError } from "./mailer.js";
+import { sendReviewMail, validateSelection } from "./reviewMail.js";
 import {
   isMailConfigured,
   loadReportMailSettings,
@@ -429,6 +431,34 @@ function sendUserError(res: express.Response, err: unknown) {
   console.error(err);
   res.status(500).json({ error: "Opslaan mislukt." });
 }
+
+// "Reviews mailen": a selection of reviews (period, locations, stars) sent
+// as plain text. For accounts with the "mail" right, and admins.
+app.post("/api/review-mail", (req, res, next) => {
+  if (hasPermission(res, "mail") || hasPermission(res, "admin")) {
+    next();
+    return;
+  }
+  res.status(403).json({ error: "Je hebt geen toegang tot Reviews mailen." });
+}, async (req, res) => {
+  try {
+    const all = await fetchAllReviewsShared();
+    const selection = validateSelection(req.body, Object.keys(all.reviews));
+    const result = await sendReviewMail(req.body?.to, selection, all, req.body?.test === true);
+    if (result.sent.length === 0) {
+      res.status(502).json({ error: result.failed[0]?.replace(/^[^:]+: /, "") ?? "Versturen mislukt." });
+      return;
+    }
+    res.json(result);
+  } catch (err) {
+    if (err instanceof MailError) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    console.error(err);
+    res.status(503).json({ error: (err as Error).message });
+  }
+});
 
 // "Weekrapport per e-mail" (Instellingen): settings, a test send, and the
 // weekly schedule (scheduleReportMail in app.listen below).

@@ -441,7 +441,7 @@ export async function sendChatMessage(
   }
 }
 
-export type Permission = "reply" | "ai" | "admin";
+export type Permission = "reply" | "ai" | "admin" | "mail";
 
 /** The logged-in account and what it may do — see server/src/accounts.ts. */
 export interface Me {
@@ -632,6 +632,19 @@ export function saveReportMail(settings: { enabled: boolean; recipients: string[
 export function sendReportMailTest(to: string) {
   // Only starts the test; the result arrives later in the status.
   return sendJson<ReportMailStatus>("POST", "/api/admin/report-mail/test", { to });
+}
+
+/** "Reviews mailen": the reviews of a period/locations/stars as plain text
+ * by e-mail — see server/src/reviewMail.ts. */
+export function sendReviewMail(input: {
+  to: string;
+  start: string;
+  end: string;
+  locations: LocationId[];
+  stars: number[];
+  test: boolean;
+}) {
+  return sendJson<{ count: number; sent: string[]; failed: string[] }>("POST", "/api/review-mail", input, 180_000);
 }
 
 export async function fetchAccounts(): Promise<AccountListing[] | null> {

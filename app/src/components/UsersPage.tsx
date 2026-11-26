@@ -16,7 +16,8 @@ import styles from "./UsersPage.module.css";
 const PERMISSION_OPTIONS: { value: Permission; label: string; hint: string }[] = [
   { value: "reply", label: "Reageren op reviews", hint: "inclusief AI-opzet" },
   { value: "ai", label: "AI-functies", hint: "AI-chat en AI-samenvatting" },
-  { value: "admin", label: "Gebruikers beheren", hint: "deze pagina" },
+  { value: "mail", label: "Reviews mailen", hint: "selectie van reviews per e-mail versturen" },
+  { value: "admin", label: "Gebruikers beheren", hint: "deze pagina (en ook Reviews mailen)" },
 ];
 
 const MIN_PASSWORD_LENGTH = 10;

@@ -64,6 +64,7 @@ export function previousWeek(now: Date): ReportPeriod {
 export function formatPeriod(p: ReportPeriod): string {
   const [sy, sm, sd] = p.start.split("-").map(Number);
   const [ey, em, ed] = p.end.split("-").map(Number);
+  if (p.start === p.end) return `${sd} ${MONTHS[sm - 1]} ${sy}`;
   if (sy !== ey) return `${sd} ${MONTHS[sm - 1]} ${sy} t/m ${ed} ${MONTHS[em - 1]} ${ey}`;
   if (sm !== em) return `${sd} ${MONTHS[sm - 1]} t/m ${ed} ${MONTHS[em - 1]} ${ey}`;
   return `${sd} t/m ${ed} ${MONTHS[em - 1]} ${ey}`;

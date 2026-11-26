@@ -16,6 +16,7 @@ import {
 } from "./reportContent.js";
 import { renderReportHtml } from "./reportHtml.js";
 import { renderReportPdf } from "./reportPdf.js";
+import { isMailConfigured, MailError, parseRecipients as parseRecipientList, sendEmail } from "./mailer.js";
 import { generateWeekReport, isWeekReportAvailable, type WeekReportResult } from "./weekReport.js";
 
 // "Weekrapport per e-mail": every week, at a set day and time (Dutch time),
@@ -28,7 +29,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = join(__dirname, "..", ".data");
 const SETTINGS_FILE = join(DATA_DIR, "report-mail.json");
 
-const FROM = process.env.REPORT_MAIL_FROM ?? "Amsterdam Genetics dashboard <rapport@amsterdamgenetics.com>";
 const DASHBOARD_URL = process.env.DASHBOARD_URL ?? "https://dashboard.amsterdamgenetics.com";
 const TZ = "Europe/Amsterdam";
 /** A missed send (server down at the set time) is still made up to this long after it. */
@@ -73,11 +73,8 @@ const DEFAULTS: ReportMailSettings = {
   updatedBy: null,
 };
 
-export class ReportMailError extends Error {}
-
-export function isMailConfigured(): boolean {
-  return Boolean(process.env.RESEND_API_KEY);
-}
+// Errors with a message meant for the person in the settings card.
+export { MailError as ReportMailError, isMailConfigured };
 
 export function loadReportMailSettings(): ReportMailSettings {
   if (!existsSync(SETTINGS_FILE)) return { ...DEFAULTS };
@@ -93,15 +90,8 @@ function writeSettings(s: ReportMailSettings): void {
   writeFileSync(SETTINGS_FILE, JSON.stringify(s, null, 2), "utf-8");
 }
 
-const EMAIL = /^[^\s@<>(),;:"]+@[^\s@<>(),;:"]+\.[a-z]{2,}$/i;
-
 export function parseRecipients(input: unknown): string[] {
-  const list = Array.isArray(input) ? input : typeof input === "string" ? input.split(/[\s,;]+/) : [];
-  const out = [...new Set(list.map((x) => String(x).trim().toLowerCase()).filter(Boolean))];
-  const bad = out.filter((e) => !EMAIL.test(e));
-  if (bad.length > 0) throw new ReportMailError(`Geen geldig e-mailadres: ${bad.join(", ")}`);
-  if (out.length > MAX_RECIPIENTS) throw new ReportMailError(`Maximaal ${MAX_RECIPIENTS} ontvangers.`);
-  return out;
+  return parseRecipientList(input, MAX_RECIPIENTS);
 }
 
 export function saveReportMailSettings(input: unknown, username: string): ReportMailSettings {
@@ -109,10 +99,10 @@ export function saveReportMailSettings(input: unknown, username: string): Report
   const recipients = parseRecipients(raw.recipients);
   const weekday = Number(raw.weekday);
   const time = typeof raw.time === "string" ? raw.time.trim() : "";
-  if (!Number.isInteger(weekday) || weekday < 1 || weekday > 7) throw new ReportMailError("Kies een dag.");
-  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) throw new ReportMailError("Kies een tijd als 09:00.");
+  if (!Number.isInteger(weekday) || weekday < 1 || weekday > 7) throw new MailError("Kies een dag.");
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) throw new MailError("Kies een tijd als 09:00.");
   const enabled = raw.enabled === true;
-  if (enabled && recipients.length === 0) throw new ReportMailError("Vul minstens één ontvanger in voordat je het aanzet.");
+  if (enabled && recipients.length === 0) throw new MailError("Vul minstens één ontvanger in voordat je het aanzet.");
   const current = loadReportMailSettings();
   const next: ReportMailSettings = { ...current, enabled, recipients, weekday, time, updatedBy: username };
   // Switching it on (or moving the time) must not mail last week's report
@@ -213,30 +203,7 @@ async function buildReport(period: ReportPeriod, getReviews: ReviewSource, sendD
 }
 
 async function sendOne(to: string, subject: string, html: string, pdf: Buffer, filename: string): Promise<void> {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) throw new ReportMailError("RESEND_API_KEY ontbreekt in de omgeving van de server.");
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      from: FROM,
-      to: [to],
-      subject,
-      html,
-      attachments: [{ filename, content: pdf.toString("base64") }],
-    }),
-    signal: AbortSignal.timeout(30_000),
-  });
-  if (!res.ok) {
-    const body = await res.text();
-    let message = body;
-    try {
-      message = (JSON.parse(body) as { message?: string }).message ?? body;
-    } catch {
-      // Not JSON: keep the text.
-    }
-    throw new ReportMailError(`Resend weigerde de mail (${res.status}): ${message.slice(0, 300)}`);
-  }
+  await sendEmail({ to, subject, html, attachments: [{ filename, content: pdf }] });
 }
 
 /** Builds the report over `period` and mails it to each recipient (one mail
@@ -250,7 +217,7 @@ export async function sendReport(
   const label = formatPeriod(period);
   const result: ReportMailResult = { at: new Date().toISOString(), ok: false, period: label, recipients, sent: 0, message: "", test };
   try {
-    if (recipients.length === 0) throw new ReportMailError("Geen ontvangers ingesteld.");
+    if (recipients.length === 0) throw new MailError("Geen ontvangers ingesteld.");
     const { html, pdf } = await buildReport(period, getReviews, amsterdamDay(new Date()));
     const subject = `${test ? "[Test] " : ""}Google Reviews weekrapport ${label}`;
     const filename = `Google Reviews weekrapport ${label}.pdf`;
@@ -288,8 +255,8 @@ export function isTestRunning(): boolean {
  * polls the status until the result is in. */
 export function startTestReport(to: string, getReviews: ReviewSource): void {
   const [recipient] = parseRecipients([to]);
-  if (!recipient) throw new ReportMailError("Vul een e-mailadres in voor de test.");
-  if (testRunning) throw new ReportMailError("Er loopt al een test; wacht even tot die klaar is.");
+  if (!recipient) throw new MailError("Vul een e-mailadres in voor de test.");
+  if (testRunning) throw new MailError("Er loopt al een test; wacht even tot die klaar is.");
   testRunning = true;
   void sendTestReport(recipient, getReviews)
     .catch((err) => console.error("report mail test failed:", err))
