@@ -1,4 +1,6 @@
-import { google } from "googleapis";
+// google-auth-library only (not the whole googleapis package, which alone
+// took ~100 MB of the server's 512 MB).
+import { OAuth2Client } from "google-auth-library";
 import { loadRefreshToken, saveRefreshToken } from "./tokenStore.js";
 
 const SCOPES = ["https://www.googleapis.com/auth/business.manage"];
@@ -10,7 +12,7 @@ function requireEnv(name: string): string {
 }
 
 function createOAuthClient() {
-  return new google.auth.OAuth2(
+  return new OAuth2Client(
     requireEnv("GOOGLE_CLIENT_ID"),
     requireEnv("GOOGLE_CLIENT_SECRET"),
     requireEnv("GOOGLE_REDIRECT_URI"),

@@ -80,6 +80,10 @@ async function listBusinessReviewsWithTotal(
   accountName: string,
   googleLocationId: string,
   maxPages: number,
+  /** ISO time: stop paging once a page ends with a review last updated
+   * before this — the list is newest-updated first, so nothing after it
+   * can be newer. */
+  stopBefore?: string,
 ): Promise<ReviewListing> {
   const { token } = await auth.getAccessToken();
   if (!token) throw new Error("No access token available");
@@ -124,6 +128,8 @@ async function listBusinessReviewsWithTotal(
       });
     }
     pageToken = data.nextPageToken ?? undefined;
+    const oldest = data.reviews?.[data.reviews.length - 1]?.updateTime;
+    if (stopBefore && oldest && oldest < stopBefore) break;
   } while (pageToken && pages < maxPages);
 
   return { reviews, totalReviewCount, truncated: Boolean(pageToken) };
@@ -354,6 +360,34 @@ export interface AllBusinessReviews {
  *
  * Same per-location fault isolation as getRecentBusinessReviews — one
  * location erroring must not blank out the others. */
+/** The reviews created or updated since `sinceIso`, per location — only
+ * the newest pages, not the whole history. For the report and "Reviews
+ * mailen", which only need a period (the full history of every location
+ * pushed the server past its memory limit while making a report). */
+export async function getBusinessReviewsSince(
+  auth: OAuth2Client,
+  locations: DiscoveredLocation[],
+  sinceIso: string,
+): Promise<AllBusinessReviews> {
+  const settled = await Promise.allSettled(
+    locations
+      .filter((loc) => loc.internalId)
+      .map(async (loc) => {
+        const listing = await listBusinessReviewsWithTotal(auth, loc.accountName, loc.googleLocationId, 200, sinceIso);
+        const recent = listing.reviews.filter(
+          (r) => (r.createTime ?? "") >= sinceIso || (r.updateTime ?? "") >= sinceIso,
+        );
+        return [loc.internalId as InternalLocationId, recent] as const;
+      }),
+  );
+  const out: AllBusinessReviews = { reviews: {}, complete: {} };
+  for (const result of settled) {
+    if (result.status === "fulfilled") out.reviews[result.value[0]] = result.value[1];
+    else console.error("getBusinessReviewsSince: one location failed:", result.reason);
+  }
+  return out;
+}
+
 export async function getAllBusinessReviews(
   auth: OAuth2Client,
   locations: DiscoveredLocation[],

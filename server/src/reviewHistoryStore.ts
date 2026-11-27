@@ -96,20 +96,31 @@ function withoutStaleEdits(edits: ReviewEditEvent[]): ReviewEditEvent[] {
     });
 }
 
+// Read from disk once and kept in memory: this server is the only writer,
+// and re-parsing the whole file (every review of every location) a dozen
+// times per fetch was a large part of its memory use.
+let cached: Store | null = null;
+
 function load(): Store {
-  if (!existsSync(HISTORY_FILE)) return { snapshots: [], edits: [], removals: [] };
-  try {
-    const store = JSON.parse(readFileSync(HISTORY_FILE, "utf-8")) as Store;
-    store.edits = withoutStaleEdits(store.edits);
-    return store;
-  } catch {
-    return { snapshots: [], edits: [], removals: [] };
+  if (cached) return cached;
+  let store: Store = { snapshots: [], edits: [], removals: [] };
+  if (existsSync(HISTORY_FILE)) {
+    try {
+      store = JSON.parse(readFileSync(HISTORY_FILE, "utf-8")) as Store;
+      store.edits = withoutStaleEdits(store.edits);
+    } catch {
+      // Unreadable: start empty, as before.
+    }
   }
+  cached = store;
+  return store;
 }
 
 function save(store: Store): void {
+  cached = store;
   if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true });
-  writeFileSync(HISTORY_FILE, JSON.stringify(store, null, 2), "utf-8");
+  // Without indentation: a third smaller on disk and while writing.
+  writeFileSync(HISTORY_FILE, JSON.stringify(store), "utf-8");
 }
 
 /** Compares a fresh fetch of one location's full review history against

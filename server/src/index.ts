@@ -15,6 +15,7 @@ import type { InternalLocationId } from "./googleBusinessProfile.js";
 import { getWeeklySearchViews, listLocations } from "./googleBusinessProfile.js";
 import {
   getAllBusinessReviews,
+  getBusinessReviewsSince,
   getRecentBusinessReviews,
   listBusinessReviews,
   getCurrentReply,
@@ -367,6 +368,16 @@ async function checkMissingReviews(
   return gone;
 }
 
+/** Reviews from a day (Dutch time) on, for the report and "Reviews mailen":
+ * the fresh full list when there is one, otherwise only the newest pages. */
+async function reviewsSince(sinceDay: string) {
+  if (allReviewsCache && Date.now() - allReviewsCache.at < ALL_REVIEWS_FRESH_MS) return allReviewsCache.data;
+  // A few hours' margin before midnight; the callers filter by Dutch day.
+  const sinceIso = new Date(Date.parse(`${sinceDay}T00:00:00Z`) - 3 * 3600_000).toISOString();
+  const auth = getAuthorizedClient();
+  return getBusinessReviewsSince(auth, await listLocations(auth), sinceIso);
+}
+
 async function fetchAllReviewsShared() {
   if (allReviewsCache && Date.now() - allReviewsCache.at < ALL_REVIEWS_FRESH_MS) {
     return allReviewsCache.data;
@@ -442,8 +453,10 @@ app.post("/api/review-mail", (req, res, next) => {
   res.status(403).json({ error: "Je hebt geen toegang tot Reviews mailen." });
 }, async (req, res) => {
   try {
-    const all = await fetchAllReviewsShared();
-    const selection = validateSelection(req.body, Object.keys(all.reviews));
+    const auth = getAuthorizedClient();
+    const available = (await listLocations(auth)).map((l) => l.internalId).filter((id): id is InternalLocationId => Boolean(id));
+    const selection = validateSelection(req.body, available);
+    const all = await reviewsSince(selection.period.start);
     const result = await sendReviewMail(req.body?.to, selection, all, req.body?.test === true);
     if (result.sent.length === 0) {
       res.status(502).json({ error: result.failed[0]?.replace(/^[^:]+: /, "") ?? "Versturen mislukt." });
@@ -488,7 +501,7 @@ app.put("/api/admin/report-mail", requirePermission("admin"), (req, res) => {
 // Starts the test and answers right away (202); the card polls the status.
 app.post("/api/admin/report-mail/test", requirePermission("admin"), (req, res) => {
   try {
-    startTestReport(String(req.body?.to ?? ""), fetchAllReviewsShared);
+    startTestReport(String(req.body?.to ?? ""), reviewsSince);
     res.status(202).json(reportMailStatus());
   } catch (err) {
     res.status(err instanceof ReportMailError ? 400 : 500).json({ error: (err as Error).message });
@@ -957,7 +970,7 @@ app.listen(PORT, () => {
   console.log(`Review Radar server listening on http://localhost:${PORT}`);
   console.log(describeLoginSetup());
   scheduleMentionChecks();
-  scheduleReportMail(fetchAllReviewsShared);
+  scheduleReportMail(reviewsSince);
   console.log(
     isConnected()
       ? "Google Business Profile: connected"

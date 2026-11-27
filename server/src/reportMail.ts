@@ -159,12 +159,15 @@ export function nextRun(s: ReportMailSettings, now = new Date()): string | null 
 
 // ---- Building and sending ----
 
-type ReviewSource = () => Promise<AllBusinessReviews>;
+/** The reviews per location from `sinceDay` ("2026-11-01", Dutch time) on. */
+type ReviewSource = (sinceDay: string) => Promise<AllBusinessReviews>;
 
 /** `sendDay`: the day the mail goes out (Dutch time) — the month standing
  * runs from the 1st up to and including it. */
 async function buildReport(period: ReportPeriod, getReviews: ReviewSource, sendDay: string) {
-  const { reviews } = await getReviews();
+  // Only what the report covers: the week and the month block(s).
+  const earliest = [period.start, ...monthBlocks(sendDay).map((b) => b.period.start)].sort()[0];
+  const { reviews } = await getReviews(earliest);
   const locations = REPORT_LOCATIONS.filter((l) => reviews[l.id] !== undefined).map((l) => ({
     ...l,
     reviews: (reviews[l.id] ?? []).filter((r) => inPeriod(r.createTime, period)),
@@ -213,12 +216,14 @@ export async function sendReport(
   recipients: string[],
   getReviews: ReviewSource,
   test: boolean,
+  /** The day of sending (Dutch time): the month standing runs up to it. */
+  sendDay: string = amsterdamDay(new Date()),
 ): Promise<ReportMailResult> {
   const label = formatPeriod(period);
   const result: ReportMailResult = { at: new Date().toISOString(), ok: false, period: label, recipients, sent: 0, message: "", test };
   try {
     if (recipients.length === 0) throw new MailError("Geen ontvangers ingesteld.");
-    const { html, pdf } = await buildReport(period, getReviews, amsterdamDay(new Date()));
+    const { html, pdf } = await buildReport(period, getReviews, sendDay);
     const subject = `${test ? "[Test] " : ""}Google Reviews weekrapport ${label}`;
     const filename = `Google Reviews weekrapport ${label}.pdf`;
     const failed: string[] = [];
@@ -289,7 +294,7 @@ export async function tick(getReviews: ReviewSource, now = new Date()): Promise<
 
   running = true;
   try {
-    const result = await sendReport(slot.week, s.recipients, getReviews, false);
+    const result = await sendReport(slot.week, s.recipients, getReviews, false, amsterdamDay(now));
     const latest = loadReportMailSettings();
     // Done with this week once anyone got it (a retry would mail them
     // twice) — or after a few failed tries, so a broken setup doesn't retry
