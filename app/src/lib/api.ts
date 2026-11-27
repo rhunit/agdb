@@ -121,7 +121,7 @@ export async function fetchLiveReviewGrowth(): Promise<ReviewGrowthWeek[] | null
       week,
       centrum: byLocation.centrum ?? 0,
       sloterdijk: byLocation.sloterdijk ?? 0,
-      depijp: byLocation.depijp ?? 0,
+      west: byLocation.west ?? 0,
       boerejongens: byLocation.boerejongens ?? 0,
       almere: byLocation.almere ?? 0,
       amsterdamgenetics: byLocation.amsterdamgenetics ?? 0,

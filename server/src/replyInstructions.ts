@@ -169,7 +169,7 @@ export const LOCATION_REPLY_INFO: Record<InternalLocationId, LocationReplyInfo> 
     welcomeBack: BOEREJONGENS_WELCOME,
     welcomeBackEn: BOEREJONGENS_WELCOME_EN,
   },
-  depijp: {
+  west: {
     name: "Boerejongens West",
     feedbackUrl: "https://www.boerejongens.com/ervaring-en-suggesties-west/",
     welcomeBack: BOEREJONGENS_WELCOME,

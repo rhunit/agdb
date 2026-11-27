@@ -51,7 +51,7 @@ const SEED_ENTRIES: WeeklyLogEntry[] = [
   {
     id: "w3",
     week: "2026-W35",
-    location: "depijp",
+    location: "west",
     type: "smoke",
     submitter: "Sem Jansen",
     timestamp: "31-08-2026 18:20",
@@ -87,7 +87,7 @@ const SEED_ENTRIES: WeeklyLogEntry[] = [
   {
     id: "w7",
     week: "2026-W33",
-    location: "depijp",
+    location: "west",
     type: "qr",
     submitter: "Sem Jansen",
     timestamp: "17-08-2026 18:31",
@@ -114,7 +114,7 @@ const SEED_ENTRIES: WeeklyLogEntry[] = [
   {
     id: "w10",
     week: "2026-W31",
-    location: "depijp",
+    location: "west",
     type: "smoke",
     submitter: "Sem Jansen",
     timestamp: "03-08-2026 18:55",

@@ -98,7 +98,7 @@ const PORT = Number(process.env.PORT ?? 8787);
 const LOCATION_IDS = new Set([
   "centrum",
   "sloterdijk",
-  "depijp",
+  "west",
   "boerejongens",
   "almere",
   "amsterdamgenetics",
@@ -635,7 +635,7 @@ app.post("/api/business-reviews/:location/:reviewId/reply", requirePermission("r
   const { comment, bulk, onlyIfUnanswered } = req.body ?? {};
   if (!LOCATION_IDS.has(location)) {
     res.status(400).json({
-      error: "Onbekende locatie. Vereist: centrum|sloterdijk|depijp|boerejongens|almere|amsterdamgenetics.",
+      error: "Onbekende locatie. Vereist: centrum|sloterdijk|west|boerejongens|almere|amsterdamgenetics.",
     });
     return;
   }
@@ -878,7 +878,7 @@ app.get("/api/business-reviews-test", async (req, res) => {
   const locationParam = req.query.location;
   if (typeof locationParam !== "string") {
     res.status(400).json({
-      error: "Vereist: ?location=centrum|sloterdijk|depijp|boerejongens|almere|amsterdamgenetics",
+      error: "Vereist: ?location=centrum|sloterdijk|west|boerejongens|almere|amsterdamgenetics",
     });
     return;
   }
@@ -927,7 +927,7 @@ app.post("/api/weekly-log", (req, res) => {
   ) {
     res.status(400).json({
       error:
-        "Vereist: location (centrum|sloterdijk|depijp|boerejongens|almere|amsterdamgenetics), type (smoke|qr), submitter, note.",
+        "Vereist: location (centrum|sloterdijk|west|boerejongens|almere|amsterdamgenetics), type (smoke|qr), submitter, note.",
     });
     return;
   }

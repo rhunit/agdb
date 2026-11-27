@@ -1,7 +1,7 @@
 export type LocationId =
   | "centrum"
   | "sloterdijk"
-  | "depijp"
+  | "west"
   | "boerejongens"
   | "almere"
   | "amsterdamgenetics";
@@ -64,7 +64,7 @@ export interface SearchViewsWeek {
   week: string;
   centrum: number;
   sloterdijk: number;
-  depijp: number;
+  west: number;
   boerejongens: number;
   almere: number;
   amsterdamgenetics: number;
@@ -77,7 +77,7 @@ export interface ReviewGrowthWeek {
   week: string;
   centrum: number;
   sloterdijk: number;
-  depijp: number;
+  west: number;
   boerejongens: number;
   almere: number;
   amsterdamgenetics: number;

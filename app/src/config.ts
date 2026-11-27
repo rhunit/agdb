@@ -10,7 +10,7 @@ import type { LocationId } from "./types";
 export const VISIBLE_LOCATION_IDS: LocationId[] = [
   "boerejongens",
   "almere",
-  "depijp",
+  "west",
   "centrum",
   "sloterdijk",
   "amsterdamgenetics",
@@ -38,7 +38,7 @@ export const LOCATION_TAB_LABEL: Record<LocationId, string> = {
   centrum: "Coffeeshop BIJ",
   almere: "Boerejongens Almere",
   sloterdijk: "Coffeeshop Sloterdijk",
-  depijp: "Boerejongens West",
+  west: "Boerejongens West",
   // The Utrechtsestraat shop; "Centrum" as in the reply instructions, so it
   // isn't mistaken for Boerejongens Almere next to it.
   boerejongens: "Boerejongens Centrum",

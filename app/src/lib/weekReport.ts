@@ -13,7 +13,7 @@ export type ReportCategory = (typeof REPORT_CATEGORIES)[number];
 export const REPORT_LOCATION_ORDER: LocationId[] = [
   "boerejongens",
   "centrum",
-  "depijp",
+  "west",
   "almere",
   "sloterdijk",
   "amsterdamgenetics",

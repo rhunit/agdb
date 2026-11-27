@@ -15,7 +15,7 @@ export type StarCounts = Record<1 | 2 | 3 | 4 | 5, number>;
 export const REPORT_LOCATIONS: { id: InternalLocationId; name: string }[] = [
   { id: "boerejongens", name: "Boerejongens Centrum" },
   { id: "centrum", name: "Coffeeshop BIJ" },
-  { id: "depijp", name: "Boerejongens West" },
+  { id: "west", name: "Boerejongens West" },
   { id: "almere", name: "Boerejongens Almere" },
   { id: "sloterdijk", name: "Coffeeshop Sloterdijk" },
   { id: "amsterdamgenetics", name: "Amsterdam Genetics" },

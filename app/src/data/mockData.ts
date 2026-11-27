@@ -8,7 +8,7 @@ import type {
 
 // First 4 are verified real locations connected via the live Places API
 // integration — see server/src/googlePlaces.ts. The internal ids
-// (centrum/depijp/boerejongens) are historical/arbitrary and no
+// (centrum/west/boerejongens) are historical/arbitrary and no
 // longer describe the actual business — only the display name does.
 // "almere" is a newer location, discovered via the Business Profile
 // (OAuth) connection rather than Places — it has no Places API entry
@@ -19,7 +19,7 @@ import type {
 export const LOCATIONS: Location[] = [
   { id: "centrum", name: "Coffeeshop BIJ Amsterdam" },
   { id: "sloterdijk", name: "Coffeeshop Sloterdijk" },
-  { id: "depijp", name: "Boerejongens West" },
+  { id: "west", name: "Boerejongens West" },
   { id: "boerejongens", name: "Boerejongens Coffeeshop" },
   { id: "almere", name: "Boerejongens Almere" },
   { id: "amsterdamgenetics", name: "Amsterdam Genetics" },
@@ -28,7 +28,7 @@ export const LOCATIONS: Location[] = [
 export const PREVIOUS_WEEK_AVG_SCORE: Record<LocationId, number> = {
   centrum: 4.5,
   sloterdijk: 4.4,
-  depijp: 4.7,
+  west: 4.7,
   boerejongens: 4.6,
   almere: 0,
   amsterdamgenetics: 0,
@@ -37,7 +37,7 @@ export const PREVIOUS_WEEK_AVG_SCORE: Record<LocationId, number> = {
 export const PREVIOUS_WEEK_REVIEW_COUNT: Record<LocationId, number> = {
   centrum: 3,
   sloterdijk: 4,
-  depijp: 3,
+  west: 3,
   boerejongens: 3,
   almere: 0,
   amsterdamgenetics: 0,
@@ -49,7 +49,7 @@ export const PREVIOUS_WEEK_REVIEW_COUNT: Record<LocationId, number> = {
 export const PREVIOUS_WEEK_TOP_RATED_COUNT: Record<LocationId, number> = {
   centrum: 2,
   sloterdijk: 1,
-  depijp: 2,
+  west: 2,
   boerejongens: 1,
   almere: 0,
   amsterdamgenetics: 0,
@@ -58,7 +58,7 @@ export const PREVIOUS_WEEK_TOP_RATED_COUNT: Record<LocationId, number> = {
 export const PREVIOUS_WEEK_CRITICAL_COUNT: Record<LocationId, number> = {
   centrum: 0,
   sloterdijk: 1,
-  depijp: 0,
+  west: 0,
   boerejongens: 1,
   almere: 0,
   amsterdamgenetics: 0,
@@ -92,7 +92,7 @@ export const REVIEWS: Review[] = [
   },
   {
     id: "r3",
-    location: "depijp",
+    location: "west",
     reviewer: "Merel de Vries",
     initials: "MV",
     rating: 5,
@@ -179,7 +179,7 @@ export const REVIEWS: Review[] = [
   },
   {
     id: "r10",
-    location: "depijp",
+    location: "west",
     reviewer: "Joris Bakker",
     initials: "JB",
     rating: 4,
@@ -191,7 +191,7 @@ export const REVIEWS: Review[] = [
   },
   {
     id: "r11",
-    location: "depijp",
+    location: "west",
     reviewer: "Elif Yildiz",
     initials: "EY",
     rating: 5,
@@ -203,7 +203,7 @@ export const REVIEWS: Review[] = [
   },
   {
     id: "r12",
-    location: "depijp",
+    location: "west",
     reviewer: "Wouter Smit",
     initials: "WS",
     rating: 4,
@@ -273,7 +273,7 @@ export const WEEKLY_LOG: WeeklyLogEntry[] = [
   {
     id: "w3",
     week: "2026-W35",
-    location: "depijp",
+    location: "west",
     type: "smoke",
     submitter: "Sem Jansen",
     timestamp: "31-08-2026 18:20",
@@ -309,7 +309,7 @@ export const WEEKLY_LOG: WeeklyLogEntry[] = [
   {
     id: "w7",
     week: "2026-W33",
-    location: "depijp",
+    location: "west",
     type: "qr",
     submitter: "Sem Jansen",
     timestamp: "17-08-2026 18:31",
@@ -336,7 +336,7 @@ export const WEEKLY_LOG: WeeklyLogEntry[] = [
   {
     id: "w10",
     week: "2026-W31",
-    location: "depijp",
+    location: "west",
     type: "smoke",
     submitter: "Sem Jansen",
     timestamp: "03-08-2026 18:55",
@@ -367,12 +367,12 @@ export const WEEKLY_LOG: WeeklyLogEntry[] = [
 // the feed above (see REVIEWS), so the chart's rightmost point and the
 // "Nieuwe reviews" KPI tell the same story.
 export const REVIEW_GROWTH: ReviewGrowthWeek[] = [
-  { week: "W29", centrum: 2, sloterdijk: 2, depijp: 1, boerejongens: 2, almere: 0, amsterdamgenetics: 0 },
-  { week: "W30", centrum: 2, sloterdijk: 3, depijp: 2, boerejongens: 2, almere: 0, amsterdamgenetics: 0 },
-  { week: "W31", centrum: 3, sloterdijk: 2, depijp: 2, boerejongens: 3, almere: 0, amsterdamgenetics: 0 },
-  { week: "W32", centrum: 3, sloterdijk: 3, depijp: 3, boerejongens: 2, almere: 0, amsterdamgenetics: 0 },
-  { week: "W33", centrum: 4, sloterdijk: 3, depijp: 3, boerejongens: 3, almere: 0, amsterdamgenetics: 0 },
-  { week: "W34", centrum: 3, sloterdijk: 4, depijp: 3, boerejongens: 3, almere: 0, amsterdamgenetics: 0 },
-  { week: "W35", centrum: 4, sloterdijk: 4, depijp: 4, boerejongens: 2, almere: 0, amsterdamgenetics: 0 },
-  { week: "W36", centrum: 4, sloterdijk: 4, depijp: 4, boerejongens: 3, almere: 0, amsterdamgenetics: 0 },
+  { week: "W29", centrum: 2, sloterdijk: 2, west: 1, boerejongens: 2, almere: 0, amsterdamgenetics: 0 },
+  { week: "W30", centrum: 2, sloterdijk: 3, west: 2, boerejongens: 2, almere: 0, amsterdamgenetics: 0 },
+  { week: "W31", centrum: 3, sloterdijk: 2, west: 2, boerejongens: 3, almere: 0, amsterdamgenetics: 0 },
+  { week: "W32", centrum: 3, sloterdijk: 3, west: 3, boerejongens: 2, almere: 0, amsterdamgenetics: 0 },
+  { week: "W33", centrum: 4, sloterdijk: 3, west: 3, boerejongens: 3, almere: 0, amsterdamgenetics: 0 },
+  { week: "W34", centrum: 3, sloterdijk: 4, west: 3, boerejongens: 3, almere: 0, amsterdamgenetics: 0 },
+  { week: "W35", centrum: 4, sloterdijk: 4, west: 4, boerejongens: 2, almere: 0, amsterdamgenetics: 0 },
+  { week: "W36", centrum: 4, sloterdijk: 4, west: 4, boerejongens: 3, almere: 0, amsterdamgenetics: 0 },
 ];

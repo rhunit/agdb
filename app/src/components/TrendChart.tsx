@@ -5,7 +5,7 @@ import styles from "./TrendChart.module.css";
 export const LOCATION_COLOR: Record<LocationId, string> = {
   centrum: "#38b449",
   sloterdijk: "#4d3935",
-  depijp: "#6f5d58",
+  west: "#6f5d58",
   boerejongens: "#1f7a30",
   almere: "#b8902e",
   amsterdamgenetics: "#7a5ea8",
@@ -14,7 +14,7 @@ export const LOCATION_COLOR: Record<LocationId, string> = {
 const LOCATION_DASH: Record<LocationId, string | undefined> = {
   centrum: undefined,
   sloterdijk: undefined,
-  depijp: "5 4",
+  west: "5 4",
   boerejongens: "2 3",
   almere: "3 2",
   amsterdamgenetics: "6 2",
@@ -23,7 +23,7 @@ const LOCATION_DASH: Record<LocationId, string | undefined> = {
 const LOCATION_LABEL: Record<LocationId, string> = {
   centrum: "BIJ Amsterdam",
   sloterdijk: "Coffeeshop Sloterdijk",
-  depijp: "Boerejongens West",
+  west: "Boerejongens West",
   boerejongens: "Boerejongens Centrum",
   almere: "Boerejongens Almere",
   amsterdamgenetics: "Amsterdam Genetics",

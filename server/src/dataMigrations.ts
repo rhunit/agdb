@@ -67,6 +67,8 @@ const FEED = "https://www.google.nl/alerts/feeds/05724818571195403781";
 const MIGRATIONS: { id: string; run: () => void }[] = [
   // Coffeeshop Sloterdijk's internal id was the historical "oost".
   { id: "rename-location-oost-to-sloterdijk", run: () => renameLocation("oost", "sloterdijk") },
+  // Boerejongens West's internal id was the historical "depijp".
+  { id: "rename-location-depijp-to-west", run: () => renameLocation("depijp", "west") },
   {
     id: "mention-terms-topics-2026-11",
     run: () =>

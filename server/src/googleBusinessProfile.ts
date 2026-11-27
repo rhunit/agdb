@@ -4,7 +4,7 @@ import type { OAuth2Client } from "google-auth-library";
 export type InternalLocationId =
   | "centrum"
   | "sloterdijk"
-  | "depijp"
+  | "west"
   | "boerejongens"
   | "almere"
   | "amsterdamgenetics";
@@ -33,11 +33,11 @@ export function matchInternalId(title: string, address = ""): InternalLocationId
   // a title ("Boerejongens Coffeeshop"): Baarsjesweg is West, Utrechtsestraat
   // is Centrum.
   const a = address.toLowerCase();
-  if (a.includes("baarsjesweg")) return "depijp";
+  if (a.includes("baarsjesweg")) return "west";
   if (a.includes("utrechtsestraat")) return "boerejongens";
   if (t.includes("bij amsterdam")) return "centrum";
   if (t.includes("sloterdijk")) return "sloterdijk";
-  if (t.includes("boerejongens") && t.includes("west")) return "depijp";
+  if (t.includes("boerejongens") && t.includes("west")) return "west";
   if (t.includes("boerejongens") && t.includes("almere")) return "almere";
   if (t.includes("boerejongens")) return "boerejongens";
   // The brand's own profile — checked last so a store title that merely
@@ -200,7 +200,7 @@ export async function getWeeklySearchViews(
           weekly[week] ??= {
             centrum: 0,
             sloterdijk: 0,
-            depijp: 0,
+            west: 0,
             boerejongens: 0,
             almere: 0,
             amsterdamgenetics: 0,
