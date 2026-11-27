@@ -27,8 +27,14 @@ export interface DiscoveredLocation {
  * location added later needs its own check here too, or it silently
  * collapses into the generic "boerejongens" bucket and corrupts that
  * other location's review data. */
-function matchInternalId(title: string): InternalLocationId | null {
+export function matchInternalId(title: string, address = ""): InternalLocationId | null {
   const t = title.toLowerCase();
+  // The street settles the Boerejongens shops even when their profiles share
+  // a title ("Boerejongens Coffeeshop"): Baarsjesweg is West, Utrechtsestraat
+  // is Centrum.
+  const a = address.toLowerCase();
+  if (a.includes("baarsjesweg")) return "depijp";
+  if (a.includes("utrechtsestraat")) return "boerejongens";
   if (t.includes("bij amsterdam")) return "centrum";
   if (t.includes("sloterdijk")) return "sloterdijk";
   if (t.includes("boerejongens") && t.includes("west")) return "depijp";
@@ -38,6 +44,34 @@ function matchInternalId(title: string): InternalLocationId | null {
   // mentions the brand still lands on that store.
   if (t.includes("amsterdam genetics")) return "amsterdamgenetics";
   return null;
+}
+
+/** One profile per internal id. The same location listed under two accounts
+ * is kept once; two different profiles matching the same id keep the first
+ * and leave the other unmatched — otherwise the second would overwrite the
+ * first's reviews, and its missing reviews would read as removed. */
+export function dedupe(locations: DiscoveredLocation[]): DiscoveredLocation[] {
+  const seenLocation = new Set<string>();
+  const seenId = new Map<InternalLocationId, string>();
+  const out: DiscoveredLocation[] = [];
+  for (const loc of locations) {
+    const key = loc.googleLocationId;
+    if (seenLocation.has(key)) continue;
+    seenLocation.add(key);
+    if (loc.internalId) {
+      const first = seenId.get(loc.internalId);
+      if (first) {
+        console.warn(
+          `locations: "${loc.name}" (${key}) also matches ${loc.internalId}, already "${first}" — left unmatched`,
+        );
+        out.push({ ...loc, internalId: null });
+        continue;
+      }
+      seenId.set(loc.internalId, loc.name);
+    }
+    out.push(loc);
+  }
+  return out;
 }
 
 async function listAccounts(auth: OAuth2Client) {
@@ -68,21 +102,29 @@ async function fetchLocations(auth: OAuth2Client): Promise<DiscoveredLocation[]>
   const out: DiscoveredLocation[] = [];
   for (const account of accounts) {
     if (!account.name) continue;
-    const res = await info.accounts.locations.list({
-      parent: account.name,
-      readMask: "name,title",
-    });
-    for (const loc of res.data.locations ?? []) {
-      if (!loc.name || !loc.title) continue;
-      out.push({
-        internalId: matchInternalId(loc.title),
-        googleLocationId: loc.name,
-        accountName: account.name,
-        name: loc.title,
+    let pageToken: string | undefined;
+    do {
+      const res = await info.accounts.locations.list({
+        parent: account.name,
+        readMask: "name,title,storefrontAddress",
+        pageSize: 100,
+        pageToken,
       });
-    }
+      for (const loc of res.data.locations ?? []) {
+        if (!loc.name || !loc.title) continue;
+        const addr = loc.storefrontAddress;
+        const address = [...(addr?.addressLines ?? []), addr?.locality ?? "", addr?.postalCode ?? ""].join(" ");
+        out.push({
+          internalId: matchInternalId(loc.title, address),
+          googleLocationId: loc.name,
+          accountName: account.name,
+          name: loc.title,
+        });
+      }
+      pageToken = res.data.nextPageToken ?? undefined;
+    } while (pageToken);
   }
-  return out;
+  return dedupe(out);
 }
 
 const SEARCH_METRICS = [

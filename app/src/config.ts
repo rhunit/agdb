@@ -10,6 +10,7 @@ import type { LocationId } from "./types";
 export const VISIBLE_LOCATION_IDS: LocationId[] = [
   "boerejongens",
   "almere",
+  "depijp",
   "centrum",
   "sloterdijk",
   "amsterdamgenetics",
@@ -20,7 +21,9 @@ export const VISIBLE_LOCATION_IDS: LocationId[] = [
  * few reviews Google picks), marked with a red asterisk. Kept out of
  * VISIBLE_LOCATION_IDS on purpose — there they'd count as zero reviews in
  * the totals, Alle reviews, Rapportage and the weekly mail. */
-export const PUBLIC_ONLY_LOCATION_IDS: LocationId[] = ["depijp"];
+// Empty since Boerejongens West's profile is connected (November 2026); the
+// mechanism stays for a future location without profile access.
+export const PUBLIC_ONLY_LOCATION_IDS: LocationId[] = [];
 
 /** The location tabs in order (Dashboard and Alle reviews): Boerejongens
  * West (public data only) next to the other Boerejongens shops, after Almere. */
